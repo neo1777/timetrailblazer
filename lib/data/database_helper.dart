@@ -1,0 +1,118 @@
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:timetrailblazer/data/models/work_entry_dto.dart';
+
+/// La classe `DatabaseHelper` gestisce l'accesso al database SQLite dell'applicazione.
+class DatabaseHelper {
+  static const _databaseName = 'work_entries.db'; // Il nome del database
+  static const _databaseVersion = 1; // La versione del database
+  static const table = 'work_entries'; // Il nome della tabella nel database
+
+  static Database? _database; // L'istanza del database
+
+  /// Inizializza il database chiamando il metodo `database`.
+  Future<void> initializeDatabase() async {
+    await database;
+  }
+
+  /// Ottiene l'istanza del database. Se il database non esiste, viene creato.
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
+  }
+
+  /// Inizializza il database creando la tabella `work_entries` se non esiste.
+  Future<Database> _initDatabase() async {
+    final documentsDirectory = await getDatabasesPath();
+    final path = join(documentsDirectory, _databaseName);
+    return await openDatabase(
+      path,
+      version: _databaseVersion,
+      onCreate: _onCreate,
+    );
+  }
+
+  /// Crea la tabella `work_entries` nel database.
+  /// La tabella ha le seguenti colonne:
+  /// - `id`: l'ID della voce di lavoro (chiave primaria)
+  /// - `timestamp`: il timestamp della voce di lavoro
+  /// - `is_entry`: un flag che indica se la voce è un'entrata o un'uscita
+  Future<void> _onCreate(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE $table(
+        id INTEGER PRIMARY KEY,
+        timestamp INTEGER,
+        is_entry INTEGER
+      )
+    ''');
+  }
+
+  /// Inserisce una nuova voce di lavoro nel database.
+  Future<void> insertWorkEntry(WorkEntryDTO entry) async {
+    final db = await database;
+    await db.insert(
+      table,
+      entry.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// Recupera le voci di lavoro dal database in base all'intervallo di date specificato.
+  Future<List<WorkEntryDTO>> getWorkEntries(
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      table,
+      where: 'timestamp >= ? AND timestamp <= ?',
+      whereArgs: [
+        startDate.millisecondsSinceEpoch,
+        endDate.millisecondsSinceEpoch,
+      ],
+      orderBy: 'timestamp DESC',
+    );
+    return List.generate(maps.length, (i) => WorkEntryDTO.fromMap(maps[i]));
+  }
+
+  /// Elimina tutte le voci di lavoro dal database.
+  Future<void> deleteAllWorkEntries() async {
+    final db = await database;
+    await db.delete(table);
+  }
+
+  /// Elimina una specifica voce di lavoro dal database in base all'ID.
+  Future<void> deleteWorkEntry(int entryId) async {
+    final db = await database;
+    await db.delete(
+      table,
+      where: 'id = ?',
+      whereArgs: [entryId],
+    );
+  }
+
+  /// Aggiorna una voce di lavoro nel database.
+  Future<void> updateWorkEntry(WorkEntryDTO entry) async {
+    final db = await database;
+    await db.update(
+      table,
+      entry.toMap(),
+      where: 'id = ?',
+      whereArgs: [entry.id],
+    );
+  }
+
+  /// Recupera l'ultima voce di lavoro inserita nel database.
+  Future<WorkEntryDTO?> getLastWorkEntry() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      table,
+      orderBy: 'timestamp DESC',
+    );
+    if (maps.isNotEmpty) {
+      return WorkEntryDTO.fromMap(maps.first);
+    }
+    return null;
+  }
+}
