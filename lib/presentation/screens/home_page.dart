@@ -4,6 +4,8 @@ import 'package:timetrailblazer/constants.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
+import 'package:timetrailblazer/utils/error_handler.dart';
+import 'package:timetrailblazer/utils/logger.dart';
 
 /// La schermata principale dell'applicazione.
 class HomePage extends StatefulWidget {
@@ -98,10 +100,15 @@ class HomePageState extends State<HomePage> {
       timestamp: DateTime.now(),
       isEntry: isEntry,
     );
-    workEntriesBloc.add(AddWorkEntry(entry));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(isEntry ? entryRegistered : exitRegistered)),
-    );
+    try {
+      workEntriesBloc.add(AddWorkEntry(entry));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isEntry ? entryRegistered : exitRegistered)),
+      );
+    } catch (e) {
+      logger.e('Errore durante la registrazione della voce di lavoro', error: e);
+      ErrorHandler.showErrorDialog(context, 'Errore di registrazione', 'Errore durante la registrazione della voce di lavoro: ${e.toString()}. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.');
+    }
   }
 
   /// Aggiorna le voci di lavoro visualizzate nella schermata.

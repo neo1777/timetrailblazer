@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
+import 'package:timetrailblazer/utils/logger.dart';
 
 part 'work_entries_event.dart';
 part 'work_entries_state.dart';
@@ -43,7 +44,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
       emit(WorkEntriesLoaded(sortedEntries, _groupEntriesByDay(sortedEntries)));
     } catch (e) {
-      emit(WorkEntriesError(e.toString()));
+      logger.e('Errore durante il recupero delle voci di lavoro', error: e);
+      emit(WorkEntriesError('Errore durante il recupero delle voci di lavoro: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.'));
     }
   }
 
@@ -74,7 +76,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         endDate: event.entry.day.add(const Duration(days: 1)),
       ));
     } catch (e) {
-      emit(WorkEntriesError(e.toString()));
+      logger.e('Errore durante l\'aggiunta di una nuova voce di lavoro', error: e);
+      emit(WorkEntriesError('Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
     }
   }
 
@@ -91,7 +94,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         endDate: event.entry.day.add(const Duration(days: 1)),
       ));
     } catch (e) {
-      emit(WorkEntriesError(e.toString()));
+      logger.e('Errore durante l\'aggiornamento di una voce di lavoro', error: e);
+      emit(WorkEntriesError('Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
     }
   }
 
@@ -108,7 +112,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         endDate: event.day.add(const Duration(days: 1)),
       ));
     } catch (e) {
-      emit(WorkEntriesError(e.toString()));
+      logger.e('Errore durante l\'eliminazione di una voce di lavoro', error: e);
+      emit(WorkEntriesError('Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
     }
   }
 
@@ -125,7 +130,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         endDate: event.endDate,
       ));
     } catch (e) {
-      emit(WorkEntriesError(e.toString()));
+      logger.e('Errore durante l\'eliminazione di tutte le voci di lavoro', error: e);
+      emit(WorkEntriesError('Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
     }
   }
 

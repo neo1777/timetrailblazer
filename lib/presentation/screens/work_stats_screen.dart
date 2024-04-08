@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/presentation/widgets/work_stats_list_item.dart';
+import 'package:timetrailblazer/utils/error_handler.dart';
+import 'package:timetrailblazer/utils/logger.dart';
 
 /// La schermata che mostra le statistiche di lavoro.
 class WorkStatsScreen extends StatelessWidget {
@@ -21,10 +23,12 @@ class WorkStatsScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                  'Errore durante il caricamento delle statistiche: ${snapshot.error}'),
+            logger.e('Errore durante il caricamento delle statistiche', error: snapshot.error);
+            ErrorHandler.showErrorNotification(
+              context,
+              'Errore durante il caricamento delle statistiche: ${snapshot.error}. Si prega di riprovare più tardi.',
             );
+            return Container();
           } else {
             final workTimeMap = snapshot.data!;
             final workDates = workTimeMap.keys.toList();

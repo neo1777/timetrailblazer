@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
+import 'package:timetrailblazer/utils/logger.dart';
 
 part 'edit_work_entry_event.dart';
 part 'edit_work_entry_state.dart';
@@ -20,30 +21,45 @@ class EditWorkEntryBloc extends Bloc<EditWorkEntryEvent, EditWorkEntryState> {
   /// Gestore dell'evento `UpdateDate`.
   /// Aggiorna la data della voce di lavoro nello stato corrente.
   void _onUpdateDate(UpdateDate event, Emitter<EditWorkEntryState> emit) {
-    final updatedWorkEntry = state.workEntry.copyWith(
-      timestamp: DateTime(
-        event.date.year,
-        event.date.month,
-        event.date.day,
-        state.workEntry.timestamp.hour,
-        state.workEntry.timestamp.minute,
-      ),
-    );
-    emit(EditWorkEntryUpdated(updatedWorkEntry));
+    try {
+      final updatedWorkEntry = state.workEntry.copyWith(
+        timestamp: DateTime(
+          event.date.year,
+          event.date.month,
+          event.date.day,
+          state.workEntry.timestamp.hour,
+          state.workEntry.timestamp.minute,
+        ),
+      );
+      emit(EditWorkEntryUpdated(updatedWorkEntry));
+    } catch (e) {
+      logger.e(
+          'Errore durante l\'aggiornamento della data della voce di lavoro',
+          error: e);
+      emit(EditWorkEntryError(state.workEntry,
+          'Errore durante l\'aggiornamento della data della voce di lavoro: ${e.toString()}. Si prega di verificare la data selezionata e riprovare.'));
+    }
   }
 
   /// Gestore dell'evento `UpdateTime`.
   /// Aggiorna l'ora della voce di lavoro nello stato corrente.
   void _onUpdateTime(UpdateTime event, Emitter<EditWorkEntryState> emit) {
-    final updatedWorkEntry = state.workEntry.copyWith(
-      timestamp: DateTime(
-        state.workEntry.timestamp.year,
-        state.workEntry.timestamp.month,
-        state.workEntry.timestamp.day,
-        event.time.hour,
-        event.time.minute,
-      ),
-    );
-    emit(EditWorkEntryUpdated(updatedWorkEntry));
+    try {
+      final updatedWorkEntry = state.workEntry.copyWith(
+        timestamp: DateTime(
+          state.workEntry.timestamp.year,
+          state.workEntry.timestamp.month,
+          state.workEntry.timestamp.day,
+          event.time.hour,
+          event.time.minute,
+        ),
+      );
+      emit(EditWorkEntryUpdated(updatedWorkEntry));
+    } catch (e) {
+      logger.e('Errore durante l\'aggiornamento dell\'ora della voce di lavoro',
+          error: e);
+      emit(EditWorkEntryError(state.workEntry,
+          'Errore durante l\'aggiornamento dell\'ora della voce di lavoro: ${e.toString()}. Si prega di verificare l\'ora selezionata e riprovare.'));
+    }
   }
 }

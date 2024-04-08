@@ -19,3 +19,12 @@ class EditWorkEntryInitial extends EditWorkEntryState {
 class EditWorkEntryUpdated extends EditWorkEntryState {
   const EditWorkEntryUpdated(super.workEntry);
 }
+
+class EditWorkEntryError extends EditWorkEntryState {
+  final String errorMessage;
+
+  const EditWorkEntryError(super.workEntry, this.errorMessage);
+
+  @override
+  List<Object> get props => [workEntry, errorMessage];
+}

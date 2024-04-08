@@ -8,6 +8,8 @@ import 'package:timetrailblazer/constants.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/presentation/widgets/weekly_calendar.dart';
+import 'package:timetrailblazer/utils/error_handler.dart';
+import 'package:timetrailblazer/utils/logger.dart';
 
 /// La schermata che mostra le voci di lavoro registrate.
 class WorkEntriesScreen extends StatefulWidget {
@@ -53,12 +55,20 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
     final state = _workEntriesBloc.state;
     if (state is WorkEntriesLoaded) {
       final entries = state.entries;
-      final path =
-          await context.read<WorkEntriesRepository>().exportToCsv(entries);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$csvExportSuccess $path')),
-        );
+      try {
+        final path =
+            await context.read<WorkEntriesRepository>().exportToCsv(entries);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$csvExportSuccess $path')),
+          );
+        }
+      } catch (e) {
+        logger.e(
+            'Errore durante l\'esportazione delle voci di lavoro in formato CSV',
+            error: e);
+        ErrorHandler.showErrorDialog(context, 'Errore di esportazione',
+            'Errore durante l\'esportazione delle voci di lavoro in formato CSV: ${e.toString()}. Si prega di verificare che ci sia spazio sufficiente sul dispositivo e che l\'applicazione abbia i permessi necessari per scrivere i file.');
       }
     }
   }
@@ -176,7 +186,9 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (state is WorkEntriesError) {
-                  return Center(child: Text('Error: ${state.message}'));
+                  ErrorHandler.showErrorNotification(context,
+                      'Errore durante il caricamento delle voci di lavoro: ${state.message}. Si prega di riprovare più tardi o verificare la connessione di rete.');
+                  return Center(child: Text('Errore durante il caricamento delle voci di lavoro: ${state.message}. Si prega di riprovare più tardi o verificare la connessione di rete.'));
                 }
                 if (state is WorkEntriesLoaded) {
                   // Il `WeeklyCalendar` viene utilizzato per visualizzare le voci di lavoro raggruppate per giorno
@@ -276,28 +288,25 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
     );
 
     if (result != null && result.files.isNotEmpty) {
-      final path = result.files.first.path;
-      if (path != null) {
-        try {
-          if (mounted) {
-            await context.read<WorkEntriesRepository>().importFromCsv(path);
-          }
-          _workEntriesBloc.add(FetchWorkEntries(
-            startDate: _startDate,
-            endDate: _endDate.add(const Duration(days: 1)),
-          ));
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Importazione CSV completata')),
-            );
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Errore durante l\'importazione CSV: $e')),
-            );
-          }
-        }
+  final path = result.files.first.path;
+  if (path != null) {
+    try {
+      if (mounted) {
+        await context.read<WorkEntriesRepository>().importFromCsv(path);
+      }
+      _workEntriesBloc.add(FetchWorkEntries(
+        startDate: _startDate,
+        endDate: _endDate.add(const Duration(days: 1)),
+      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Importazione CSV completata')),
+        );
+      }
+    } catch (e) {
+      logger.e('Errore durante l\'importazione CSV', error: e);
+      ErrorHandler.showErrorSnackBar(context, 'Errore durante l\'importazione CSV: ${e.toString()}');
+    }
       }
     }
   }

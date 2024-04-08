@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:timetrailblazer/domain/blocs/edit_work_entry/edit_work_entry_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
+import 'package:timetrailblazer/utils/error_handler.dart';
+import 'package:timetrailblazer/utils/logger.dart';
 
 /// Schermata per la modifica di una voce di lavoro.
 class EditWorkEntryScreen extends StatelessWidget {
@@ -119,9 +121,9 @@ class EditWorkEntryView extends StatelessWidget {
       context.read<WorkEntriesBloc>().add(UpdateWorkEntry(workEntry));
       Navigator.pop(context, workEntry);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      logger.e('Errore durante l\'aggiornamento della voce di lavoro', error: e);
+      ErrorHandler.showErrorDialog(context, 'Errore di aggiornamento', 'Errore durante l\'aggiornamento della voce di lavoro: ${e.toString()}. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.');
     }
   }
+
 }
