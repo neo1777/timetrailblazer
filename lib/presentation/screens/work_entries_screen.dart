@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,7 +68,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
         logger.e(
             'Errore durante l\'esportazione delle voci di lavoro in formato CSV',
             error: e);
-        ErrorHandler.showErrorDialog(context, 'Errore di esportazione',
+        ErrorHandler.showErrorDialog('Errore di esportazione',
             'Errore durante l\'esportazione delle voci di lavoro in formato CSV: ${e.toString()}. Si prega di verificare che ci sia spazio sufficiente sul dispositivo e che l\'applicazione abbia i permessi necessari per scrivere i file.');
       }
     }
@@ -185,7 +187,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (state is WorkEntriesError) {
-                  ErrorHandler.showErrorNotification(context,
+                  ErrorHandler.showErrorNotification(
                       'Errore durante il caricamento delle voci di lavoro: ${state.message}. Si prega di riprovare più tardi o verificare la connessione di rete.');
                   return Container();
                 }
@@ -233,7 +235,24 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
       lastDate: lastDate,
     );
 
+    // Validazione dei dati
     if (pickedDate != null) {
+      if (isStartDate && pickedDate.isAfter(_endDate)) {
+        // Mostra un messaggio di errore se la data di inizio selezionata è successiva alla data di fine
+        ErrorHandler.showErrorDialog(
+          'Data non valida',
+          'La data di inizio non può essere successiva alla data di fine. Per favore, seleziona una data di inizio valida.',
+        );
+        return;
+      }
+      if (!isStartDate && pickedDate.isBefore(_startDate)) {
+        // Mostra un messaggio di errore se la data di fine selezionata è precedente alla data di inizio
+        ErrorHandler.showErrorDialog(
+          'Data non valida',
+          'La data di fine non può essere precedente alla data di inizio. Per favore, seleziona una data di fine valida.',
+        );
+        return;
+      }
       if (isStartDate) {
         _startDate = pickedDate;
       } else {
@@ -286,10 +305,20 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
       allowedExtensions: ['csv'],
     );
 
+    // Validazione dei dati
     if (result != null && result.files.isNotEmpty) {
       final path = result.files.first.path;
       if (path != null) {
         try {
+          // Controlla se il file CSV esiste e ha un formato valido prima di chiamare il metodo del repository
+          final file = File(path);
+          if (!await file.exists()) {
+            throw Exception('File CSV non trovato');
+          }
+          final csvString = await file.readAsString();
+          if (csvString.isEmpty) {
+            throw Exception('File CSV vuoto');
+          }
           if (mounted) {
             await context.read<WorkEntriesRepository>().importFromCsv(path);
           }
@@ -304,10 +333,22 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
           }
         } catch (e) {
           logger.e('Errore durante l\'importazione CSV', error: e);
+
           ErrorHandler.showErrorSnackBar(
-              context, 'Errore durante l\'importazione CSV: ${e.toString()}');
+            'Errore durante l\'importazione CSV: ${e.toString()}',
+          );
         }
+      } else {
+        // Mostra un messaggio di errore se il percorso del file è nullo
+        ErrorHandler.showErrorSnackBar(
+          'Errore durante la selezione del file CSV. Per favore, riprova e seleziona un file CSV valido.',
+        );
       }
+    } else {
+      // Mostra un messaggio di errore se nessun file è stato selezionato
+      ErrorHandler.showErrorSnackBar(
+        'Nessun file CSV selezionato. Per favore, seleziona un file CSV per l\'importazione.',
+      );
     }
   }
 }

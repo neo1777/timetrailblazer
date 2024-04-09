@@ -95,19 +95,39 @@ class HomePageState extends State<HomePage> {
 
   /// Registra una nuova voce di lavoro (entrata o uscita) nel database.
   void _registerEntry(BuildContext context, bool isEntry) {
+    final now = DateTime.now();
     final workEntriesBloc = context.read<WorkEntriesBloc>();
+
+    // Validazione dei dati
+    if (now.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
+      // Mostra un messaggio di errore se la data è precedente a ieri
+      ErrorHandler.showErrorDialog(
+        'Data non valida',
+        'Non è possibile registrare voci di lavoro per date precedenti a ieri. Per favore, seleziona una data valida.',
+      );
+      return;
+    }
+
     final entry = WorkEntry(
-      timestamp: DateTime.now(),
+      timestamp: now,
       isEntry: isEntry,
     );
+
     try {
+      // Controlla se i dati sono validi prima di chiamare il metodo del repository
+      if (entry.timestamp
+          .isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
+        throw Exception('Data non valida');
+      }
       workEntriesBloc.add(AddWorkEntry(entry));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(isEntry ? entryRegistered : exitRegistered)),
       );
     } catch (e) {
-      logger.e('Errore durante la registrazione della voce di lavoro', error: e);
-      ErrorHandler.showErrorDialog(context, 'Errore di registrazione', 'Errore durante la registrazione della voce di lavoro: ${e.toString()}. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.');
+      logger.e('Errore durante la registrazione della voce di lavoro',
+          error: e);
+      ErrorHandler.showErrorDialog('Errore di registrazione',
+          'Errore durante la registrazione della voce di lavoro: ${e.toString()}. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.');
     }
   }
 

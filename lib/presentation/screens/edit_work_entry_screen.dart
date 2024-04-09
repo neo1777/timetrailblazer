@@ -95,7 +95,17 @@ class EditWorkEntryView extends StatelessWidget {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
+
+    // Validazione dei dati
     if (picked != null) {
+      if (picked.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
+        // Mostra un messaggio di errore se la data selezionata è precedente a ieri
+        ErrorHandler.showErrorDialog(
+          'Data non valida',
+          'Non è possibile selezionare una data precedente a ieri. Per favore, seleziona una data valida.',
+        );
+        return;
+      }
       editWorkEntryBloc.add(UpdateDate(picked));
     }
   }
@@ -108,7 +118,26 @@ class EditWorkEntryView extends StatelessWidget {
       initialTime:
           TimeOfDay.fromDateTime(editWorkEntryBloc.state.workEntry.timestamp),
     );
+
+    // Validazione dei dati
     if (picked != null) {
+      final now = DateTime.now();
+      final selectedDateTime = DateTime(
+        editWorkEntryBloc.state.workEntry.timestamp.year,
+        editWorkEntryBloc.state.workEntry.timestamp.month,
+        editWorkEntryBloc.state.workEntry.timestamp.day,
+        picked.hour,
+        picked.minute,
+      );
+
+      if (selectedDateTime.isAfter(now)) {
+        // Mostra un messaggio di errore se l'orario selezionato è nel futuro
+        ErrorHandler.showErrorDialog(
+          'Orario non valido',
+          'Non è possibile selezionare un orario futuro. Per favore, seleziona un orario valido.',
+        );
+        return;
+      }
       editWorkEntryBloc.add(UpdateTime(picked));
     }
   }
@@ -118,12 +147,20 @@ class EditWorkEntryView extends StatelessWidget {
     final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
     final workEntry = editWorkEntryBloc.state.workEntry;
     try {
+      // Controlla se i dati sono validi prima di chiamare il metodo del repository
+      if (workEntry.timestamp
+          .isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
+        throw Exception('Data non valida');
+      }
+      if (workEntry.timestamp.isAfter(DateTime.now())) {
+        throw Exception('Orario non valido');
+      }
       context.read<WorkEntriesBloc>().add(UpdateWorkEntry(workEntry));
       Navigator.pop(context, workEntry);
     } catch (e) {
       logger.e('Errore durante l\'aggiornamento della voce di lavoro',
           error: e);
-      ErrorHandler.showErrorDialog(context, 'Errore di aggiornamento',
+      ErrorHandler.showErrorDialog('Errore di aggiornamento',
           'Errore durante l\'aggiornamento della voce di lavoro: ${e.toString()}. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.');
     }
   }

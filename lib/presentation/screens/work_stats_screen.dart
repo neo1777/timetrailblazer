@@ -23,9 +23,9 @@ class WorkStatsScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            logger.e('Errore durante il caricamento delle statistiche', error: snapshot.error);
+            logger.e('Errore durante il caricamento delle statistiche',
+                error: snapshot.error);
             ErrorHandler.showErrorNotification(
-              context,
               'Errore durante il caricamento delle statistiche: ${snapshot.error}. Si prega di riprovare più tardi.',
             );
             return Container();
