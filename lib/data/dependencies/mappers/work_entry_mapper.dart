@@ -13,8 +13,10 @@ class WorkEntryMapper {
         isEntry: dto.isEntry,
       );
     } catch (e) {
-      logger.e('Errore durante la mappatura da WorkEntryDTO a WorkEntry', error: e);
-      throw Exception('Errore durante la mappatura da WorkEntryDTO a WorkEntry: ${e.toString()}. Si prega di verificare i dati del DTO e contattare l\'assistenza se il problema persiste.');
+      logger.e('Errore durante la mappatura da WorkEntryDTO a WorkEntry',
+          error: e);
+      throw Exception(
+          'Errore durante la mappatura da WorkEntryDTO a WorkEntry: ${e.toString()}. Si prega di verificare i dati del DTO e contattare l\'assistenza se il problema persiste.');
     }
   }
 
@@ -27,8 +29,10 @@ class WorkEntryMapper {
         isEntry: entry.isEntry,
       );
     } catch (e) {
-      logger.e('Errore durante la mappatura da WorkEntry a WorkEntryDTO', error: e);
-      throw Exception('Errore durante la mappatura da WorkEntry a WorkEntryDTO: ${e.toString()}. Si prega di verificare i dati dell\'entità WorkEntry e contattare l\'assistenza se il problema persiste.');
+      logger.e('Errore durante la mappatura da WorkEntry a WorkEntryDTO',
+          error: e);
+      throw Exception(
+          'Errore durante la mappatura da WorkEntry a WorkEntryDTO: ${e.toString()}. Si prega di verificare i dati dell\'entità WorkEntry e contattare l\'assistenza se il problema persiste.');
     }
   }
 }

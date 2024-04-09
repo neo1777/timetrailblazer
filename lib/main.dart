@@ -33,13 +33,12 @@ void main() async {
   // Crea un'istanza di DatabaseHelper per gestire il database dell'app
   final databaseHelper = DatabaseHelper();
   // Inizializza il database chiamando il metodo `initializeDatabase()` del DatabaseHelper
-  await databaseHelper.initializeDatabase();
-
-  // Avvia l'applicazione Flutter utilizzando il widget `DependencyInjectorHelper` di Pine
-  // Il `DependencyInjectorHelper` viene utilizzato per l'iniezione delle dipendenze nell'albero dei widget
-  // Vengono forniti i mapper, i provider, i repository e i BLoC necessari all'applicazione
   try {
     await databaseHelper.initializeDatabase();
+
+    /// Avvia l'applicazione Flutter utilizzando il widget `DependencyInjectorHelper` di Pine
+    /// Il `DependencyInjectorHelper` viene utilizzato per l'iniezione delle dipendenze nell'albero dei widget
+    /// Vengono forniti i mapper, i provider, i repository e i BLoC necessari all'applicazione
     runApp(
       DependencyInjectorHelper(
         mappers: getMappers(), // Ottiene i mapper per la conversione dei dati
@@ -60,7 +59,8 @@ void main() async {
         home: Scaffold(
           body: Center(
             child: Text(
-                'Errore durante l\'inizializzazione del database: ${e.toString()}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.'),
+              'Errore durante l\'inizializzazione del database: ${e.toString()}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
+            ),
           ),
         ),
       ),

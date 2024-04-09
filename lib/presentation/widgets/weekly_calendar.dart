@@ -52,8 +52,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
   }
 
   /// Costruisce una riga per un giorno nel calendario settimanale.
-  Widget _buildDayRow(
-      BuildContext context, DateTime day, List<WorkEntry> entries) {
+  Widget _buildDayRow(BuildContext context, DateTime day, List<WorkEntry> entries) {
     final formattedDate = DateFormat('EEE, dd MMM yyyy', 'it_IT').format(day);
 
     return Column(
@@ -81,8 +80,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          EditWorkEntryScreen(workEntry: entry),
+                      builder: (context) => EditWorkEntryScreen(workEntry: entry),
                     ),
                   ).then((updatedEntry) {
                     if (updatedEntry != null) {
@@ -106,8 +104,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              EditWorkEntryScreen(workEntry: entry),
+                          builder: (context) => EditWorkEntryScreen(workEntry: entry),
                         ),
                       ).then((updatedEntry) {
                         if (updatedEntry != null) {

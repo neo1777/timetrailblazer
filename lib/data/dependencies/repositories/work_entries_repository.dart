@@ -22,8 +22,11 @@ class WorkEntriesRepository {
       final dto = _workEntryMapper.toDTO(entry);
       await _workEntriesProvider.insertWorkEntry(dto);
     } catch (e) {
-      logger.e('Errore durante l\'inserimento della voce di lavoro nel repository', error: e);
-      throw Exception('Errore durante l\'inserimento della voce di lavoro nel repository: ${e.toString()}');
+      logger.e(
+          'Errore durante l\'inserimento della voce di lavoro nel repository',
+          error: e);
+      throw Exception(
+          'Errore durante l\'inserimento della voce di lavoro nel repository: ${e.toString()}');
     }
   }
 
@@ -39,8 +42,10 @@ class WorkEntriesRepository {
       );
       return dtos.map(_workEntryMapper.fromDTO).toList(growable: false);
     } catch (e) {
-      logger.e('Errore durante il recupero delle voci di lavoro nel repository', error: e);
-      throw Exception('Errore durante il recupero delle voci di lavoro nel repository: ${e.toString()}');
+      logger.e('Errore durante il recupero delle voci di lavoro nel repository',
+          error: e);
+      throw Exception(
+          'Errore durante il recupero delle voci di lavoro nel repository: ${e.toString()}');
     }
   }
 
@@ -49,8 +54,11 @@ class WorkEntriesRepository {
     try {
       await _workEntriesProvider.deleteAllWorkEntries();
     } catch (e) {
-      logger.e('Errore durante l\'eliminazione di tutte le voci di lavoro nel repository', error: e);
-      throw Exception('Errore durante l\'eliminazione di tutte le voci di lavoro nel repository: ${e.toString()}');
+      logger.e(
+          'Errore durante l\'eliminazione di tutte le voci di lavoro nel repository',
+          error: e);
+      throw Exception(
+          'Errore durante l\'eliminazione di tutte le voci di lavoro nel repository: ${e.toString()}');
     }
   }
 
@@ -59,8 +67,11 @@ class WorkEntriesRepository {
     try {
       await _workEntriesProvider.deleteWorkEntry(entryId);
     } catch (e) {
-      logger.e('Errore durante l\'eliminazione della voce di lavoro nel repository', error: e);
-      throw Exception('Errore durante l\'eliminazione della voce di lavoro nel repository: ${e.toString()}');
+      logger.e(
+          'Errore durante l\'eliminazione della voce di lavoro nel repository',
+          error: e);
+      throw Exception(
+          'Errore durante l\'eliminazione della voce di lavoro nel repository: ${e.toString()}');
     }
   }
 
@@ -70,8 +81,11 @@ class WorkEntriesRepository {
       final dto = _workEntryMapper.toDTO(entry);
       await _workEntriesProvider.updateWorkEntry(dto);
     } catch (e) {
-      logger.e('Errore durante l\'aggiornamento della voce di lavoro nel repository', error: e);
-      throw Exception('Errore durante l\'aggiornamento della voce di lavoro nel repository: ${e.toString()}');
+      logger.e(
+          'Errore durante l\'aggiornamento della voce di lavoro nel repository',
+          error: e);
+      throw Exception(
+          'Errore durante l\'aggiornamento della voce di lavoro nel repository: ${e.toString()}');
     }
   }
 
@@ -84,8 +98,11 @@ class WorkEntriesRepository {
       }
       return null;
     } catch (e) {
-      logger.e('Errore durante il recupero dell\'ultima voce di lavoro nel repository', error: e);
-      throw Exception('Errore durante il recupero dell\'ultima voce di lavoro nel repository: ${e.toString()}');
+      logger.e(
+          'Errore durante il recupero dell\'ultima voce di lavoro nel repository',
+          error: e);
+      throw Exception(
+          'Errore durante il recupero dell\'ultima voce di lavoro nel repository: ${e.toString()}');
     }
   }
 
@@ -109,8 +126,10 @@ class WorkEntriesRepository {
 
       return path;
     } catch (e) {
-      logger.e('Errore durante l\'esportazione delle voci di lavoro in CSV', error: e);
-      throw Exception('Errore durante l\'esportazione delle voci di lavoro in CSV: ${e.toString()}');
+      logger.e('Errore durante l\'esportazione delle voci di lavoro in CSV',
+          error: e);
+      throw Exception(
+          'Errore durante l\'esportazione delle voci di lavoro in CSV: ${e.toString()}');
     }
   }
 
@@ -133,8 +152,10 @@ class WorkEntriesRepository {
             .insertWorkEntry(_workEntryMapper.toDTO(workEntry));
       }
     } catch (e) {
-      logger.e('Errore durante l\'importazione delle voci di lavoro da CSV', error: e);
-      throw Exception('Errore durante l\'importazione delle voci di lavoro da CSV: ${e.toString()}');
+      logger.e('Errore durante l\'importazione delle voci di lavoro da CSV',
+          error: e);
+      throw Exception(
+          'Errore durante l\'importazione delle voci di lavoro da CSV: ${e.toString()}');
     }
   }
 
@@ -164,7 +185,8 @@ class WorkEntriesRepository {
       return workTimeMap;
     } catch (e) {
       logger.e('Errore durante il calcolo del tempo di lavoro', error: e);
-      throw Exception('Errore durante il calcolo del tempo di lavoro: ${e.toString()}');
+      throw Exception(
+          'Errore durante il calcolo del tempo di lavoro: ${e.toString()}');
     }
   }
 }

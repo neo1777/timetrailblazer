@@ -121,9 +121,10 @@ class EditWorkEntryView extends StatelessWidget {
       context.read<WorkEntriesBloc>().add(UpdateWorkEntry(workEntry));
       Navigator.pop(context, workEntry);
     } catch (e) {
-      logger.e('Errore durante l\'aggiornamento della voce di lavoro', error: e);
-      ErrorHandler.showErrorDialog(context, 'Errore di aggiornamento', 'Errore durante l\'aggiornamento della voce di lavoro: ${e.toString()}. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.');
+      logger.e('Errore durante l\'aggiornamento della voce di lavoro',
+          error: e);
+      ErrorHandler.showErrorDialog(context, 'Errore di aggiornamento',
+          'Errore durante l\'aggiornamento della voce di lavoro: ${e.toString()}. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.');
     }
   }
-
 }

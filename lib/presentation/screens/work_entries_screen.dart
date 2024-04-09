@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:timetrailblazer/constants.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
@@ -188,7 +187,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                 if (state is WorkEntriesError) {
                   ErrorHandler.showErrorNotification(context,
                       'Errore durante il caricamento delle voci di lavoro: ${state.message}. Si prega di riprovare più tardi o verificare la connessione di rete.');
-                  return Center(child: Text('Errore durante il caricamento delle voci di lavoro: ${state.message}. Si prega di riprovare più tardi o verificare la connessione di rete.'));
+                  return Container();
                 }
                 if (state is WorkEntriesLoaded) {
                   // Il `WeeklyCalendar` viene utilizzato per visualizzare le voci di lavoro raggruppate per giorno
@@ -224,8 +223,8 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
   /// Mostra un selettore di data per scegliere la data di inizio o di fine delle voci di lavoro.
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final initialDate = isStartDate ? _startDate : _endDate;
-    final firstDate = isStartDate ? DateTime(2000, 1, 1) : (_startDate);
-    final lastDate = isStartDate ? (_endDate) : DateTime(2100);
+    final firstDate = isStartDate ? DateTime(2000, 1, 1) : _startDate;
+    final lastDate = isStartDate ? _endDate : DateTime(2100);
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -288,25 +287,26 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
     );
 
     if (result != null && result.files.isNotEmpty) {
-  final path = result.files.first.path;
-  if (path != null) {
-    try {
-      if (mounted) {
-        await context.read<WorkEntriesRepository>().importFromCsv(path);
-      }
-      _workEntriesBloc.add(FetchWorkEntries(
-        startDate: _startDate,
-        endDate: _endDate.add(const Duration(days: 1)),
-      ));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Importazione CSV completata')),
-        );
-      }
-    } catch (e) {
-      logger.e('Errore durante l\'importazione CSV', error: e);
-      ErrorHandler.showErrorSnackBar(context, 'Errore durante l\'importazione CSV: ${e.toString()}');
-    }
+      final path = result.files.first.path;
+      if (path != null) {
+        try {
+          if (mounted) {
+            await context.read<WorkEntriesRepository>().importFromCsv(path);
+          }
+          _workEntriesBloc.add(FetchWorkEntries(
+            startDate: _startDate,
+            endDate: _endDate.add(const Duration(days: 1)),
+          ));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Importazione CSV completata')),
+            );
+          }
+        } catch (e) {
+          logger.e('Errore durante l\'importazione CSV', error: e);
+          ErrorHandler.showErrorSnackBar(
+              context, 'Errore durante l\'importazione CSV: ${e.toString()}');
+        }
       }
     }
   }

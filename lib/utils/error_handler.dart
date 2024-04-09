@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Classe che fornisce metodi statici per la gestione e la visualizzazione degli errori nell'applicazione.
 class ErrorHandler {
+  /// Mostra una SnackBar con un messaggio di errore.
+  ///
+  /// Parametri:
+  /// - `context`: il contesto del widget in cui mostrare la SnackBar.
+  /// - `message`: il messaggio di errore da visualizzare.
   static void showErrorSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -11,6 +17,12 @@ class ErrorHandler {
     );
   }
 
+  /// Mostra un dialogo di errore con un titolo e un messaggio.
+  ///
+  /// Parametri:
+  /// - `context`: il contesto del widget in cui mostrare il dialogo.
+  /// - `title`: il titolo del dialogo di errore.
+  /// - `message`: il messaggio di errore da visualizzare.
   static void showErrorDialog(BuildContext context, String title, String message) {
     showDialog(
       context: context,
@@ -27,6 +39,11 @@ class ErrorHandler {
     );
   }
 
+  /// Mostra una notifica di errore prominente utilizzando un MaterialBanner.
+  ///
+  /// Parametri:
+  /// - `context`: il contesto del widget in cui mostrare la notifica.
+  /// - `message`: il messaggio di errore da visualizzare.
   static void showErrorNotification(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showMaterialBanner(
       MaterialBanner(

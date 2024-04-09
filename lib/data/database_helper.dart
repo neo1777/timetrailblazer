@@ -49,8 +49,10 @@ class DatabaseHelper {
         )
       ''');
     } catch (e) {
-      logger.e('Errore durante la creazione della tabella work_entries', error: e);
-      throw Exception('Errore durante la creazione della tabella work_entries: ${e.toString()}');
+      logger.e('Errore durante la creazione della tabella work_entries',
+          error: e);
+      throw Exception(
+          'Errore durante la creazione della tabella work_entries: ${e.toString()}');
     }
   }
 
@@ -64,8 +66,11 @@ class DatabaseHelper {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
-      logger.e('Errore durante l\'inserimento della voce di lavoro nel database', error: e);
-      throw Exception('Errore durante l\'inserimento della voce di lavoro nel database: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.');
+      logger.e(
+          'Errore durante l\'inserimento della voce di lavoro nel database',
+          error: e);
+      throw Exception(
+          'Errore durante l\'inserimento della voce di lavoro nel database: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.');
     }
   }
 
@@ -87,8 +92,10 @@ class DatabaseHelper {
       );
       return List.generate(maps.length, (i) => WorkEntryDTO.fromMap(maps[i]));
     } catch (e) {
-      logger.e('Errore durante il recupero delle voci di lavoro dal database', error: e);
-      throw Exception('Errore durante il recupero delle voci di lavoro dal database: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.');
+      logger.e('Errore durante il recupero delle voci di lavoro dal database',
+          error: e);
+      throw Exception(
+          'Errore durante il recupero delle voci di lavoro dal database: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.');
     }
   }
 
@@ -98,8 +105,11 @@ class DatabaseHelper {
     try {
       await db.delete(table);
     } catch (e) {
-      logger.e('Errore durante l\'eliminazione di tutte le voci di lavoro dal database', error: e);
-      throw Exception('Errore durante l\'eliminazione di tutte le voci di lavoro dal database: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.');
+      logger.e(
+          'Errore durante l\'eliminazione di tutte le voci di lavoro dal database',
+          error: e);
+      throw Exception(
+          'Errore durante l\'eliminazione di tutte le voci di lavoro dal database: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.');
     }
   }
 
@@ -113,8 +123,11 @@ class DatabaseHelper {
         whereArgs: [entryId],
       );
     } catch (e) {
-      logger.e('Errore durante l\'eliminazione della voce di lavoro dal database', error: e);
-      throw Exception('Errore durante l\'eliminazione della voce di lavoro dal database: ${e.toString()}. Si prega di verificare l\'ID della voce di lavoro e riprovare. Se il problema persiste, contattare l\'assistenza.');
+      logger.e(
+          'Errore durante l\'eliminazione della voce di lavoro dal database',
+          error: e);
+      throw Exception(
+          'Errore durante l\'eliminazione della voce di lavoro dal database: ${e.toString()}. Si prega di verificare l\'ID della voce di lavoro e riprovare. Se il problema persiste, contattare l\'assistenza.');
     }
   }
 
@@ -129,8 +142,11 @@ class DatabaseHelper {
         whereArgs: [entry.id],
       );
     } catch (e) {
-      logger.e('Errore durante l\'aggiornamento della voce di lavoro nel database', error: e);
-      throw Exception('Errore durante l\'aggiornamento della voce di lavoro nel database: ${e.toString()}. Si prega di verificare i dati della voce di lavoro e riprovare. Se il problema persiste, contattare l\'assistenza.');
+      logger.e(
+          'Errore durante l\'aggiornamento della voce di lavoro nel database',
+          error: e);
+      throw Exception(
+          'Errore durante l\'aggiornamento della voce di lavoro nel database: ${e.toString()}. Si prega di verificare i dati della voce di lavoro e riprovare. Se il problema persiste, contattare l\'assistenza.');
     }
   }
 
@@ -147,9 +163,11 @@ class DatabaseHelper {
       }
       return null;
     } catch (e) {
-      logger.e('Errore durante il recupero dell\'ultima voce di lavoro dal database', error: e);
-      throw Exception('Errore durante il recupero dell\'ultima voce di lavoro dal database: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.');
+      logger.e(
+          'Errore durante il recupero dell\'ultima voce di lavoro dal database',
+          error: e);
+      throw Exception(
+          'Errore durante il recupero dell\'ultima voce di lavoro dal database: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.');
     }
   }
-
 }
