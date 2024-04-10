@@ -18,6 +18,12 @@ class HomePage extends StatefulWidget {
 /// Lo stato della schermata principale.
 class HomePageState extends State<HomePage> {
   @override
+  void initState() {
+    _refreshWorkEntries();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
