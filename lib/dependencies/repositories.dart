@@ -8,8 +8,8 @@ List<RepositoryProvider<dynamic>> getRepositories() {
   return [
     // Fornisce il `WorkEntriesRepository` all'albero dei widget, creandolo con il `WorkEntriesProvider` e il `WorkEntryMapper`.
     // Il `WorkEntriesRepository` è responsabile dell'accesso ai dati delle voci di lavoro e della loro gestione.
-    RepositoryProvider<WorkEntriesRepository>(
-      create: (context) => WorkEntriesRepository(
+    RepositoryProvider<WorkEntriesRepositoryImpl>(
+      create: (context) => WorkEntriesRepositoryImpl(
         context.read<WorkEntriesProvider>(),
         context.read<WorkEntryMapper>(),
       ),

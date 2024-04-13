@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/constants.dart';
+import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
+import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
@@ -18,78 +20,86 @@ class HomePage extends StatefulWidget {
 /// Lo stato della schermata principale.
 class HomePageState extends State<HomePage> {
   @override
-  void initState() {
-    _refreshWorkEntries();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(homeTitle),
       ),
       body: SafeArea(
-        child: BlocBuilder<WorkEntriesBloc, WorkEntriesState>(
-          // Il `BlocBuilder` viene utilizzato per reagire ai cambiamenti di stato del `WorkEntriesBloc`
-          // Ricostruisce il widget in base allo stato corrente del bloc
+        child: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
-            if (state is WorkEntriesLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state is WorkEntriesError) {
-              return Center(child: Text('Error: ${state.message}'));
-            }
-            // Logica di abilitazione/disabilitazione dei pulsanti di entrata e uscita in base allo stato delle voci di lavoro
-            final isEntryAllowed = state is WorkEntriesInitial ||
-                (state is WorkEntriesLoaded &&
-                    (state.entries.isEmpty || !state.entries.last.isEntry));
-            final isExitAllowed = state is WorkEntriesLoaded &&
-                state.entries.isNotEmpty &&
-                state.entries.last.isEntry;
-            return LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final bool isLandscape =
-                    constraints.maxWidth > constraints.maxHeight;
-                final double buttonWidth =
-                    constraints.maxWidth * (isLandscape ? 0.4 : 0.8);
+            return FutureBuilder<WorkEntry?>(
+              future:
+                  context.read<WorkEntriesRepositoryImpl>().getLastWorkEntry(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  // Mostra un indicatore di caricamento mentre il FutureBuilder sta recuperando i dati
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  // Gestisci gli errori del FutureBuilder
+                  return Center(child: Text('Errore: ${snapshot.error}'));
+                }
+                final lastWorkEntry = snapshot.data;
 
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(height: constraints.maxHeight * 0.1),
-                      Flexible(
-                        child: WorkButton(
-                          label: 'Entrata',
-                          onPressed: isEntryAllowed
-                              ? () => _registerEntry(context, true)
-                              : null,
-                          width: buttonWidth,
-                        ),
+                final isEntryAllowed =
+                    lastWorkEntry == null || !lastWorkEntry.isEntry;
+
+                return LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final bool isLandscape =
+                        constraints.maxWidth > constraints.maxHeight;
+                    final double buttonWidth =
+                        constraints.maxWidth * (isLandscape ? 0.4 : 0.8);
+
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(height: constraints.maxHeight * 0.1),
+                          Flexible(
+                            child: WorkButton(
+                              label: 'Entrata',
+                              onPressed: isEntryAllowed
+                                  ? () {
+                                      _registerEntry(context, true);
+                                      context
+                                          .read<HomeBloc>()
+                                          .add(EntryButtonPressed());
+                                    }
+                                  : null,
+                              width: buttonWidth,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Flexible(
+                            child: WorkButton(
+                              label: 'Uscita',
+                              onPressed: !isEntryAllowed
+                                  ? () {
+                                      _registerEntry(context, false);
+                                      context
+                                          .read<HomeBloc>()
+                                          .add(ExitButtonPressed());
+                                    }
+                                  : null,
+                              width: buttonWidth,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/work_entries')
+                                  .then((_) => _refreshWorkEntries());
+                            },
+                            child: const Text('Visualizza registrazioni'),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Flexible(
-                        child: WorkButton(
-                          label: 'Uscita',
-                          onPressed: isExitAllowed
-                              ? () => _registerEntry(context, false)
-                              : null,
-                          width: buttonWidth,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/work_entries')
-                              .then((_) => _refreshWorkEntries());
-                        },
-                        child: const Text('Visualizza registrazioni'),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             );

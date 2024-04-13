@@ -16,16 +16,22 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'timetrailblazer', // Il titolo dell'applicazione, utilizzato per scopi di accessibilità e indicizzazione
+      title:
+          'timetrailblazer', // Il titolo dell'applicazione, utilizzato per scopi di accessibilità e indicizzazione
       theme: ThemeData(
-        primarySwatch: Colors.blue, // Il colore primario del tema dell'app, utilizzato per elementi come la AppBar
+        primarySwatch: Colors
+            .blue, // Il colore primario del tema dell'app, utilizzato per elementi come la AppBar
       ),
-      initialRoute: '/', // La rotta iniziale dell'applicazione, in questo caso la HomePage
+      initialRoute:
+          '/', // La rotta iniziale dell'applicazione, in questo caso la HomePage
       routes: {
         // Un oggetto `Map` che definisce le rotte dell'applicazione e i corrispondenti widget da visualizzare
-        '/': (context) => const HomePage(), // La rotta per la HomePage, che viene visualizzata quando l'app viene avviata
-        '/work_entries': (context) => const WorkEntriesScreen(), // La rotta per la WorkEntriesScreen, che mostra le voci di lavoro registrate
-        '/work_stats': (context) => const WorkStatsScreen(), // La rotta per la WorkStatsScreen, che mostra le statistiche di lavoro
+        '/': (context) =>
+            const HomePage(), // La rotta per la HomePage, che viene visualizzata quando l'app viene avviata
+        '/work_entries': (context) =>
+            const WorkEntriesScreen(), // La rotta per la WorkEntriesScreen, che mostra le voci di lavoro registrate
+        '/work_stats': (context) =>
+            const WorkStatsScreen(), // La rotta per la WorkStatsScreen, che mostra le statistiche di lavoro
       },
     );
   }

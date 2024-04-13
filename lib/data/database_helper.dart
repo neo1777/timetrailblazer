@@ -45,7 +45,8 @@ class DatabaseHelper {
         CREATE TABLE $table(
           id INTEGER PRIMARY KEY,
           timestamp INTEGER,
-          is_entry INTEGER
+          is_entry INTEGER,
+          FOREIGN KEY (work_entry_id) REFERENCES work_entries (id) ON DELETE CASCADE
         )
       ''');
     } catch (e) {

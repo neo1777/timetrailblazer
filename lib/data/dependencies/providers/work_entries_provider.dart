@@ -14,7 +14,8 @@ class WorkEntriesProvider {
       await _databaseHelper.insertWorkEntry(entry);
     } catch (e) {
       logger.e('Errore durante l\'inserimento della voce di lavoro', error: e);
-      throw Exception('Errore durante l\'inserimento della voce di lavoro: ${e.toString()}');
+      throw Exception(
+          'Errore durante l\'inserimento della voce di lavoro: ${e.toString()}');
     }
   }
 
@@ -30,7 +31,8 @@ class WorkEntriesProvider {
       );
     } catch (e) {
       logger.e('Errore durante il recupero delle voci di lavoro', error: e);
-      throw Exception('Errore durante il recupero delle voci di lavoro: ${e.toString()}');
+      throw Exception(
+          'Errore durante il recupero delle voci di lavoro: ${e.toString()}');
     }
   }
 
@@ -39,8 +41,10 @@ class WorkEntriesProvider {
     try {
       await _databaseHelper.deleteAllWorkEntries();
     } catch (e) {
-      logger.e('Errore durante l\'eliminazione di tutte le voci di lavoro', error: e);
-      throw Exception('Errore durante l\'eliminazione di tutte le voci di lavoro: ${e.toString()}');
+      logger.e('Errore durante l\'eliminazione di tutte le voci di lavoro',
+          error: e);
+      throw Exception(
+          'Errore durante l\'eliminazione di tutte le voci di lavoro: ${e.toString()}');
     }
   }
 
@@ -50,7 +54,8 @@ class WorkEntriesProvider {
       await _databaseHelper.deleteWorkEntry(entryId);
     } catch (e) {
       logger.e('Errore durante l\'eliminazione della voce di lavoro', error: e);
-      throw Exception('Errore durante l\'eliminazione della voce di lavoro: ${e.toString()}');
+      throw Exception(
+          'Errore durante l\'eliminazione della voce di lavoro: ${e.toString()}');
     }
   }
 
@@ -59,8 +64,10 @@ class WorkEntriesProvider {
     try {
       await _databaseHelper.updateWorkEntry(entry);
     } catch (e) {
-      logger.e('Errore durante l\'aggiornamento della voce di lavoro', error: e);
-      throw Exception('Errore durante l\'aggiornamento della voce di lavoro: ${e.toString()}');
+      logger.e('Errore durante l\'aggiornamento della voce di lavoro',
+          error: e);
+      throw Exception(
+          'Errore durante l\'aggiornamento della voce di lavoro: ${e.toString()}');
     }
   }
 
@@ -69,8 +76,10 @@ class WorkEntriesProvider {
     try {
       return await _databaseHelper.getLastWorkEntry();
     } catch (e) {
-      logger.e('Errore durante il recupero dell\'ultima voce di lavoro', error: e);
-      throw Exception('Errore durante il recupero dell\'ultima voce di lavoro: ${e.toString()}');
+      logger.e('Errore durante il recupero dell\'ultima voce di lavoro',
+          error: e);
+      throw Exception(
+          'Errore durante il recupero dell\'ultima voce di lavoro: ${e.toString()}');
     }
   }
 }

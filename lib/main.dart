@@ -13,8 +13,6 @@ import 'package:timetrailblazer/dependencies/providers.dart';
 import 'package:timetrailblazer/dependencies/repositories.dart';
 import 'package:timetrailblazer/utils/logger.dart';
 
-/// La funzione principale che viene eseguita all'avvio dell'applicazione.
-/// È contrassegnata come `async` perché contiene operazioni asincrone, come l'inizializzazione del database.
 void main() async {
   // Assicura che i binding di Flutter siano inizializzati prima di eseguire il codice dell'app
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,38 +30,47 @@ void main() async {
 
   // Crea un'istanza di DatabaseHelper per gestire il database dell'app
   final databaseHelper = DatabaseHelper();
-  // Inizializza il database chiamando il metodo `initializeDatabase()` del DatabaseHelper
-  try {
-    await databaseHelper.initializeDatabase();
 
-    /// Avvia l'applicazione Flutter utilizzando il widget `DependencyInjectorHelper` di Pine
-    /// Il `DependencyInjectorHelper` viene utilizzato per l'iniezione delle dipendenze nell'albero dei widget
-    /// Vengono forniti i mapper, i provider, i repository e i BLoC necessari all'applicazione
-    runApp(
-      DependencyInjectorHelper(
-        mappers: getMappers(), // Ottiene i mapper per la conversione dei dati
-        providers: getProviders(
-            databaseHelper), // Ottiene i provider per l'accesso ai servizi e ai dati
-        repositories:
-            getRepositories(), // Ottiene i repository per la gestione dei dati
-        blocs:
-            getBlocProviders(), // Ottiene i BLoC per la gestione dello stato dell'app
-        child:
-            const App(), // Il widget radice dell'applicazione, definito in `app.dart`
-      ),
-    );
-  } catch (e) {
-    logger.e('Errore durante l\'inizializzazione del database', error: e);
-    runApp(
-      MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: Text(
-              'Errore durante l\'inizializzazione del database: ${e.toString()}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
+  runApp(
+    FutureBuilder(
+      future: databaseHelper.initializeDatabase(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            // Registra l'errore utilizzando logger
+            logger.e('Errore durante l\'inizializzazione del database',
+                error: snapshot.error);
+            // Mostra un messaggio di errore in caso di errore durante l'inizializzazione del database
+            return MaterialApp(
+              home: Scaffold(
+                body: Center(
+                  child: Text(
+                    'Errore durante l\'inizializzazione del database: ${snapshot.error}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
+                  ),
+                ),
+              ),
+            );
+          } else {
+            // Avvia l'applicazione Flutter dopo l'inizializzazione del database
+            return DependencyInjectorHelper(
+              mappers: getMappers(),
+              providers: getProviders(databaseHelper),
+              repositories: getRepositories(),
+              blocs: getBlocProviders(),
+              child: const App(),
+            );
+          }
+        } else {
+          // Mostra un indicatore di caricamento durante l'inizializzazione del database
+          return const MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
+          );
+        }
+      },
+    ),
+  );
 }

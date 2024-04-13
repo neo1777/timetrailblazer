@@ -9,7 +9,7 @@ part 'work_entries_state.dart';
 
 /// Il `WorkEntriesBloc` gestisce lo stato e gli eventi relativi alle voci di lavoro.
 class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
-  final WorkEntriesRepository _workEntriesRepository;
+  final WorkEntriesRepositoryImpl _workEntriesRepository;
 
   /// Costruttore del `WorkEntriesBloc` che accetta un `WorkEntriesRepository`.
   WorkEntriesBloc(this._workEntriesRepository) : super(WorkEntriesInitial()) {
@@ -23,8 +23,7 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
     on<DeleteWorkEntry>(_onDeleteWorkEntry);
     // Gestisce l'evento `DeleteAllWorkEntries` per eliminare tutte le voci di lavoro.
     on<DeleteAllWorkEntries>(_onDeleteAllWorkEntries);
-
-    /// Gestisce l'evento `UpdateDateRange` per aggiornare l'intervallo di date di inizio e fine.
+    // Gestisce l'evento `UpdateDateRange` per aggiornare l'intervallo di date di inizio e fine.
     on<UpdateDateRange>(_onUpdateDateRange);
   }
 
@@ -45,7 +44,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
       emit(WorkEntriesLoaded(sortedEntries, _groupEntriesByDay(sortedEntries)));
     } catch (e) {
       logger.e('Errore durante il recupero delle voci di lavoro', error: e);
-      emit(WorkEntriesError('Errore durante il recupero delle voci di lavoro: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.'));
+      emit(WorkEntriesError(
+          'Errore durante il recupero delle voci di lavoro: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.'));
     }
   }
 
@@ -76,8 +76,10 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         endDate: event.entry.day.add(const Duration(days: 1)),
       ));
     } catch (e) {
-      logger.e('Errore durante l\'aggiunta di una nuova voce di lavoro', error: e);
-      emit(WorkEntriesError('Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
+      logger.e('Errore durante l\'aggiunta di una nuova voce di lavoro',
+          error: e);
+      emit(WorkEntriesError(
+          'Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
     }
   }
 
@@ -94,8 +96,10 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         endDate: event.entry.day.add(const Duration(days: 1)),
       ));
     } catch (e) {
-      logger.e('Errore durante l\'aggiornamento di una voce di lavoro', error: e);
-      emit(WorkEntriesError('Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
+      logger.e('Errore durante l\'aggiornamento di una voce di lavoro',
+          error: e);
+      emit(WorkEntriesError(
+          'Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
     }
   }
 
@@ -112,8 +116,10 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         endDate: event.day.add(const Duration(days: 1)),
       ));
     } catch (e) {
-      logger.e('Errore durante l\'eliminazione di una voce di lavoro', error: e);
-      emit(WorkEntriesError('Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
+      logger.e('Errore durante l\'eliminazione di una voce di lavoro',
+          error: e);
+      emit(WorkEntriesError(
+          'Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
     }
   }
 
@@ -125,13 +131,16 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   ) async {
     try {
       await _workEntriesRepository.deleteAllWorkEntries();
+
       add(FetchWorkEntries(
         startDate: event.startDate,
         endDate: event.endDate,
       ));
     } catch (e) {
-      logger.e('Errore durante l\'eliminazione di tutte le voci di lavoro', error: e);
-      emit(WorkEntriesError('Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
+      logger.e('Errore durante l\'eliminazione di tutte le voci di lavoro',
+          error: e);
+      emit(WorkEntriesError(
+          'Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
     }
   }
 

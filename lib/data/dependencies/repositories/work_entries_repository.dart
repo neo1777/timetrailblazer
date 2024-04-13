@@ -1,17 +1,21 @@
 import 'dart:io';
 import 'package:csv/csv.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:timetrailblazer/data/dependencies/mappers/work_entry_mapper.dart';
 import 'package:timetrailblazer/data/dependencies/providers/work_entries_provider.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
 import 'package:timetrailblazer/utils/logger.dart';
 
 /// La classe `WorkEntriesRepository` gestisce l'accesso ai dati delle voci di lavoro.
-class WorkEntriesRepository {
+abstract class WorkEntriesRepository {
+  WorkEntriesRepository();
+}
+
+class WorkEntriesRepositoryImpl implements WorkEntriesRepository {
   final WorkEntriesProvider _workEntriesProvider;
   final WorkEntryMapper _workEntryMapper;
 
-  WorkEntriesRepository(
+  WorkEntriesRepositoryImpl(
     this._workEntriesProvider,
     this._workEntryMapper,
   );
@@ -109,22 +113,26 @@ class WorkEntriesRepository {
   /// Esporta le voci di lavoro in un file CSV.
   Future<String> exportToCsv(List<WorkEntry> entries) async {
     try {
-      final List<List<dynamic>> rows = entries
-          .map((entry) => [
-                entry.id,
-                entry.timestamp.toIso8601String(),
-                entry.isEntry ? 'Entrata' : 'Uscita',
-              ])
-          .toList();
+      final rows = entries.map((entry) =>
+          [entry.id, entry.timestamp.toIso8601String(), entry.isEntry]);
 
-      final String csv = const ListToCsvConverter().convert(rows);
+      final csv = const ListToCsvConverter().convert(rows.toList());
 
-      final directory = await getApplicationDocumentsDirectory();
-      final path = '${directory.path}/work_entries.csv';
-      final File file = File(path);
+      final String? outputFile = await FilePicker.platform.saveFile(
+        dialogTitle: 'Salva file CSV',
+        fileName: 'voci_di_lavoro.csv',
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+
+      if (outputFile == null) {
+        throw Exception('Nessun file selezionato');
+      }
+
+      final File file = File(outputFile);
       await file.writeAsString(csv);
 
-      return path;
+      return outputFile;
     } catch (e) {
       logger.e('Errore durante l\'esportazione delle voci di lavoro in CSV',
           error: e);
@@ -143,7 +151,7 @@ class WorkEntriesRepository {
       final workEntries = csvList.map((row) {
         final id = row[0];
         final timestamp = DateTime.parse(row[1]);
-        final isEntry = row[2] == 'Entrata';
+        final isEntry = bool.parse(row[2]);
         return WorkEntry(id: id, timestamp: timestamp, isEntry: isEntry);
       }).toList();
 

@@ -6,7 +6,7 @@ import 'package:timetrailblazer/presentation/screens/edit_work_entry_screen.dart
 /// Il widget `WeeklyCalendar` visualizza le voci di lavoro in un calendario settimanale.
 class WeeklyCalendar extends StatefulWidget {
   final Map<DateTime, List<WorkEntry>> entriesGroupedByDay;
-  final Function(int, DateTime) onEntryDeleted;
+  final Function(WorkEntry, int, DateTime) onEntryDeleted;
   final Function(WorkEntry) onEntryModified;
   final ScrollController scrollController;
   final DateTime startDate;
@@ -52,7 +52,8 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
   }
 
   /// Costruisce una riga per un giorno nel calendario settimanale.
-  Widget _buildDayRow(BuildContext context, DateTime day, List<WorkEntry> entries) {
+  Widget _buildDayRow(
+      BuildContext context, DateTime day, List<WorkEntry> entries) {
     final formattedDate = DateFormat('EEE, dd MMM yyyy', 'it_IT').format(day);
 
     return Column(
@@ -74,13 +75,14 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
               if (details.primaryVelocity != null) {
                 if (details.primaryVelocity! < 0) {
                   // Swipe da destra a sinistra per eliminare la voce di lavoro
-                  widget.onEntryDeleted(entry.id!, entry.day);
+                  widget.onEntryDeleted(entry, entry.id!, entry.day);
                 } else if (details.primaryVelocity! > 0) {
                   // Swipe da sinistra a destra per modificare la voce di lavoro
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditWorkEntryScreen(workEntry: entry),
+                      builder: (context) =>
+                          EditWorkEntryScreen(workEntry: entry),
                     ),
                   ).then((updatedEntry) {
                     if (updatedEntry != null) {
@@ -104,7 +106,8 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => EditWorkEntryScreen(workEntry: entry),
+                          builder: (context) =>
+                              EditWorkEntryScreen(workEntry: entry),
                         ),
                       ).then((updatedEntry) {
                         if (updatedEntry != null) {
@@ -116,7 +119,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
                   IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {
-                      widget.onEntryDeleted(entry.id!, entry.day);
+                      widget.onEntryDeleted(entry, entry.id!, entry.day);
                     },
                   ),
                 ],

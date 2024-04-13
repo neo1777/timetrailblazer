@@ -18,7 +18,8 @@ class WorkStatsScreen extends StatelessWidget {
       ),
       body: FutureBuilder<Map<DateTime, Duration>>(
         // Utilizza `FutureBuilder` per gestire il caricamento asincrono delle statistiche dal repository
-        future: context.read<WorkEntriesRepository>().calculateWorkTimeMap(),
+        future:
+            context.read<WorkEntriesRepositoryImpl>().calculateWorkTimeMap(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
