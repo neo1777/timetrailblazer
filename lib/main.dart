@@ -6,6 +6,7 @@ import 'package:pine/pine.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:timetrailblazer/app.dart';
+import 'package:timetrailblazer/config/app_constants.dart';
 import 'package:timetrailblazer/data/database_helper.dart';
 import 'package:timetrailblazer/dependencies/bloc_providers.dart';
 import 'package:timetrailblazer/dependencies/mappers.dart';
@@ -52,6 +53,7 @@ void main() async {
             // Mostra un messaggio di errore in caso di errore durante l'inizializzazione del database
             return MaterialApp(
               home: Scaffold(
+                backgroundColor:AppColors.backgroundColor,
                 body: Center(
                   child: Text(
                     'Errore durante l\'inizializzazione del database: ${snapshot.error}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
@@ -73,6 +75,7 @@ void main() async {
           // Mostra un indicatore di caricamento durante l'inizializzazione del database
           return const MaterialApp(
             home: Scaffold(
+              backgroundColor:AppColors.backgroundColor,
               body: Center(
                 child: CircularProgressIndicator(),
               ),

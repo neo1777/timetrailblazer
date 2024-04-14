@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:timetrailblazer/config/app_constants.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
 import 'package:timetrailblazer/presentation/screens/edit_work_entry_screen.dart';
 
@@ -73,7 +74,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
         ),
         const SizedBox(height: 8),
         ...entries.map((entry) {
-          final entryColor = entry.isEntry ? Colors.green : Colors.red;
+          final entryColor = entry.isEntry ? AppColors.entryColor : AppColors.exitColor;
 
           return GestureDetector(
             onHorizontalDragEnd: (details) {

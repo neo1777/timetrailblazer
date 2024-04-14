@@ -19,10 +19,6 @@ class App extends StatelessWidget {
     return MaterialApp(
       title:
           'timetrailblazer', // Il titolo dell'applicazione, utilizzato per scopi di accessibilità e indicizzazione
-      theme: ThemeData(
-        primarySwatch: Colors
-            .blue, // Il colore primario del tema dell'app, utilizzato per elementi come la AppBar
-      ),
       initialRoute:
           '/', // La rotta iniziale dell'applicazione, in questo caso la HomePage
       routes: {

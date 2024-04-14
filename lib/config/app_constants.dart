@@ -1,14 +1,37 @@
 import 'package:flutter/material.dart';
 
+// Costanti per i colori
 class AppColors {
+  // Colori per il tema chiaro
   static const Color primaryColor = Colors.blue;
-  static const Color secondaryColor = Colors.white;
+  //static const Color secondaryColor = Colors.white;
+  static const Color backgroundColor = Colors.white;
+  //static const Color cardColor = Colors.white;
+  //static const Color textColor = Colors.black;
+  static const Color buttonTextColor = Colors.white;
   static const Color errorColor = Colors.red;
-  static const Color shadowColor = Colors.black;
+  //static const Color successColor = Colors.green;
+  static const Color dividerColor = Colors.grey;
+  static const Color shadowColor = Colors.black26;
   static const Color entryColor = Colors.green;
   static const Color exitColor = Colors.red;
+
+  // Colori per il tema scuro
+  static const Color primaryColorDark = Colors.indigo;
+  //static const Color secondaryColorDark = Color(0xFF1E1E1E);
+  static const Color backgroundColorDark = Color(0xFF121212);
+  //static const Color cardColorDark = Color(0xFF1E1E1E);
+  //static const Color textColorDark = Colors.white;
+  static const Color buttonTextColorDark = Colors.white;
+  static const Color errorColorDark = Colors.redAccent;
+  //static const Color successColorDark = Colors.greenAccent;
+  static const Color dividerColorDark = Colors.white54;
+  static const Color shadowColorDark = Colors.black54;
+  static const Color entryColorDark = Colors.greenAccent;
+  static const Color exitColorDark = Colors.redAccent;
 }
 
+// Costanti per le dimensioni
 class AppDimensions {
   static const double buttonPaddingV = 16.0;
   static const double buttonPaddingH = 32.0;
@@ -22,6 +45,7 @@ class AppDimensions {
   static const FontWeight buttonFontWeight = FontWeight.bold;
 }
 
+// Costanti per i testi
 class AppStrings {
   static const String entryRegistered = 'Entrata registrata';
   static const String exitRegistered = 'Uscita registrata';
@@ -50,12 +74,14 @@ class AppStrings {
   static const String viewEntriesButtonLabel = 'Visualizza registrazioni';
 }
 
+// Costanti per i testi di successo
 class AppSuccessMessages {
   static const String csvImportCompleted = 'Importazione CSV completata';
   static const String csvExportCompleted =
       'File CSV esportato correttamente in';
 }
 
+// Costanti per i testi di errore
 class AppErrorMessages {
   static const String insertEntryError =
       'Errore durante l\'inserimento della voce di lavoro';
@@ -167,42 +193,3 @@ class AppErrorMessages {
   static repositoryCalculateErrorMessage(String message) =>
       'Errore durante il calcolo del tempo di lavoro: $message';
 }
-
-// import 'package:flutter/material.dart';
-
-// // Costanti per i colori
-// const Color primaryColor = Colors.blue;
-// const Color secondaryColor = Colors.white;
-// const Color errorColor = Colors.red;
-// const Color shadowColor = Colors.black;
-// const Color entryColor = Colors.green;
-// const Color exitColor = Colors.red;
-
-// // Costanti per le dimensioni
-// const double buttonPaddingV = 16.0;
-// const double buttonPaddingH = 32.0;
-// const double buttonElevation = 2.0;
-
-// // Costanti per i testi
-// const String entryRegistered = 'Entrata registrata';
-// const String exitRegistered = 'Uscita registrata';
-// const String appTitle = 'Registrazione Orari di Lavoro';
-// const String homeTitle = 'Registrazione orari di lavoro';
-// const String workEntriesTitle = 'Registrazioni Orari di Lavoro';
-// const String confirmResetTitle = 'Conferma Reset';
-// const String confirmResetMessage =
-//     'Sei sicuro di voler resettare il database? Questa azione è irreversibile.';
-// const String cancelButtonText = 'Annulla';
-// const String confirmButtonText = 'Conferma';
-// const String csvExportSuccess = 'File CSV esportato in';
-// const String csvExportError = 'Errore durante l\'esportazione CSV:';
-// const String databaseResetSuccess = 'Database resettato con successo';
-// const String databaseResetError = 'Errore durante il reset del database:';
-// const String dataLoadError = 'Errore nel caricamento dei dati';
-
-// // Costanti per le notifiche di errore
-// const String insertEntryError =
-//     'Errore durante l\'inserimento della voce di lavoro';
-// const String getEntriesError =
-//     'Errore durante il recupero delle voci di lavoro';
-// const String resetDatabaseError = 'Errore durante il reset del database';

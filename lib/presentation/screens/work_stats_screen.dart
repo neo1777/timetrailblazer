@@ -14,6 +14,7 @@ class WorkStatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text(AppStrings.workStatsTitle),
       ),
@@ -47,7 +48,7 @@ class WorkStatsScreen extends StatelessWidget {
                   duration: workDuration,
                 );
               },
-              separatorBuilder: (context, index) => const Divider(),
+              separatorBuilder: (context, index) => const Divider(color: AppColors.dividerColor,),
             );
           }
         },

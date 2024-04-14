@@ -86,6 +86,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text(AppStrings.workEntriesTitle),
         actions: [
@@ -98,7 +99,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
             onPressed: _handleExportToCsv,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_forever, color: AppColors.errorColor),
+            icon: const Icon(Icons.delete_forever, color: AppColors.exitColor),
             onPressed: _resetDatabase,
           ),
         ],

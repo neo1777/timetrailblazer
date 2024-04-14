@@ -26,8 +26,8 @@ class WorkButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          foregroundColor: AppColors.primaryColor,
-          backgroundColor: AppColors.secondaryColor,
+          foregroundColor: AppColors.buttonTextColor,
+          backgroundColor: AppColors.primaryColor,
           shape: RoundedRectangleBorder(
             borderRadius:
                 BorderRadius.circular(AppDimensions.buttonBorderRadius),
@@ -37,7 +37,7 @@ class WorkButton extends StatelessWidget {
             horizontal: AppDimensions.buttonPaddingH,
           ),
           elevation: AppDimensions.buttonElevation,
-          shadowColor: AppColors.shadowColor.withOpacity(0.2),
+          shadowColor: AppColors.shadowColor,
         ),
         child: Text(
           label,

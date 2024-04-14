@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timetrailblazer/config/app_constants.dart';
 import 'package:timetrailblazer/utils/navigator_key.dart';
 
 /// Classe che fornisce metodi statici per la gestione e la visualizzazione degli errori nell'applicazione.
@@ -17,7 +18,7 @@ class ErrorHandler {
           SnackBar(
             content: Text(message),
             duration: const Duration(seconds: 3),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.errorColor,
           ),
         );
       }
@@ -66,7 +67,7 @@ class ErrorHandler {
           MaterialBanner(
             content: Text(message),
             leading: const Icon(Icons.error, color: Colors.white),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.errorColor,
             actions: [
               TextButton(
                 onPressed: () =>
