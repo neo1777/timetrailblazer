@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:timetrailblazer/config/app_constants.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/presentation/widgets/work_stats_list_item.dart';
 import 'package:timetrailblazer/utils/error_handler.dart';
@@ -14,7 +15,7 @@ class WorkStatsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistiche di lavoro'),
+        title: const Text(AppStrings.workStatsTitle),
       ),
       // Utilizza `FutureBuilder` per gestire il caricamento asincrono delle statistiche dal repository
       body: FutureBuilder<Map<DateTime, Duration>>(
@@ -24,10 +25,9 @@ class WorkStatsScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            logger.e('Errore durante il caricamento delle statistiche',
-                error: snapshot.error);
+            logger.e(AppErrorMessages.loadStatsError, error: snapshot.error);
             ErrorHandler.showErrorNotification(
-              'Errore durante il caricamento delle statistiche: ${snapshot.error}. Si prega di riprovare più tardi.',
+              '${AppErrorMessages.loadStatsError}: ${snapshot.error}. ${AppErrorMessages.retryLater}',
             );
             return Container();
           } else {

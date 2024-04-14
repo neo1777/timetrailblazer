@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:timetrailblazer/config/app_constants.dart';
 import 'package:timetrailblazer/domain/blocs/edit_work_entry/edit_work_entry_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
@@ -25,7 +26,7 @@ class EditWorkEntryScreen extends StatelessWidget {
   final WorkEntry workEntry;
 
   /// Costruttore della schermata di modifica della voce di lavoro.
-  /// 
+  ///
   /// Parametri:
   ///   - `workEntry`: la voce di lavoro da modificare.
   const EditWorkEntryScreen({super.key, required this.workEntry});
@@ -49,10 +50,10 @@ class EditWorkEntryView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Modifica registrazione'),
+        title: const Text(AppStrings.editWorkEntryTitle),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppDimensions.screenPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -71,20 +72,20 @@ class EditWorkEntryView extends StatelessWidget {
                           'Data: ${DateFormat('dd/MM/yyyy').format(workEntry.timestamp)}',
                           style: TextStyle(fontSize: fontSize),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppDimensions.smallSpacing),
                         ElevatedButton(
                           onPressed: () => _selectDate(context),
-                          child: const Text('Seleziona data'),
+                          child: const Text(AppStrings.selectDate),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppDimensions.mediumSpacing),
                         Text(
-                          'Ora: ${TimeOfDay.fromDateTime(workEntry.timestamp).format(context)}',
+                          '${AppStrings.time}: ${TimeOfDay.fromDateTime(workEntry.timestamp).format(context)}',
                           style: TextStyle(fontSize: fontSize),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppDimensions.smallSpacing),
                         ElevatedButton(
                           onPressed: () => _selectTime(context),
-                          child: const Text('Seleziona ora'),
+                          child: const Text(AppStrings.selectTime),
                         ),
                       ],
                     );
@@ -92,10 +93,10 @@ class EditWorkEntryView extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimensions.largeSpacing),
             ElevatedButton(
               onPressed: () => _updateWorkEntry(context),
-              child: const Text('Salva'),
+              child: const Text(AppStrings.save),
             ),
           ],
         ),
@@ -104,7 +105,7 @@ class EditWorkEntryView extends StatelessWidget {
   }
 
   /// Mostra un selettore di data e aggiorna la data della voce di lavoro.
-  /// 
+  ///
   /// Parametri:
   ///   - `context`: il contesto del widget.
   Future<void> _selectDate(BuildContext context) async {
@@ -121,8 +122,8 @@ class EditWorkEntryView extends StatelessWidget {
       if (picked.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
         // Mostra un messaggio di errore se la data selezionata è precedente a ieri
         ErrorHandler.showErrorDialog(
-          'Data non valida',
-          'Non è possibile selezionare una data precedente a ieri. Per favore, seleziona una data valida.',
+          AppErrorMessages.invalidDate,
+          AppErrorMessages.invalidDateMessage,
         );
         return;
       }
@@ -131,7 +132,7 @@ class EditWorkEntryView extends StatelessWidget {
   }
 
   /// Mostra un selettore di ora e aggiorna l'ora della voce di lavoro.
-  /// 
+  ///
   /// Parametri:
   ///   - `context`: il contesto del widget.
   Future<void> _selectTime(BuildContext context) async {
@@ -156,8 +157,8 @@ class EditWorkEntryView extends StatelessWidget {
       if (selectedDateTime.isAfter(now)) {
         // Mostra un messaggio di errore se l'orario selezionato è nel futuro
         ErrorHandler.showErrorDialog(
-          'Orario non valido',
-          'Non è possibile selezionare un orario futuro. Per favore, seleziona un orario valido.',
+          AppErrorMessages.invalidTime,
+          AppErrorMessages.invalidTimeMessage,
         );
         return;
       }
@@ -166,7 +167,7 @@ class EditWorkEntryView extends StatelessWidget {
   }
 
   /// Aggiorna la voce di lavoro nel database e torna alla schermata precedente.
-  /// 
+  ///
   /// Parametri:
   ///   - `context`: il contesto del widget.
   Future<void> _updateWorkEntry(BuildContext context) async {
@@ -176,18 +177,19 @@ class EditWorkEntryView extends StatelessWidget {
       // Controlla se i dati sono validi prima di chiamare il metodo del repository
       if (workEntry.timestamp
           .isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
-        throw Exception('Data non valida');
+        throw Exception(AppErrorMessages.invalidDate);
       }
       if (workEntry.timestamp.isAfter(DateTime.now())) {
-        throw Exception('Orario non valido');
+        throw Exception(AppErrorMessages.invalidTime);
       }
       context.read<WorkEntriesBloc>().add(UpdateWorkEntry(workEntry));
       Navigator.pop(context, workEntry);
     } catch (e) {
-      logger.e('Errore durante l\'aggiornamento della voce di lavoro',
-          error: e);
-      ErrorHandler.showErrorDialog('Errore di aggiornamento',
-          'Errore durante l\'aggiornamento della voce di lavoro: ${e.toString()}. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.');
+      logger.e(AppErrorMessages.updateError, error: e);
+      ErrorHandler.showErrorDialog(
+        AppErrorMessages.updateError,
+        AppErrorMessages.updateErrorMessage(e.toString()),
+      );
     }
   }
 }

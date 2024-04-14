@@ -1,0 +1,52 @@
+./lib
+├── config
+├── data
+│   ├── dependencies
+│   │   ├── mappers
+│   │   │   └── work_entry_mapper.dart
+│   │   ├── providers
+│   │   │   └── work_entries_provider.dart
+│   │   └── repositories
+│   │       └── work_entries_repository.dart
+│   ├── models
+│   │   └── work_entry_dto.dart
+│   └── database_helper.dart
+├── dependencies
+│   ├── bloc_providers.dart
+│   ├── mappers.dart
+│   ├── providers.dart
+│   └── repositories.dart
+├── domain
+│   ├── blocs
+│   │   ├── edit_work_entry
+│   │   │   ├── edit_work_entry_bloc.dart
+│   │   │   ├── edit_work_entry_event.dart
+│   │   │   └── edit_work_entry_state.dart
+│   │   ├── home_page
+│   │   │   ├── home_bloc.dart
+│   │   │   ├── home_event.dart
+│   │   │   └── home_state.dart
+│   │   └── work_entries
+│   │       ├── work_entries_bloc.dart
+│   │       ├── work_entries_event.dart
+│   │       └── work_entries_state.dart
+│   └── entities
+│       └── work_entry.dart
+├── presentation
+│   ├── screens
+│   │   ├── edit_work_entry_screen.dart
+│   │   ├── home_page.dart
+│   │   ├── work_entries_screen.dart
+│   │   └── work_stats_screen.dart
+│   └── widgets
+│       ├── date_range_picker.dart
+│       ├── weekly_calendar.dart
+│       ├── work_button.dart
+│       └── work_stats_list_item.dart
+├── utils
+│   ├── error_handler.dart
+│   ├── logger.dart
+│   └── navigator_key.dart
+├── app.dart
+├── constants.dart
+└── main.dart

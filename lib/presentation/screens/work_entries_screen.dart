@@ -4,7 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timetrailblazer/constants.dart';
+import 'package:timetrailblazer/config/app_constants.dart';
+import 'package:timetrailblazer/config/routes.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
@@ -61,16 +62,16 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(confirmResetTitle),
-        content: const Text(confirmResetMessage),
+        title: const Text(AppStrings.confirmResetTitle),
+        content: const Text(AppStrings.confirmResetMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(cancelButtonText),
+            child: const Text(AppStrings.cancelButtonText),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(confirmButtonText),
+            child: const Text(AppStrings.confirmButtonText),
           ),
         ],
       ),
@@ -86,7 +87,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(workEntriesTitle),
+        title: const Text(AppStrings.workEntriesTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.file_upload),
@@ -97,7 +98,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
             onPressed: _handleExportToCsv,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_forever, color: Colors.red),
+            icon: const Icon(Icons.delete_forever, color: AppColors.errorColor),
             onPressed: _resetDatabase,
           ),
         ],
@@ -130,9 +131,9 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
             flex: 3,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/work_stats');
+                Navigator.pushNamed(context, AppRoutes.workStats);
               },
-              child: const Text('Statistiche di lavoro'),
+              child: const Text(AppStrings.workStatsTitle),
             ),
           ),
           const Spacer(
@@ -147,7 +148,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                 }
                 if (state is WorkEntriesError) {
                   ErrorHandler.showErrorNotification(
-                    'Errore durante il caricamento delle voci di lavoro: ${state.message}. Si prega di riprovare più tardi o verificare la connessione di rete.',
+                    '${AppErrorMessages.fetchEntriesError} ${state.message}. ${AppErrorMessages.retryOrCheckNetwork}',
                   );
                   return Container();
                 }
@@ -233,15 +234,17 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
             .exportToCsv(entries);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$csvExportSuccess $path')),
+            SnackBar(
+              content: Text(
+                '${AppSuccessMessages.csvExportCompleted} $path',
+              ),
+            ),
           );
         }
       } catch (e) {
-        logger.e(
-            'Errore durante l\'esportazione delle voci di lavoro in formato CSV',
-            error: e);
-        ErrorHandler.showErrorDialog('Errore di esportazione',
-            'Errore durante l\'esportazione delle voci di lavoro in formato CSV: ${e.toString()}. Si prega di verificare che ci sia spazio sufficiente sul dispositivo e che l\'applicazione abbia i permessi necessari per scrivere i file.');
+        logger.e(AppErrorMessages.csvExportError, error: e);
+        ErrorHandler.showErrorSnackBar(
+            '${AppErrorMessages.csvExportError} ${e.toString()}. ${AppErrorMessages.checkStorageAndPermissions}');
       }
     }
   }
@@ -261,11 +264,11 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
           // Controlla se il file CSV esiste e ha un formato valido prima di chiamare il metodo del repository
           final file = File(path);
           if (!await file.exists()) {
-            throw Exception('File CSV non trovato');
+            throw Exception(AppErrorMessages.csvFileNotFound);
           }
           final csvString = await file.readAsString();
           if (csvString.isEmpty) {
-            throw Exception('File CSV vuoto');
+            throw Exception(AppErrorMessages.emptyCsvFile);
           }
 
           await _workEntriesRepository.importFromCsv(path);
@@ -283,26 +286,27 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
           ));
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Importazione CSV completata')),
+              const SnackBar(
+                  content: Text(AppSuccessMessages.csvImportCompleted)),
             );
           }
         } catch (e) {
-          logger.e('Errore durante l\'importazione CSV', error: e);
+          logger.e(AppErrorMessages.csvImportError, error: e);
 
           ErrorHandler.showErrorSnackBar(
-            'Errore durante l\'importazione CSV: ${e.toString()}',
+            '${AppErrorMessages.csvImportError} ${e.toString()}',
           );
         }
       } else {
         // Mostra un messaggio di errore se il percorso del file è nullo
         ErrorHandler.showErrorSnackBar(
-          'Errore durante la selezione del file CSV. Per favore, riprova e seleziona un file CSV valido.',
+          AppErrorMessages.csvSelectError,
         );
       }
     } else {
       // Mostra un messaggio di errore se nessun file è stato selezionato
       ErrorHandler.showErrorSnackBar(
-        'Nessun file CSV selezionato. Per favore, seleziona un file CSV per l\'importazione.',
+        AppErrorMessages.csvSelectNullError,
       );
     }
   }

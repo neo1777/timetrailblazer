@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timetrailblazer/config/routes.dart';
 import 'package:timetrailblazer/presentation/screens/home_page.dart';
 import 'package:timetrailblazer/presentation/screens/work_entries_screen.dart';
 import 'package:timetrailblazer/presentation/screens/work_stats_screen.dart';
@@ -26,11 +27,11 @@ class App extends StatelessWidget {
           '/', // La rotta iniziale dell'applicazione, in questo caso la HomePage
       routes: {
         // Un oggetto `Map` che definisce le rotte dell'applicazione e i corrispondenti widget da visualizzare
-        '/': (context) =>
+        AppRoutes.home: (context) =>
             const HomePage(), // La rotta per la HomePage, che viene visualizzata quando l'app viene avviata
-        '/work_entries': (context) =>
+        AppRoutes.workEntries: (context) =>
             const WorkEntriesScreen(), // La rotta per la WorkEntriesScreen, che mostra le voci di lavoro registrate
-        '/work_stats': (context) =>
+        AppRoutes.workStats: (context) =>
             const WorkStatsScreen(), // La rotta per la WorkStatsScreen, che mostra le statistiche di lavoro
       },
     );
