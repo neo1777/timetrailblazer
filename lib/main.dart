@@ -13,6 +13,10 @@ import 'package:timetrailblazer/dependencies/providers.dart';
 import 'package:timetrailblazer/dependencies/repositories.dart';
 import 'package:timetrailblazer/utils/logger.dart';
 
+
+/// Il punto di ingresso dell'applicazione TimeTrailBlazer.
+/// 
+/// Inizializza il database, configura le dipendenze e avvia l'applicazione.
 void main() async {
   // Assicura che i binding di Flutter siano inizializzati prima di eseguire il codice dell'app
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +35,11 @@ void main() async {
   // Crea un'istanza di DatabaseHelper per gestire il database dell'app
   final databaseHelper = DatabaseHelper();
 
+  /// Avvia l'applicazione Flutter.
+  /// 
+  /// Utilizza un [FutureBuilder] per inizializzare il database e configurare le dipendenze.
+  /// In caso di errore durante l'inizializzazione del database, mostra un messaggio di errore.
+  /// Altrimenti, avvia l'applicazione con le dipendenze configurate.
   runApp(
     FutureBuilder(
       future: databaseHelper.initializeDatabase(),

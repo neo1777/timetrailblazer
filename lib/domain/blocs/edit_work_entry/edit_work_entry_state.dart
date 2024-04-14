@@ -2,6 +2,7 @@ part of 'edit_work_entry_bloc.dart';
 
 /// Classe astratta che rappresenta uno stato del `EditWorkEntryBloc`.
 abstract class EditWorkEntryState extends Equatable {
+  /// La voce di lavoro corrente.
   final WorkEntry workEntry;
 
   const EditWorkEntryState(this.workEntry);
@@ -21,6 +22,7 @@ class EditWorkEntryUpdated extends EditWorkEntryState {
 }
 
 class EditWorkEntryError extends EditWorkEntryState {
+  /// Il messaggio di errore.
   final String errorMessage;
 
   const EditWorkEntryError(super.workEntry, this.errorMessage);

@@ -16,8 +16,8 @@ class WorkStatsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Statistiche di lavoro'),
       ),
+      // Utilizza `FutureBuilder` per gestire il caricamento asincrono delle statistiche dal repository
       body: FutureBuilder<Map<DateTime, Duration>>(
-        // Utilizza `FutureBuilder` per gestire il caricamento asincrono delle statistiche dal repository
         future:
             context.read<WorkEntriesRepositoryImpl>().calculateWorkTimeMap(),
         builder: (context, snapshot) {

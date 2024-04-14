@@ -110,6 +110,10 @@ class HomePageState extends State<HomePage> {
   }
 
   /// Registra una nuova voce di lavoro (entrata o uscita) nel database.
+  /// 
+  /// Parametri:
+  ///   - `context`: il contesto del widget.
+  ///   - `isEntry`: un flag che indica se la voce è un'entrata o un'uscita.
   void _registerEntry(BuildContext context, bool isEntry) {
     final now = DateTime.now();
     final workEntriesBloc = context.read<WorkEntriesBloc>();
@@ -147,7 +151,7 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  /// Aggiorna le voci di lavoro visualizzate nella schermata.
+  /// Aggiorna le voci di lavoro visualizzate nella schermata WorkEntriesScreen.
   void _refreshWorkEntries() {
     final workEntriesBloc = context.read<WorkEntriesBloc>();
     workEntriesBloc.add(

@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
 import 'package:timetrailblazer/presentation/screens/edit_work_entry_screen.dart';
 
-/// Il widget `WeeklyCalendar` visualizza le voci di lavoro in un calendario settimanale.
+/// Il widget `WeeklyCalendar` visualizza le voci di lavoro in un calendario.
 class WeeklyCalendar extends StatefulWidget {
   final Map<DateTime, List<WorkEntry>> entriesGroupedByDay;
   final Function(WorkEntry, int, DateTime) onEntryDeleted;
@@ -51,7 +51,12 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
     );
   }
 
-  /// Costruisce una riga per un giorno nel calendario settimanale.
+  /// Costruisce una riga per un giorno nel calendario.
+  /// 
+  /// Parametri:
+  ///   - `context`: il contesto del widget.
+  ///   - `day`: la data del giorno.
+  ///   - `entries`: le voci di lavoro per il giorno specificato.
   Widget _buildDayRow(
       BuildContext context, DateTime day, List<WorkEntry> entries) {
     final formattedDate = DateFormat('EEE, dd MMM yyyy', 'it_IT').format(day);

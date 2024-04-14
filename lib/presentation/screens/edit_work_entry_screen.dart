@@ -8,9 +8,26 @@ import 'package:timetrailblazer/utils/error_handler.dart';
 import 'package:timetrailblazer/utils/logger.dart';
 
 /// Schermata per la modifica di una voce di lavoro.
+///
+/// Questa schermata consente all'utente di modificare i dettagli di una voce di lavoro esistente,
+/// come la data e l'ora. Le modifiche vengono salvate quando l'utente preme il pulsante "Salva".
+///
+/// Esempio di utilizzo:
+///
+/// Navigator.push(
+///   context,
+///   MaterialPageRoute(
+///     builder: (context) => EditWorkEntryScreen(workEntry: entry),
+///   ),
+/// );
 class EditWorkEntryScreen extends StatelessWidget {
+  /// La voce di lavoro da modificare.
   final WorkEntry workEntry;
 
+  /// Costruttore della schermata di modifica della voce di lavoro.
+  /// 
+  /// Parametri:
+  ///   - `workEntry`: la voce di lavoro da modificare.
   const EditWorkEntryScreen({super.key, required this.workEntry});
 
   @override
@@ -87,6 +104,9 @@ class EditWorkEntryView extends StatelessWidget {
   }
 
   /// Mostra un selettore di data e aggiorna la data della voce di lavoro.
+  /// 
+  /// Parametri:
+  ///   - `context`: il contesto del widget.
   Future<void> _selectDate(BuildContext context) async {
     final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
     final DateTime? picked = await showDatePicker(
@@ -111,6 +131,9 @@ class EditWorkEntryView extends StatelessWidget {
   }
 
   /// Mostra un selettore di ora e aggiorna l'ora della voce di lavoro.
+  /// 
+  /// Parametri:
+  ///   - `context`: il contesto del widget.
   Future<void> _selectTime(BuildContext context) async {
     final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
     final TimeOfDay? picked = await showTimePicker(
@@ -143,6 +166,9 @@ class EditWorkEntryView extends StatelessWidget {
   }
 
   /// Aggiorna la voce di lavoro nel database e torna alla schermata precedente.
+  /// 
+  /// Parametri:
+  ///   - `context`: il contesto del widget.
   Future<void> _updateWorkEntry(BuildContext context) async {
     final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
     final workEntry = editWorkEntryBloc.state.workEntry;

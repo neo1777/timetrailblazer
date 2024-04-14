@@ -35,10 +35,6 @@ class DatabaseHelper {
   }
 
   /// Crea la tabella `work_entries` nel database.
-  /// La tabella ha le seguenti colonne:
-  /// - `id`: l'ID della voce di lavoro (chiave primaria)
-  /// - `timestamp`: il timestamp della voce di lavoro
-  /// - `is_entry`: un flag che indica se la voce è un'entrata o un'uscita
   Future<void> _onCreate(Database db, int version) async {
     try {
       await db.execute('''

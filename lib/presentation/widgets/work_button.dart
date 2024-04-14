@@ -3,8 +3,13 @@ import 'package:timetrailblazer/constants.dart';
 
 /// Il widget `WorkButton` rappresenta un pulsante personalizzato per le azioni di entrata e uscita.
 class WorkButton extends StatelessWidget {
+  /// L'etichetta del pulsante.
   final String label;
+
+  /// La funzione di callback da chiamare quando il pulsante viene premuto.
   final VoidCallback? onPressed;
+
+  /// La larghezza del pulsante.
   final double? width;
 
   const WorkButton({

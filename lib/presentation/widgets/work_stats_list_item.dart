@@ -3,7 +3,10 @@ import 'package:intl/intl.dart';
 
 /// Il widget `WorkStatsListItem` rappresenta un elemento della lista delle statistiche di lavoro.
 class WorkStatsListItem extends StatelessWidget {
+  /// La data delle statistiche di lavoro.
   final String date;
+
+  /// La durata totale del lavoro per la data specificata.
   final Duration duration;
 
   const WorkStatsListItem({

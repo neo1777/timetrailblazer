@@ -19,7 +19,10 @@ class WorkEntriesLoading extends WorkEntriesState {
 
 /// Stato che rappresenta le voci di lavoro caricate.
 class WorkEntriesLoaded extends WorkEntriesState {
+  /// La lista delle voci di lavoro caricate.
   final List<WorkEntry> entries;
+  
+  /// Le voci di lavoro raggruppate per giorno.
   final Map<DateTime, List<WorkEntry>> entriesGroupedByDay;
 
   const WorkEntriesLoaded(this.entries, this.entriesGroupedByDay);
@@ -30,6 +33,7 @@ class WorkEntriesLoaded extends WorkEntriesState {
 
 /// Stato che rappresenta un errore durante il caricamento delle voci di lavoro.
 class WorkEntriesError extends WorkEntriesState {
+  /// Il messaggio di errore.
   final String message;
 
   const WorkEntriesError(this.message);

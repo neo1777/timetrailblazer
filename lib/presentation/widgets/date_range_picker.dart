@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+/// Il widget `DateRangePicker` consente all'utente di selezionare un intervallo di date.
 class DateRangePicker extends StatelessWidget {
+  /// La data di inizio dell'intervallo selezionato.
   final DateTime startDate;
+
+  /// La data di fine dell'intervallo selezionato.
   final DateTime endDate;
+
+  /// La funzione di callback da chiamare quando la data di inizio viene modificata.
   final Function(DateTime) onStartDateChanged;
+
+  /// La funzione di callback da chiamare quando la data di fine viene modificata.
   final Function(DateTime) onEndDateChanged;
+
+  /// La funzione di callback da chiamare quando viene premuto il pulsante "Mese corrente".
   final VoidCallback onCurrentMonthPressed;
 
   const DateRangePicker({
@@ -44,6 +54,11 @@ class DateRangePicker extends StatelessWidget {
     );
   }
 
+  /// Mostra un selettore di data e chiama la funzione di callback appropriata quando una data viene selezionata.
+  ///
+  /// Parametri:
+  ///   - `context`: il contesto del widget.
+  ///   - `isStartDate`: un flag che indica se la data selezionata è la data di inizio o di fine.
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,

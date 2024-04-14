@@ -17,6 +17,7 @@ class UpdateDate extends EditWorkEntryEvent {
 
 /// Evento per aggiornare l'ora della voce di lavoro.
 class UpdateTime extends EditWorkEntryEvent {
+  /// La nuova ora della voce di lavoro.
   final TimeOfDay time;
 
   const UpdateTime(this.time);

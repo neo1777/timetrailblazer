@@ -1,7 +1,11 @@
 part of 'home_bloc.dart';
 
+/// Rappresenta lo stato del BLoC `HomeBloc`.
 abstract class HomeState extends Equatable {
+  /// Indica se il pulsante di entrata è abilitato.
   final bool isEntryButtonEnabled;
+
+  /// Indica se il pulsante di uscita è abilitato.
   final bool isExitButtonEnabled;
 
   const HomeState({
@@ -13,6 +17,7 @@ abstract class HomeState extends Equatable {
   List<Object> get props => [isEntryButtonEnabled, isExitButtonEnabled];
 }
 
+/// Rappresenta lo stato iniziale del BLoC `HomeBloc`.
 class HomePageInitial extends HomeState {
   const HomePageInitial()
       : super(
@@ -21,6 +26,7 @@ class HomePageInitial extends HomeState {
         );
 }
 
+/// Rappresenta lo stato in cui il pulsante di entrata è disabilitato.
 class HomePageEntryButtonDisabled extends HomeState {
   const HomePageEntryButtonDisabled()
       : super(
@@ -29,6 +35,7 @@ class HomePageEntryButtonDisabled extends HomeState {
         );
 }
 
+/// Rappresenta lo stato in cui il pulsante di uscita è disabilitato.
 class HomePageExitButtonDisabled extends HomeState {
   const HomePageExitButtonDisabled()
       : super(

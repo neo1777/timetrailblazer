@@ -1,8 +1,15 @@
 /// La classe `WorkEntryDTO` rappresenta un oggetto di trasferimento dati per una voce di lavoro.
 class WorkEntryDTO {
+  /// L'ID univoco della voce di lavoro (può essere null per le nuove voci).
   final int? id;
+  
+  /// Il timestamp della voce di lavoro.
   final DateTime timestamp;
+  
+  /// Un flag che indica se la voce è un'entrata o un'uscita.
   final bool isEntry;
+  
+  /// La data della voce di lavoro (senza l'ora).
   final DateTime day;
 
   WorkEntryDTO({

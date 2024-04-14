@@ -50,6 +50,11 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   }
 
   /// Raggruppa le voci di lavoro per giorno.
+  ///
+  /// Parametri:
+  ///   - entries: la lista delle voci di lavoro da raggruppare.
+  ///
+  /// Restituisce una mappa che associa ogni giorno alle voci di lavoro corrispondenti.
   Map<DateTime, List<WorkEntry>> _groupEntriesByDay(List<WorkEntry> entries) {
     Map<DateTime, List<WorkEntry>> entriesGroupedByDay = {};
     for (var entry in entries) {
