@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:timetrailblazer/config/app_constants.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
 import 'package:timetrailblazer/presentation/screens/edit_work_entry_screen.dart';
 
@@ -53,7 +52,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
   }
 
   /// Costruisce una riga per un giorno nel calendario.
-  /// 
+  ///
   /// Parametri:
   ///   - `context`: il contesto del widget.
   ///   - `day`: la data del giorno.
@@ -67,14 +66,11 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
       children: [
         Text(
           formattedDate,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
         ),
         const SizedBox(height: 8),
         ...entries.map((entry) {
-          final entryColor = entry.isEntry ? AppColors.entryColor : AppColors.exitColor;
+          final entryColor =
+              entry.isEntry ? Colors.greenAccent : Colors.redAccent;
 
           return GestureDetector(
             onHorizontalDragEnd: (details) {

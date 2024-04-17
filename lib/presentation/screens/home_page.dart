@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:timetrailblazer/config/app_constants.dart';
-import 'package:timetrailblazer/config/routes.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
+import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
@@ -23,7 +23,6 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text(AppStrings.homeTitle),
       ),
@@ -56,8 +55,7 @@ class HomePageState extends State<HomePage> {
                         constraints.maxWidth * (isLandscape ? 0.4 : 0.8);
 
                     return Padding(
-                      padding:
-                          const EdgeInsets.all(AppDimensions.screenPadding),
+                      padding: const EdgeInsets.all(8),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -77,7 +75,7 @@ class HomePageState extends State<HomePage> {
                               width: buttonWidth,
                             ),
                           ),
-                          const SizedBox(height: AppDimensions.mediumSpacing),
+                          const SizedBox(height: 16),
                           Flexible(
                             child: WorkButton(
                               label: AppStrings.exitButtonLabel,
@@ -92,7 +90,7 @@ class HomePageState extends State<HomePage> {
                               width: buttonWidth,
                             ),
                           ),
-                          const SizedBox(height: AppDimensions.largeSpacing),
+                          const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () {
                               Navigator.pushNamed(

@@ -4,8 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timetrailblazer/config/app_constants.dart';
-import 'package:timetrailblazer/config/routes.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
+import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
@@ -86,7 +86,6 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text(AppStrings.workEntriesTitle),
         actions: [
@@ -99,7 +98,9 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
             onPressed: _handleExportToCsv,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_forever, color: AppColors.exitColor),
+            icon: const Icon(
+              Icons.delete_forever,
+            ),
             onPressed: _resetDatabase,
           ),
         ],

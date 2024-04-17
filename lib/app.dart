@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:timetrailblazer/config/routes.dart';
+import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/presentation/screens/home_page.dart';
 import 'package:timetrailblazer/presentation/screens/work_entries_screen.dart';
 import 'package:timetrailblazer/presentation/screens/work_stats_screen.dart';
@@ -19,8 +19,8 @@ class App extends StatelessWidget {
     return MaterialApp(
       title:
           'timetrailblazer', // Il titolo dell'applicazione, utilizzato per scopi di accessibilità e indicizzazione
-      initialRoute:
-          '/', // La rotta iniziale dell'applicazione, in questo caso la HomePage
+      initialRoute: AppRoutes
+          .home, // La rotta iniziale dell'applicazione, in questo caso la HomePage
       routes: {
         // Un oggetto `Map` che definisce le rotte dell'applicazione e i corrispondenti widget da visualizzare
         AppRoutes.home: (context) =>

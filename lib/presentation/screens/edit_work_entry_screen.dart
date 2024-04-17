@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:timetrailblazer/config/app_constants.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/domain/blocs/edit_work_entry/edit_work_entry_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/domain/entities/work_entry.dart';
@@ -49,12 +49,11 @@ class EditWorkEntryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text(AppStrings.editWorkEntryTitle),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppDimensions.screenPadding),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -64,26 +63,22 @@ class EditWorkEntryView extends StatelessWidget {
                 final workEntry = state.workEntry;
                 return LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
-                    final double fontSize =
-                        constraints.maxWidth < 600 ? 16 : 18;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Data: ${DateFormat('dd/MM/yyyy').format(workEntry.timestamp)}',
-                          style: TextStyle(fontSize: fontSize),
                         ),
-                        const SizedBox(height: AppDimensions.smallSpacing),
+                        const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: () => _selectDate(context),
                           child: const Text(AppStrings.selectDate),
                         ),
-                        const SizedBox(height: AppDimensions.mediumSpacing),
+                        const SizedBox(height: 16),
                         Text(
                           '${AppStrings.time}: ${TimeOfDay.fromDateTime(workEntry.timestamp).format(context)}',
-                          style: TextStyle(fontSize: fontSize),
                         ),
-                        const SizedBox(height: AppDimensions.smallSpacing),
+                        const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: () => _selectTime(context),
                           child: const Text(AppStrings.selectTime),
@@ -94,7 +89,7 @@ class EditWorkEntryView extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: AppDimensions.largeSpacing),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _updateWorkEntry(context),
               child: const Text(AppStrings.save),

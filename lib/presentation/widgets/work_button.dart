@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:timetrailblazer/config/app_constants.dart';
 
 /// Il widget `WorkButton` rappresenta un pulsante personalizzato per le azioni di entrata e uscita.
 class WorkButton extends StatelessWidget {
@@ -25,26 +24,8 @@ class WorkButton extends StatelessWidget {
       width: width,
       child: ElevatedButton(
         onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          foregroundColor: AppColors.buttonTextColor,
-          backgroundColor: AppColors.primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AppDimensions.buttonBorderRadius),
-          ),
-          padding: const EdgeInsets.symmetric(
-            vertical: AppDimensions.buttonPaddingV,
-            horizontal: AppDimensions.buttonPaddingH,
-          ),
-          elevation: AppDimensions.buttonElevation,
-          shadowColor: AppColors.shadowColor,
-        ),
         child: Text(
           label,
-          style: const TextStyle(
-            fontSize: AppDimensions.buttonFontSize,
-            fontWeight: AppDimensions.buttonFontWeight,
-          ),
         ),
       ),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:timetrailblazer/config/app_constants.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
 import 'package:timetrailblazer/presentation/widgets/work_stats_list_item.dart';
 import 'package:timetrailblazer/utils/error_handler.dart';
@@ -14,7 +14,6 @@ class WorkStatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:AppColors.backgroundColor,
       appBar: AppBar(
         title: const Text(AppStrings.workStatsTitle),
       ),
@@ -48,7 +47,7 @@ class WorkStatsScreen extends StatelessWidget {
                   duration: workDuration,
                 );
               },
-              separatorBuilder: (context, index) => const Divider(color: AppColors.dividerColor,),
+              separatorBuilder: (context, index) => const Divider(),
             );
           }
         },
