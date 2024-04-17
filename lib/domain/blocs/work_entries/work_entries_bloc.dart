@@ -41,7 +41,7 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
       );
       final sortedEntries = entries.toList()
         ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      emit(WorkEntriesLoaded(sortedEntries, _groupEntriesByDay(sortedEntries)));
+    emit(WorkEntriesLoaded(sortedEntries, _groupEntriesByDay(sortedEntries), event.startDate, event.endDate));
     } catch (e) {
       logger.e('Errore durante il recupero delle voci di lavoro', error: e);
       emit(WorkEntriesError(
@@ -116,10 +116,14 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   ) async {
     try {
       await _workEntriesRepository.deleteWorkEntry(event.entryId);
+   // Recupera le voci di lavoro per l'intero intervallo di date attualmente visualizzato
+    final currentState = state;
+    if (currentState is WorkEntriesLoaded) {
       add(FetchWorkEntries(
-        startDate: event.day,
-        endDate: event.day.add(const Duration(days: 1)),
+        startDate: currentState.startDate,
+        endDate: currentState.endDate,
       ));
+    }
     } catch (e) {
       logger.e('Errore durante l\'eliminazione di una voce di lavoro',
           error: e);

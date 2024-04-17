@@ -24,11 +24,17 @@ class WorkEntriesLoaded extends WorkEntriesState {
   
   /// Le voci di lavoro raggruppate per giorno.
   final Map<DateTime, List<WorkEntry>> entriesGroupedByDay;
+  
+  /// La data di inizio dell'intervallo di date.
+  final DateTime startDate;
+  
+  /// La data di fine dell'intervallo di date.
+  final DateTime endDate;
 
-  const WorkEntriesLoaded(this.entries, this.entriesGroupedByDay);
+  const WorkEntriesLoaded(this.entries, this.entriesGroupedByDay, this.startDate, this.endDate);
 
   @override
-  List<Object> get props => [entries, entriesGroupedByDay];
+  List<Object> get props => [entries, entriesGroupedByDay, startDate, endDate];
 }
 
 /// Stato che rappresenta un errore durante il caricamento delle voci di lavoro.
