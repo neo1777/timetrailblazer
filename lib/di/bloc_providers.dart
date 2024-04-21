@@ -13,6 +13,16 @@ import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart
 /// - Una lista di `BlocProvider` contenente i BLoC configurati.
 List<BlocProvider<StateStreamableSource<Object?>>> getBlocProviders() {
   return [
+    // Fornisce il `HomeBloc` all'albero dei widget, creandolo senza dipendenze esterne.
+    // Il `HomeBloc` è responsabile della gestione dello stato relativo alla schermata principale dell'applicazione.
+    // Utilizza l'approccio "lazy" per creare il BLoC solo quando viene effettivamente richiesto.
+    BlocProvider<HomeBloc>(
+      create: (context) => HomeBloc(
+        context.read<WorkEntryRepository>(),
+      ),
+      lazy: true,
+    ),
+
     // Fornisce il `WorkEntriesBloc` all'albero dei widget, creandolo con il `WorkEntriesRepository`.
     // Il `WorkEntriesBloc` è responsabile della gestione dello stato relativo alle voci di lavoro.
     // Utilizza l'approccio "lazy" per creare il BLoC solo quando viene effettivamente richiesto.
@@ -20,16 +30,7 @@ List<BlocProvider<StateStreamableSource<Object?>>> getBlocProviders() {
     BlocProvider<WorkEntriesBloc>(
       create: (context) => WorkEntriesBloc(
         context.read<WorkEntryRepository>(),
-      ),
-      lazy: true,
-    ),
-
-    // Fornisce il `HomeBloc` all'albero dei widget, creandolo senza dipendenze esterne.
-    // Il `HomeBloc` è responsabile della gestione dello stato relativo alla schermata principale dell'applicazione.
-    // Utilizza l'approccio "lazy" per creare il BLoC solo quando viene effettivamente richiesto.
-    BlocProvider<HomeBloc>(
-      create: (context) => HomeBloc(
-        context.read<WorkEntryRepository>(),
+        context.read<HomeBloc>(),
       ),
       lazy: true,
     ),

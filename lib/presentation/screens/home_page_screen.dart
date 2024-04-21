@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/config/constants_routes.dart';
-import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
-import 'package:timetrailblazer/data/models/work_entry_model.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
@@ -11,15 +9,9 @@ import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
 
 /// La schermata principale dell'applicazione.
-class HomePageScreen extends StatefulWidget {
+class HomePageScreen extends StatelessWidget {
   const HomePageScreen({super.key});
 
-  @override
-  HomePageScreenState createState() => HomePageScreenState();
-}
-
-/// Lo stato della schermata principale.
-class HomePageScreenState extends State<HomePageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,24 +20,14 @@ class HomePageScreenState extends State<HomePageScreen> {
       ),
       body: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
-          return FutureBuilder<WorkEntryModel?>(
-            future: context.read<WorkEntryRepository>().getLastWorkEntry(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                // Mostra un indicatore di caricamento mentre il FutureBuilder sta recuperando i dati
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                // Gestisci gli errori del FutureBuilder
-                return Center(
-                    child: Text('${AppStrings.error}: ${snapshot.error}'));
-              }
-              final lastWorkEntry = snapshot.data;
-              final isEntryAllowed =
-                  lastWorkEntry == null || !lastWorkEntry.isEntry!;
+          // Determina lo stato dei pulsanti in base allo stato corrente del HomeBloc
+          final isEntryAllowed = state is! HomeExitButtonEnabled;
+          final isExitAllowed = state is HomeExitButtonEnabled;
 
-              return HomeScreen(isEntryAllowed: isEntryAllowed);
-            },
+          // Passa lo stato dei pulsanti al widget HomeScreen
+          return HomeScreen(
+            isEntryAllowed: isEntryAllowed,
+            isExitAllowed: isExitAllowed,
           );
         },
       ),
@@ -57,9 +39,11 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
     required this.isEntryAllowed,
+    required this.isExitAllowed,
   });
 
   final bool isEntryAllowed;
+  final bool isExitAllowed;
 
   @override
   Widget build(BuildContext context) {
@@ -99,33 +83,28 @@ class HomeScreen extends StatelessWidget {
               label: AppStrings.entryButtonLabel,
               onPressed: isEntryAllowed
                   ? () {
-                      // _registerEntry(context, true);
                       context.read<HomeBloc>().add(EntryButtonPressed());
                     }
                   : null,
             ),
           ),
-          //const CustomSpacer(flex: 1),
           Flexible(
             flex: 16,
             child: WorkButton(
               label: AppStrings.exitButtonLabel,
-              onPressed: !isEntryAllowed
+              onPressed: isExitAllowed
                   ? () {
-                      // _registerEntry(context, false);
                       context.read<HomeBloc>().add(ExitButtonPressed());
                     }
                   : null,
             ),
           ),
-          //const CustomSpacer(flex: 1),
           Flexible(
             flex: 16,
             child: WorkButton(
               label: AppStrings.viewEntriesButtonLabel,
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.workEntries);
-                //.then((_) => _refreshWorkEntries());
               },
             ),
           ),
@@ -140,7 +119,6 @@ class HomeScreen extends StatelessWidget {
               TextAlign.center,
             ),
           ),
-          //const CustomSpacer(flex: 1),
         ],
       ),
     );

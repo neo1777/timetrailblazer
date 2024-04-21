@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
@@ -21,6 +23,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     /// Gestisce l'evento `ExitButtonPressed`.
     on<ExitButtonPressed>(_onExitButtonPressed);
+
+    // Gestisci l'evento DatabaseReset
+    on<DatabaseReset>(_onDatabaseReset);
   }
 
   /// Gestore dell'evento `EntryButtonPressed`.
@@ -43,6 +48,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(HomeEntryButtonEnabled());
     }
   }
+  // Future<void> _onEntryButtonPressed(
+  //     EntryButtonPressed event, Emitter<HomeState> emit) async {
+  //   await _workEntryRepository.insertWorkEntry(
+  //     WorkEntryModel(timestamp: DateTime.now(), isEntry: true),
+  //   );
+
+  //   emit(HomeExitButtonEnabled());
+  // }
 
   /// Gestore dell'evento `ExitButtonPressed`.
   ///
@@ -63,5 +76,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } else {
       emit(HomeExitButtonEnabled());
     }
+  }
+  // Future<void> _onExitButtonPressed(
+  //     ExitButtonPressed event, Emitter<HomeState> emit) async {
+  //   await _workEntryRepository.insertWorkEntry(
+  //     WorkEntryModel(timestamp: DateTime.now(), isEntry: false),
+  //   );
+
+  //   emit(HomeEntryButtonEnabled());
+  // }
+
+  // Implementa il gestore per l'evento DatabaseReset
+  Future<void> _onDatabaseReset(
+      DatabaseReset event, Emitter<HomeState> emit) async {
+    emit(HomeInitial());
   }
 }

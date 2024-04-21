@@ -18,11 +18,16 @@ class WorkEntriesLoading extends WorkEntriesState {}
 class WorkEntriesLoaded extends WorkEntriesState {
   /// La lista delle voci di lavoro raggruppate per giorno.
   final List<DayWorkEntriesModel> dayWorkEntriesList;
-
-  const WorkEntriesLoaded({required this.dayWorkEntriesList});
+  final DateTime startDate;
+  final DateTime endDate;
+  const WorkEntriesLoaded({
+    required this.startDate,
+    required this.endDate,
+    required this.dayWorkEntriesList,
+  });
 
   @override
-  List<Object> get props => [dayWorkEntriesList];
+  List<Object> get props => [startDate, endDate, dayWorkEntriesList];
 }
 
 /// Rappresenta lo stato di errore durante il caricamento delle voci di lavoro.

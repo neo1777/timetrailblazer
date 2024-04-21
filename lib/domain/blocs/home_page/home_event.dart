@@ -10,8 +10,14 @@ abstract class HomeEvent extends Equatable {
 
 /// Rappresenta l'evento di pressione del pulsante di entrata.
 class EntryButtonPressed extends HomeEvent {
+  @override
+  List<Object> get props => [];
 }
 
 /// Rappresenta l'evento di pressione del pulsante di uscita.
 class ExitButtonPressed extends HomeEvent {
+  @override
+  List<Object> get props => [];
 }
+
+class DatabaseReset extends HomeEvent {}

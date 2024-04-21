@@ -92,28 +92,61 @@ class DatabaseHelper {
     return null;
   }
 
-  /// Questo metodo esegue una query sul database per recuperare le voci di lavoro
-  /// nell'intervallo di date specificato utilizzando i timestamp di inizio e di fine. Restituisce
-  /// una lista di WorkEntryDTO mappando i risultati della query.
-  // Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(
-  //     int startTimestamp, int endTimestamp) async {
-  //   final db = await database;
-  //   final List<Map<String, dynamic>> maps = await db.query(
-  //     _tableWorkEntries,
-  //     where: 'timestamp >= ? AND timestamp <= ?',
-  //     whereArgs: [startTimestamp, endTimestamp],
-  //     orderBy: 'timestamp DESC',
-  //   );
-  //   return maps.map((map) => WorkEntryDTO.fromMap(map)).toList();
-  // }
-  Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(int startTimestamp, int endTimestamp) async {
-  final db = await database;
-  final List<Map<String, dynamic>> maps = await db.query(
-    _tableWorkEntries,
-    where: 'timestamp >= ? AND timestamp <= ?',
-    whereArgs: [startTimestamp, endTimestamp],
-    orderBy: 'timestamp',
-  );
-  return maps.map((map) => WorkEntryDTO.fromMap(map)).toList();
-}
+  /// Recupera le voci di lavoro nell'intervallo di date specificato.
+  ///
+  /// Riceve come parametri il [startTimestamp] e l'[endTimestamp] che rappresentano l'intervallo di date.
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue una query sulla tabella `_tableWorkEntries` utilizzando il metodo `query()` di SQLite.
+  /// Filtra i risultati in base all'intervallo di timestamp specificato utilizzando la clausola `where`.
+  /// Ordina i risultati in base al campo `timestamp` in ordine crescente.
+  /// Mappa i risultati della query in una lista di [WorkEntryDTO] utilizzando il metodo `fromMap()`.
+  /// Restituisce un [Future] che si completa con la lista di [WorkEntryDTO] recuperate.
+  Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(
+      int startTimestamp, int endTimestamp) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableWorkEntries,
+      where: 'timestamp >= ? AND timestamp <= ?',
+      whereArgs: [startTimestamp, endTimestamp],
+      orderBy: 'timestamp',
+    );
+    return maps.map((map) => WorkEntryDTO.fromMap(map)).toList();
+  }
+
+  /// Elimina tutte le voci di lavoro dal database.
+  ///
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue una query SQL per eliminare tutte le righe dalla tabella `_tableWorkEntries` utilizzando il metodo `delete()` di SQLite.
+  /// Restituisce un [Future] che si completa quando l'eliminazione è stata effettuata.
+  Future<void> deleteAllWorkEntries() async {
+    final db = await database;
+    await db.delete(_tableWorkEntries);
+  }
+
+  /// Resetta il database eliminando tutte le tabelle e ricreandole.
+  ///
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue una serie di query SQL per eliminare tutte le tabelle dal database utilizzando il metodo `execute()` di SQLite.
+  /// Chiama il metodo `_createDatabase()` per ricreare le tabelle del database.
+  /// Restituisce un [Future] che si completa quando il reset del database è stato effettuato.
+  Future<void> resetDatabase() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS $_tableWorkEntries');
+    await _createDatabase(db, _databaseVersion);
+  }
+
+  /// Elimina una singola voce di lavoro dal database in base all'ID.
+  ///
+  /// Riceve come parametro l'[id] della voce di lavoro da eliminare.
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue una query SQL per eliminare la riga corrispondente all'ID specificato dalla tabella `_tableWorkEntries` utilizzando il metodo `delete()` di SQLite.
+  /// Restituisce un [Future] che si completa quando l'eliminazione è stata effettuata.
+  Future<void> deleteWorkEntryById(int id) async {
+    final db = await database;
+    await db.delete(
+      _tableWorkEntries,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

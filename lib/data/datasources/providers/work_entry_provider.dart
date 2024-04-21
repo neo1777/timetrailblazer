@@ -34,7 +34,23 @@ class WorkEntryProvider {
 //   return await _databaseHelper.getWorkEntriesByDateRange(startTimestamp, endTimestamp);
 // }
 
-Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(int startTimestamp, int endTimestamp) async {
-  return await _databaseHelper.getWorkEntriesByDateRange(startTimestamp, endTimestamp);
-}
+  Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(
+      int startTimestamp, int endTimestamp) async {
+    return await _databaseHelper.getWorkEntriesByDateRange(
+        startTimestamp, endTimestamp);
+  }
+
+  /// Resetta il database cancellando tutte le voci di lavoro.
+  ///
+  /// Restituisce un `Future` che si completa quando il reset è terminato.
+  Future<void> resetDatabase() async {
+    await _databaseHelper.resetDatabase();
+  }
+
+  /// Cancella una singola voce di lavoro dal database in base all'ID.
+  ///
+  /// Restituisce un `Future` che si completa quando la cancellazione è terminata.
+  Future<void> deleteWorkEntryById(int id) async {
+    await _databaseHelper.deleteWorkEntryById(id);
+  }
 }

@@ -60,15 +60,6 @@ class AppInitializer {
               child: const App(),
             );
           }
-        // } else {
-        //   return const MaterialApp(
-        //     home: Scaffold(
-        //       body: Center(
-        //         child: CircularProgressIndicator(),
-        //       ),
-        //     ),
-        //   );
-        // }
       },
     );
   }

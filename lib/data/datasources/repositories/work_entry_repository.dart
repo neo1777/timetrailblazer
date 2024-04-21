@@ -7,7 +7,7 @@ import 'package:timetrailblazer/data/models/work_entry_model.dart';
 class WorkEntryRepository {
   /// L'istanza di `WorkEntryProvider` utilizzata per l'accesso ai dati.
   final WorkEntryProvider _workEntryProvider;
-  
+
   /// L'istanza di `WorkEntryMapper` utilizzata per la mappatura tra `WorkEntryDTO` e `WorkEntry`.
   final WorkEntryMapper _workEntryMapper;
 
@@ -52,28 +52,45 @@ class WorkEntryRepository {
 //   return workEntryDTOs.map(_workEntryMapper.fromDTO).toList();
 // }
 
-Future<List<DayWorkEntriesModel>> getWorkEntriesByDays(List<DateTime> days, DateTime endDate) async {
-  final List<DayWorkEntriesModel> dayWorkEntriesList = [];
+  Future<List<DayWorkEntriesModel>> getWorkEntriesByDays(
+      List<DateTime> days, DateTime endDate) async {
+    final List<DayWorkEntriesModel> dayWorkEntriesList = [];
 
-  for (final day in days) {
-    final startOfDay = DateTime(day.year, day.month, day.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
+    for (final day in days) {
+      final startOfDay = DateTime(day.year, day.month, day.day);
+      final endOfDay = startOfDay
+          .add(const Duration(days: 1))
+          .subtract(const Duration(milliseconds: 1));
 
-    final workEntryDTOs = await _workEntryProvider.getWorkEntriesByDateRange(
-      startOfDay.millisecondsSinceEpoch,
-      endOfDay.millisecondsSinceEpoch,
-    );
+      final workEntryDTOs = await _workEntryProvider.getWorkEntriesByDateRange(
+        startOfDay.millisecondsSinceEpoch,
+        endOfDay.millisecondsSinceEpoch,
+      );
 
-    final workEntries = workEntryDTOs.map(_workEntryMapper.fromDTO).toList();
+      final workEntries = workEntryDTOs.map(_workEntryMapper.fromDTO).toList();
 
-    dayWorkEntriesList.add(
-      DayWorkEntriesModel(
-        day: day,
-        workEntries: workEntries.isNotEmpty ? workEntries : null,
-      ),
-    );
+      dayWorkEntriesList.add(
+        DayWorkEntriesModel(
+          day: day,
+          workEntries: workEntries.isNotEmpty ? workEntries : null,
+        ),
+      );
+    }
+
+    return dayWorkEntriesList;
   }
 
-  return dayWorkEntriesList;
+  /// Resetta il database cancellando tutte le voci di lavoro.
+  ///
+  /// Restituisce un `Future` che si completa quando il reset è terminato.
+  Future<void> resetDatabase() async {
+    await _workEntryProvider.resetDatabase();
+  }
+
+  /// Cancella una singola voce di lavoro dal database in base all'ID.
+///
+/// Restituisce un `Future` che si completa quando la cancellazione è terminata.
+Future<void> deleteWorkEntryById(int id) async {
+  await _workEntryProvider.deleteWorkEntryById(id);
 }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/date_range_picker.dart';
@@ -21,7 +22,8 @@ class WorkEntriesScreen extends StatefulWidget {
 class WorkEntriesScreenState extends State<WorkEntriesScreen> {
   final ScrollController _scrollController = ScrollController();
   DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
-  DateTime _endDate = DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
+  DateTime _endDate =
+      DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
 
   @override
   void initState() {
@@ -44,7 +46,12 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: AppStrings.workEntriesTitle,
-        onBackPressed: () => Navigator.pop(context),
+        onBackPressed: () {
+          //Navigator.pop(context);
+          Navigator.pushNamed(context, AppRoutes.home);
+          //.then(
+          //    (_) => context.read<WorkEntryRepository>().getLastWorkEntry());
+        },
         onAction: [
           const IconButton(
             icon: Icon(Icons.file_upload),
@@ -57,7 +64,12 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
           IconButton(
             icon: const Icon(Icons.delete_forever),
             onPressed: () {
-              // TODO: Implementare la logica di eliminazione di tutte le voci di lavoro
+              context.read<WorkEntriesBloc>().add(
+                    ResetDatabase(
+                      startDate: _startDate,
+                      endDate: _endDate,
+                    ),
+                  );
             },
           ),
         ],
@@ -78,9 +90,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                     startDate: _startDate,
                     endDate: _endDate,
                     onStartDateChanged: (date) {
-                      setState(() {
-                        _startDate = date;
-                      });
+                      _startDate = date;
                       // Aggiorna le voci di lavoro quando la data di inizio viene modificata
                       context.read<WorkEntriesBloc>().add(FetchWorkEntries(
                             startDate: _startDate,
@@ -88,9 +98,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                           ));
                     },
                     onEndDateChanged: (date) {
-                      setState(() {
-                        _endDate = date;
-                      });
+                      _endDate = date;
                       // Aggiorna le voci di lavoro quando la data di fine viene modificata
                       context.read<WorkEntriesBloc>().add(FetchWorkEntries(
                             startDate: _startDate,
@@ -99,10 +107,8 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                     },
                     onCurrentMonthPressed: () {
                       final now = DateTime.now();
-                      setState(() {
-                        _startDate = DateTime(now.year, now.month, 1);
-                        _endDate = DateTime(now.year, now.month + 1, 0);
-                      });
+                      _startDate = DateTime(now.year, now.month, 1);
+                      _endDate = DateTime(now.year, now.month + 1, 0);
                       // Aggiorna le voci di lavoro quando viene premuto il pulsante "Mese corrente"
                       context.read<WorkEntriesBloc>().add(FetchWorkEntries(
                             startDate: _startDate,
