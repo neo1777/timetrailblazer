@@ -1,7 +1,7 @@
 name: timetrailblazer
 description: "TimeTrailblazer - L'app essenziale per tracciare i tuoi orari di lavoro."
 publish_to: 'none'
-version: 0.7.0
+version: 0.8.0
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -22,6 +22,7 @@ dependencies:
   shared_preferences: ^2.2.2
   sqflite: ^2.3.3
   sqflite_common_ffi: ^2.3.3
+  auto_size_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:

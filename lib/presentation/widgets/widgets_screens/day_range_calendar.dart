@@ -1,0 +1,112 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
+
+/// Il widget `DayRangeCalendar` visualizza le voci di lavoro in un calendario variabile.
+///
+/// Questo widget accetta una lista di oggetti `DayWorkEntries` che rappresentano i giorni
+/// e le relative voci di lavoro. Ogni giorno viene visualizzato in una scheda (card)
+/// scorrevole, mostrando la data e le voci di lavoro corrispondenti.
+class DayRangeCalendar extends StatelessWidget {
+  /// La lista di oggetti `DayWorkEntries` che rappresentano i giorni e le voci di lavoro.
+  final List<DayWorkEntriesModel> dayWorkEntriesList;
+
+  /// Il controller di scorrimento per il calendario.
+  final ScrollController scrollController;
+
+  /// Costruisce un'istanza di `DayRangeCalendar`.
+  ///
+  /// Richiede la lista di oggetti `DayWorkEntries` [dayWorkEntriesList] e il controller
+  /// di scorrimento [scrollController].
+  const DayRangeCalendar({
+    super.key,
+    required this.dayWorkEntriesList,
+    required this.scrollController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      controller: scrollController,
+      itemCount: dayWorkEntriesList.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 2.0,
+        mainAxisSpacing: 10.0,
+        crossAxisSpacing: 10.0,
+      ),
+      itemBuilder: (context, index) {
+        final dayWorkEntries = dayWorkEntriesList[index];
+        final day = dayWorkEntries.day;
+        final workEntries = dayWorkEntries.workEntries;
+
+        return _buildDayCard(context, day, workEntries);
+      },
+    );
+  }
+
+  /// Costruisce una scheda (card) per un giorno specifico nel calendario.
+  ///
+  /// La scheda mostra la data formattata del giorno e un elenco delle voci di lavoro
+  /// corrispondenti a quel giorno. Ogni voce di lavoro è rappresentata da una riga
+  /// con l'orario di entrata/uscita e un indicatore colorato.
+  Widget _buildDayCard(
+      BuildContext context, DateTime day, List<WorkEntryModel>? workEntries) {
+    final formattedDate = DateFormat('EEE, dd MMM yyyy', 'it_IT').format(day);
+
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Mostra la data formattata del giorno
+            CustomAutoSizeText(
+              formattedDate,
+              Theme.of(context).textTheme.titleSmall!,
+              TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            // Mostra le voci di lavoro per il giorno corrente, se presenti
+            if (workEntries != null)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: workEntries.length,
+                  itemBuilder: (context, index) {
+                    final entry = workEntries[index];
+                    final entryColor =
+                        entry.isEntry! ? Colors.greenAccent : Colors.redAccent;
+                    final entryText = entry.isEntry! ? 'Entrata' : 'Uscita';
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Mostra l'orario di entrata/uscita
+                        CustomAutoSizeText(
+                          '$entryText: ${DateFormat('HH:mm').format(entry.timestamp)}',
+                          TextStyle(color: entryColor),
+                          TextAlign.start,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              )
+            else
+              // Mostra un messaggio se non ci sono voci di lavoro per il giorno corrente
+              const CustomAutoSizeText(
+                'Nessuna registrazione',
+                TextStyle(fontWeight: FontWeight.bold),
+                TextAlign.center,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}

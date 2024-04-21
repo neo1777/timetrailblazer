@@ -1,164 +1,61 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:timetrailblazer/data/dependencies/repositories/work_entries_repository.dart';
-import 'package:timetrailblazer/domain/entities/work_entry.dart';
-import 'package:timetrailblazer/utils/logger.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
 
 part 'work_entries_event.dart';
 part 'work_entries_state.dart';
 
-/// Il `WorkEntriesBloc` gestisce lo stato e gli eventi relativi alle voci di lavoro.
+/// Il BLoC che gestisce lo stato delle voci di lavoro.
 class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
-  final WorkEntriesRepositoryImpl _workEntriesRepository;
+  /// Il repository delle voci di lavoro.
+  final WorkEntryRepository _workEntryRepository;
 
-  /// Costruttore del `WorkEntriesBloc` che accetta un `WorkEntriesRepository`.
-  WorkEntriesBloc(this._workEntriesRepository) : super(WorkEntriesInitial()) {
-    // Gestisce l'evento `FetchWorkEntries` per recuperare le voci di lavoro.
+  /// Costruttore del BLoC.
+  ///
+  /// Inizializza lo stato iniziale del BLoC a `WorkEntriesInitial`.
+  /// Riceve come dipendenza il [WorkEntryRepository] per interagire con il database.
+  WorkEntriesBloc(this._workEntryRepository) : super(WorkEntriesInitial()) {
+    /// Gestisce l'evento `FetchWorkEntries`.
     on<FetchWorkEntries>(_onFetchWorkEntries);
-    // Gestisce l'evento `AddWorkEntry` per aggiungere una nuova voce di lavoro.
-    on<AddWorkEntry>(_onAddWorkEntry);
-    // Gestisce l'evento `UpdateWorkEntry` per aggiornare una voce di lavoro esistente.
-    on<UpdateWorkEntry>(_onUpdateWorkEntry);
-    // Gestisce l'evento `DeleteWorkEntry` per eliminare una voce di lavoro.
-    on<DeleteWorkEntry>(_onDeleteWorkEntry);
-    // Gestisce l'evento `DeleteAllWorkEntries` per eliminare tutte le voci di lavoro.
-    on<DeleteAllWorkEntries>(_onDeleteAllWorkEntries);
-    // Gestisce l'evento `UpdateDateRange` per aggiornare l'intervallo di date di inizio e fine.
-    on<UpdateDateRange>(_onUpdateDateRange);
+
+    // Aggiungi altri gestori di eventi se necessario
   }
 
   /// Gestore dell'evento `FetchWorkEntries`.
-  /// Recupera le voci di lavoro dal repository e le emette nello stato `WorkEntriesLoaded`.
+  ///
+  /// Quando viene richiesto il recupero delle voci di lavoro:
+  /// 1. Emette lo stato `WorkEntriesLoading` per indicare che è in corso il caricamento.
+  /// 2. Genera la lista di giorni compresi tra la data di inizio e la data di fine.
+  /// 3. Recupera le voci di lavoro dal repository per i giorni generati.
+  /// 4. Emette lo stato `WorkEntriesLoaded` con le voci di lavoro recuperate.
+  /// 5. In caso di errore, emette lo stato `WorkEntriesError` con un messaggio di errore.
   Future<void> _onFetchWorkEntries(
-    FetchWorkEntries event,
-    Emitter<WorkEntriesState> emit,
-  ) async {
+      FetchWorkEntries event, Emitter<WorkEntriesState> emit) async {
     emit(WorkEntriesLoading());
     try {
-      final entries = await _workEntriesRepository.getWorkEntries(
-        event.startDate,
-        event.endDate,
+      final startDate = event.startDate;
+      final endDate = event.endDate;
+
+      // Genera la lista di giorni compresi tra la data di inizio e la data di fine
+      final days = List.generate(
+        endDate.difference(startDate).inDays + 1,
+        (index) => startDate.add(Duration(days: index)),
       );
-      final sortedEntries = entries.toList()
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    emit(WorkEntriesLoaded(sortedEntries, _groupEntriesByDay(sortedEntries), event.startDate, event.endDate));
-    } catch (e) {
-      logger.e('Errore durante il recupero delle voci di lavoro', error: e);
-      emit(WorkEntriesError(
-          'Errore durante il recupero delle voci di lavoro: ${e.toString()}. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.'));
+
+      // Recupera le voci di lavoro dal repository per i giorni generati
+      final dayWorkEntriesList =
+          await _workEntryRepository.getWorkEntriesByDays(
+        days,
+        endDate,
+      );
+
+      emit(WorkEntriesLoaded(dayWorkEntriesList: dayWorkEntriesList));
+    } catch (error) {
+      emit(const WorkEntriesError(
+          message: 'Errore durante il caricamento delle voci di lavoro'));
     }
   }
 
-  /// Raggruppa le voci di lavoro per giorno.
-  ///
-  /// Parametri:
-  ///   - entries: la lista delle voci di lavoro da raggruppare.
-  ///
-  /// Restituisce una mappa che associa ogni giorno alle voci di lavoro corrispondenti.
-  Map<DateTime, List<WorkEntry>> _groupEntriesByDay(List<WorkEntry> entries) {
-    Map<DateTime, List<WorkEntry>> entriesGroupedByDay = {};
-    for (var entry in entries) {
-      final day = DateTime(entry.day.year, entry.day.month, entry.day.day);
-      if (entriesGroupedByDay.containsKey(day)) {
-        entriesGroupedByDay[day]!.add(entry);
-      } else {
-        entriesGroupedByDay[day] = [entry];
-      }
-    }
-    return entriesGroupedByDay;
-  }
-
-  /// Gestore dell'evento `AddWorkEntry`.
-  /// Aggiunge una nuova voce di lavoro tramite il repository e recupera nuovamente le voci di lavoro.
-  Future<void> _onAddWorkEntry(
-    AddWorkEntry event,
-    Emitter<WorkEntriesState> emit,
-  ) async {
-    try {
-      await _workEntriesRepository.insertWorkEntry(event.entry);
-      add(FetchWorkEntries(
-        startDate: event.entry.day,
-        endDate: event.entry.day.add(const Duration(days: 1)),
-      ));
-    } catch (e) {
-      logger.e('Errore durante l\'aggiunta di una nuova voce di lavoro',
-          error: e);
-      emit(WorkEntriesError(
-          'Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
-    }
-  }
-
-  /// Gestore dell'evento `UpdateWorkEntry`.
-  /// Aggiorna una voce di lavoro esistente tramite il repository e recupera nuovamente le voci di lavoro.
-  Future<void> _onUpdateWorkEntry(
-    UpdateWorkEntry event,
-    Emitter<WorkEntriesState> emit,
-  ) async {
-    try {
-      await _workEntriesRepository.updateWorkEntry(event.entry);
-      add(FetchWorkEntries(
-        startDate: event.entry.day,
-        endDate: event.entry.day.add(const Duration(days: 1)),
-      ));
-    } catch (e) {
-      logger.e('Errore durante l\'aggiornamento di una voce di lavoro',
-          error: e);
-      emit(WorkEntriesError(
-          'Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
-    }
-  }
-
-  /// Gestore dell'evento `DeleteWorkEntry`.
-  /// Elimina una voce di lavoro tramite il repository e recupera nuovamente le voci di lavoro.
-  Future<void> _onDeleteWorkEntry(
-    DeleteWorkEntry event,
-    Emitter<WorkEntriesState> emit,
-  ) async {
-    try {
-      await _workEntriesRepository.deleteWorkEntry(event.entryId);
-   // Recupera le voci di lavoro per l'intero intervallo di date attualmente visualizzato
-    final currentState = state;
-    if (currentState is WorkEntriesLoaded) {
-      add(FetchWorkEntries(
-        startDate: currentState.startDate,
-        endDate: currentState.endDate,
-      ));
-    }
-    } catch (e) {
-      logger.e('Errore durante l\'eliminazione di una voce di lavoro',
-          error: e);
-      emit(WorkEntriesError(
-          'Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
-    }
-  }
-
-  /// Gestore dell'evento `DeleteAllWorkEntries`.
-  /// Elimina tutte le voci di lavoro tramite il repository e recupera nuovamente le voci di lavoro.
-  Future<void> _onDeleteAllWorkEntries(
-    DeleteAllWorkEntries event,
-    Emitter<WorkEntriesState> emit,
-  ) async {
-    try {
-      await _workEntriesRepository.deleteAllWorkEntries();
-
-      add(FetchWorkEntries(
-        startDate: event.startDate,
-        endDate: event.endDate,
-      ));
-    } catch (e) {
-      logger.e('Errore durante l\'eliminazione di tutte le voci di lavoro',
-          error: e);
-      emit(WorkEntriesError(
-          'Errore durante l\'operazione sulle voci di lavoro: ${e.toString()}. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.'));
-    }
-  }
-
-  /// Gestore dell'evento `UpdateDateRange`.
-  /// Emette lo stato `WorkEntriesDateRangeUpdated` con le nuove date di inizio e fine.
-  Future<void> _onUpdateDateRange(
-    UpdateDateRange event,
-    Emitter<WorkEntriesState> emit,
-  ) async {
-    emit(WorkEntriesDateRangeUpdated(event.startDate, event.endDate));
-  }
+  // Aggiungi altri metodi per gestire altri eventi se necessario
 }

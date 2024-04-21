@@ -6,11 +6,10 @@ import 'package:pine/pine.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:timetrailblazer/app.dart';
 import 'package:timetrailblazer/data/database_helper.dart';
-import 'package:timetrailblazer/dependencies/bloc_providers.dart';
-import 'package:timetrailblazer/dependencies/mappers.dart';
-import 'package:timetrailblazer/dependencies/providers.dart';
-import 'package:timetrailblazer/dependencies/repositories.dart';
-import 'package:timetrailblazer/utils/logger.dart';
+import 'package:timetrailblazer/di/bloc_providers.dart';
+import 'package:timetrailblazer/di/mappers.dart';
+import 'package:timetrailblazer/di/providers.dart';
+import 'package:timetrailblazer/di/repositories.dart';
 
 /// La classe `AppInitializer` contiene la logica di inizializzazione dell'app.
 ///
@@ -39,12 +38,10 @@ class AppInitializer {
     final databaseHelper = DatabaseHelper();
 
     return FutureBuilder(
-      future: databaseHelper.initializeDatabase(),
+      future:  databaseHelper.database,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
+        // if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
-            logger.e('Errore durante l\'inizializzazione del database',
-                error: snapshot.error);
             return MaterialApp(
               home: Scaffold(
                 body: Center(
@@ -56,22 +53,22 @@ class AppInitializer {
             );
           } else {
             return DependencyInjectorHelper(
-              mappers: getMappers(),
-              providers: getProviders(databaseHelper),
-              repositories: getRepositories(),
-              blocs: getBlocProviders(),
+               mappers: getMappers(),
+               providers: getProviders(databaseHelper),
+               repositories: getRepositories(),
+               blocs: getBlocProviders(),
               child: const App(),
             );
           }
-        } else {
-          return const MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          );
-        }
+        // } else {
+        //   return const MaterialApp(
+        //     home: Scaffold(
+        //       body: Center(
+        //         child: CircularProgressIndicator(),
+        //       ),
+        //     ),
+        //   );
+        // }
       },
     );
   }

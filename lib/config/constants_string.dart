@@ -2,8 +2,13 @@
 class AppStrings {
   static const String entryRegistered = 'Entrata registrata';
   static const String exitRegistered = 'Uscita registrata';
+  static const String appName = 'TimeTrailblazer';
+  static const String appFooter =
+      'TimeTrailblazer - L\'app per una gestione del tempo impeccabile, sviluppata da Neo1777.';
   static const String appTitle = 'Registrazione Orari di Lavoro';
   static const String homeTitle = 'Registrazione orari di lavoro';
+  static const String appDescription =
+      'L\'app essenziale per tracciare i tuoi orari di lavoro.';
   static const String workEntriesTitle = 'Registrazioni Orari di Lavoro';
   static const String workStatsTitle = 'Statistiche di lavoro';
   static const String confirmResetTitle = 'Conferma Reset';
