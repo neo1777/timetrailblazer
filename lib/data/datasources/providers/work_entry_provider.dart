@@ -29,11 +29,13 @@ class WorkEntryProvider {
     return await _databaseHelper.getLastWorkEntry();
   }
 
-// /// Questo metodo chiama il metodo getWorkEntriesByDateRange del DatabaseHelper passando i timestamp di inizio e di fine.
-//   Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(int startTimestamp, int endTimestamp) async {
-//   return await _databaseHelper.getWorkEntriesByDateRange(startTimestamp, endTimestamp);
-// }
-
+  /// Recupera le voci di lavoro nell'intervallo di date specificato.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [startTimestamp]: il timestamp di inizio dell'intervallo in millisecondi.
+  /// - [endTimestamp]: il timestamp di fine dell'intervallo in millisecondi.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkEntryDTO` rappresentanti le voci di lavoro nell'intervallo specificato.
   Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(
       int startTimestamp, int endTimestamp) async {
     return await _databaseHelper.getWorkEntriesByDateRange(
@@ -48,6 +50,8 @@ class WorkEntryProvider {
   }
 
   /// Cancella una singola voce di lavoro dal database in base all'ID.
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da eliminare.
   ///
   /// Restituisce un `Future` che si completa quando la cancellazione è terminata.
   Future<void> deleteWorkEntryById(int id) async {

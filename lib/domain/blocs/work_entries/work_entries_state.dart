@@ -18,8 +18,13 @@ class WorkEntriesLoading extends WorkEntriesState {}
 class WorkEntriesLoaded extends WorkEntriesState {
   /// La lista delle voci di lavoro raggruppate per giorno.
   final List<DayWorkEntriesModel> dayWorkEntriesList;
+
+  /// La data di inizio dell'intervallo di date.
   final DateTime startDate;
+
+  /// La data di fine dell'intervallo di date.
   final DateTime endDate;
+
   const WorkEntriesLoaded({
     required this.startDate,
     required this.endDate,

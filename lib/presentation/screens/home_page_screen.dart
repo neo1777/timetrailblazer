@@ -10,6 +10,7 @@ import 'package:timetrailblazer/presentation/widgets/work_button.dart';
 
 /// La schermata principale dell'applicazione.
 class HomePageScreen extends StatelessWidget {
+  /// Costruttore della classe `HomePageScreen`.
   const HomePageScreen({super.key});
 
   @override
@@ -35,15 +36,24 @@ class HomePageScreen extends StatelessWidget {
   }
 }
 
+/// Il widget HomeScreen rappresenta il contenuto della schermata principale.
 class HomeScreen extends StatelessWidget {
+  /// Flag che indica se il pulsante di entrata è abilitato.
+  final bool isEntryAllowed;
+
+  /// Flag che indica se il pulsante di uscita è abilitato.
+  final bool isExitAllowed;
+
+  /// Costruttore della classe HomeScreen.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - isEntryAllowed: flag che indica se il pulsante di entrata è abilitato.
+  /// - isExitAllowed: flag che indica se il pulsante di uscita è abilitato.
   const HomeScreen({
     super.key,
     required this.isEntryAllowed,
     required this.isExitAllowed,
   });
-
-  final bool isEntryAllowed;
-  final bool isExitAllowed;
 
   @override
   Widget build(BuildContext context) {
@@ -82,9 +92,7 @@ class HomeScreen extends StatelessWidget {
             child: WorkButton(
               label: AppStrings.entryButtonLabel,
               onPressed: isEntryAllowed
-                  ? () {
-                      context.read<HomeBloc>().add(EntryButtonPressed());
-                    }
+                  ? () => context.read<HomeBloc>().add(EntryButtonPressed())
                   : null,
             ),
           ),
@@ -93,9 +101,7 @@ class HomeScreen extends StatelessWidget {
             child: WorkButton(
               label: AppStrings.exitButtonLabel,
               onPressed: isExitAllowed
-                  ? () {
-                      context.read<HomeBloc>().add(ExitButtonPressed());
-                    }
+                  ? () => context.read<HomeBloc>().add(ExitButtonPressed())
                   : null,
             ),
           ),
@@ -103,14 +109,11 @@ class HomeScreen extends StatelessWidget {
             flex: 16,
             child: WorkButton(
               label: AppStrings.viewEntriesButtonLabel,
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.workEntries);
-              },
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRoutes.workEntries),
             ),
           ),
-          const CustomSpacer(
-            flex: 32,
-          ),
+          const CustomSpacer(flex: 32),
           Flexible(
             flex: 8,
             child: CustomAutoSizeText(

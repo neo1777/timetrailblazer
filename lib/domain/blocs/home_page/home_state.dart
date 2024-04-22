@@ -12,8 +12,7 @@ abstract class HomeState extends Equatable {
 class HomeInitial extends HomeState {}
 
 /// Rappresenta lo stato in cui il pulsante di entrata è abilitato e il pulsante di uscita è disabilitato.
-class HomeEntryButtonEnabled extends HomeState {
-}
+class HomeEntryButtonEnabled extends HomeState {}
 
 /// Rappresenta lo stato in cui il pulsante di uscita è abilitato e il pulsante di entrata è disabilitato.
 class HomeExitButtonEnabled extends HomeState {}

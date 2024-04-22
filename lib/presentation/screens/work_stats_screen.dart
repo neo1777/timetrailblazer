@@ -5,6 +5,7 @@ import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 
 /// La schermata che mostra le statistiche di lavoro.
 class WorkStatsScreen extends StatelessWidget {
+  /// Costruttore della classe `WorkStatsScreen`.
   const WorkStatsScreen({super.key});
 
   @override
@@ -56,7 +57,7 @@ class WorkStatsScreen extends StatelessWidget {
                       //     // Mostra le statistiche di lavoro giornaliere utilizzando il widget `WorkStatsListItem`
                       //     return Placeholder();
                       //     // WorkStatsListItem(
-                      //     //   date: DateFormat('yyyy-MM-dd').format(workDate),
+                      //     ////   date: DateFormat('yyyy-MM-dd').format(workDate),
                       //     //   duration: workDuration,
                       //     // );
                       //   },

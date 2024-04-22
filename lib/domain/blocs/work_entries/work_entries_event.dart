@@ -10,25 +10,40 @@ abstract class WorkEntriesEvent extends Equatable {
 
 /// Rappresenta l'evento di cancellazione/reset del database.
 class ResetDatabase extends WorkEntriesEvent {
+  /// La data di inizio dell'intervallo di date.
   final DateTime startDate;
+
+  /// La data di fine dell'intervallo di date.
   final DateTime endDate;
 
   const ResetDatabase({
     required this.startDate,
     required this.endDate,
   });
+
+  @override
+  List<Object> get props => [startDate, endDate];
 }
 
 /// Rappresenta l'evento di cancellazione di una singola voce di lavoro.
 class DeleteWorkEntry extends WorkEntriesEvent {
+  /// L'ID della voce di lavoro da eliminare.
   final int id;
+
+  /// La data di inizio dell'intervallo di date.
   final DateTime startDate;
+
+  /// La data di fine dell'intervallo di date.
   final DateTime endDate;
+
   const DeleteWorkEntry({
     required this.id,
     required this.startDate,
     required this.endDate,
   });
+
+  @override
+  List<Object> get props => [id, startDate, endDate];
 }
 
 /// Rappresenta l'evento di richiesta delle voci di lavoro per un intervallo di date.

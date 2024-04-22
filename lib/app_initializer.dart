@@ -29,7 +29,6 @@ class AppInitializer {
   static Future<Widget> initialize() async {
     WidgetsFlutterBinding.ensureInitialized();
     await initializeDateFormatting('it_IT', null);
-
     if (Platform.isWindows || Platform.isLinux) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
@@ -38,28 +37,27 @@ class AppInitializer {
     final databaseHelper = DatabaseHelper();
 
     return FutureBuilder(
-      future:  databaseHelper.database,
+      future: databaseHelper.database,
       builder: (context, snapshot) {
-        // if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            return MaterialApp(
-              home: Scaffold(
-                body: Center(
-                  child: Text(
-                    'Errore durante l\'inizializzazione del database: ${snapshot.error}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
-                  ),
+        if (snapshot.hasError) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Text(
+                  'Errore durante l\'inizializzazione del database: ${snapshot.error}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
                 ),
               ),
-            );
-          } else {
-            return DependencyInjectorHelper(
-               mappers: getMappers(),
-               providers: getProviders(databaseHelper),
-               repositories: getRepositories(),
-               blocs: getBlocProviders(),
-              child: const App(),
-            );
-          }
+            ),
+          );
+        } else {
+          return DependencyInjectorHelper(
+            mappers: getMappers(),
+            providers: getProviders(databaseHelper),
+            repositories: getRepositories(),
+            blocs: getBlocProviders(),
+            child: const App(),
+          );
+        }
       },
     );
   }

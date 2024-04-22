@@ -11,12 +11,15 @@ part 'work_entries_state.dart';
 class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   /// Il repository delle voci di lavoro.
   final WorkEntryRepository _workEntryRepository;
+
+  /// Il BLoC della schermata principale.
   final HomeBloc _homeBloc;
 
   /// Costruttore del BLoC.
   ///
   /// Inizializza lo stato iniziale del BLoC a `WorkEntriesInitial`.
-  /// Riceve come dipendenza il [WorkEntryRepository] per interagire con il database.
+  /// Riceve come dipendenze il [WorkEntryRepository] per interagire con il database
+  /// e il [HomeBloc] per comunicare con la schermata principale.
   WorkEntriesBloc(
     this._workEntryRepository,
     this._homeBloc,
@@ -39,7 +42,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   /// 3. Genera la lista dei giorni compresi tra la data di inizio e la data di fine.
   /// 4. Crea una lista di `DayWorkEntriesModel` con i giorni generati e nessuna voce di lavoro associata.
   /// 5. Emette lo stato `WorkEntriesLoaded` con la lista di `DayWorkEntriesModel` generata.
-  /// 6. In caso di errore, emette lo stato `WorkEntriesError` con un messaggio di errore.
+  /// 6. Aggiunge l'evento `DatabaseReset` al `HomeBloc` per comunicare il reset del database.
+  /// 7. In caso di errore, emette lo stato `WorkEntriesError` con un messaggio di errore.
   Future<void> _onResetDatabase(
       ResetDatabase event, Emitter<WorkEntriesState> emit) async {
     emit(WorkEntriesLoading());
@@ -67,6 +71,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
           endDate: endDate,
         ),
       );
+
+      // Aggiunge l'evento DatabaseReset al HomeBloc per comunicare il reset del database
       _homeBloc.add(DatabaseReset());
     } catch (error) {
       emit(const WorkEntriesError(
@@ -119,19 +125,14 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   /// Gestore dell'evento `FetchWorkEntries`.
   ///
   /// Quando viene richiesto il recupero delle voci di lavoro:
-  /// 1. Emette lo stato `WorkEntriesLoading` per indicare che è in corso il caricamento.
-  /// 2. Genera la lista di giorni compresi tra la data di inizio e la data di fine.
-  /// 3. Recupera le voci di lavoro dal repository per i giorni generati.
-  /// 4. Emette lo stato `WorkEntriesLoaded` con le voci di lavoro recuperate.
-  /// 5. In caso di errore, emette lo stato `WorkEntriesError` con un messaggio di errore.
+  /// 1. Emette lo stato `WorkEntriesLoadingper indicare che è in corso il caricamento.   /// 2. Genera la lista di giorni compresi tra la data di inizio e la data di fine.   /// 3. Recupera le voci di lavoro dal repository per i giorni generati.   /// 4. Emette lo statoWorkEntriesLoadedcon le voci di lavoro recuperate.   /// 5. In caso di errore, emette lo statoWorkEntriesError` con un messaggio di errore.
   Future<void> _onFetchWorkEntries(
       FetchWorkEntries event, Emitter<WorkEntriesState> emit) async {
     emit(WorkEntriesLoading());
     try {
       final startDate = event.startDate;
-      final endDate = event.endDate;
-
-      // Genera la lista di giorni compresi tra la data di inizio e la data di fine
+      final endDate = event
+          .endDate; // Genera la lista di giorni compresi tra la data di inizio e la data di fine
       final days = List.generate(
         endDate.difference(startDate).inDays + 1,
         (index) => startDate.add(Duration(days: index)),
@@ -156,6 +157,4 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
           message: 'Errore durante il caricamento delle voci di lavoro'));
     }
   }
-
-  // Aggiungi altri metodi per gestire altri eventi se necessario
 }

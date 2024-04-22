@@ -40,18 +40,13 @@ class WorkEntryRepository {
     return null;
   }
 
-//   /// Questo metodo chiama il metodo getWorkEntriesByDateRange del provider
-//   /// WorkEntryProvider passando i timestamp di inizio e di fine convertiti in millisecondi.
-//   /// Quindi, mappa i WorkEntryDTO restituiti dal provider in oggetti WorkEntry utilizzando
-//   /// il metodo fromDTO del WorkEntryMapper.
-//   Future<List<WorkEntry>> getWorkEntriesByDateRange(DateTime startDate, DateTime endDate) async {
-//   final workEntryDTOs = await _workEntryProvider.getWorkEntriesByDateRange(
-//     startDate.millisecondsSinceEpoch,
-//     endDate.millisecondsSinceEpoch,
-//   );
-//   return workEntryDTOs.map(_workEntryMapper.fromDTO).toList();
-// }
-
+  /// Recupera le voci di lavoro per i giorni specificati.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [days]: la lista di oggetti `DateTime` rappresentanti i giorni per cui recuperare le voci di lavoro.
+  /// - [endDate]: la data di fine dell'intervallo di date.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `DayWorkEntriesModel` rappresentanti le voci di lavoro raggruppate per giorno.
   Future<List<DayWorkEntriesModel>> getWorkEntriesByDays(
       List<DateTime> days, DateTime endDate) async {
     final List<DayWorkEntriesModel> dayWorkEntriesList = [];
@@ -88,9 +83,11 @@ class WorkEntryRepository {
   }
 
   /// Cancella una singola voce di lavoro dal database in base all'ID.
-///
-/// Restituisce un `Future` che si completa quando la cancellazione è terminata.
-Future<void> deleteWorkEntryById(int id) async {
-  await _workEntryProvider.deleteWorkEntryById(id);
-}
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da eliminare.
+  ///
+  /// Restituisce un `Future` che si completa quando la cancellazione è terminata.
+  Future<void> deleteWorkEntryById(int id) async {
+    await _workEntryProvider.deleteWorkEntryById(id);
+  }
 }

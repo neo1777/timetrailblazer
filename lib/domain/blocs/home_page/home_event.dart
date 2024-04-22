@@ -20,4 +20,5 @@ class ExitButtonPressed extends HomeEvent {
   List<Object> get props => [];
 }
 
+/// Rappresenta l'evento di reset del database.
 class DatabaseReset extends HomeEvent {}

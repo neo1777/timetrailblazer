@@ -11,6 +11,12 @@ class WorkButton extends StatelessWidget {
   /// La larghezza del pulsante.
   final double? width;
 
+  /// Costruttore della classe `WorkButton`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - `label`: l'etichetta del pulsante.
+  /// - `onPressed`: la funzione di callback da chiamare quando il pulsante viene premuto.
+  /// - `width`: la larghezza del pulsante.
   const WorkButton({
     super.key,
     required this.label,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
-import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/date_range_picker.dart';
@@ -12,6 +11,7 @@ import 'package:timetrailblazer/presentation/widgets/work_button.dart';
 
 /// La schermata che mostra le voci di lavoro registrate.
 class WorkEntriesScreen extends StatefulWidget {
+  /// Costruttore della classe `WorkEntriesScreen`.
   const WorkEntriesScreen({super.key});
 
   @override
@@ -20,8 +20,13 @@ class WorkEntriesScreen extends StatefulWidget {
 
 /// Lo stato della schermata delle voci di lavoro.
 class WorkEntriesScreenState extends State<WorkEntriesScreen> {
+  /// Il controller di scorrimento per il calendario.
   final ScrollController _scrollController = ScrollController();
+
+  /// La data di inizio dell'intervallo di date.
   DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+
+  /// La data di fine dell'intervallo di date.
   DateTime _endDate =
       DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
 
@@ -47,10 +52,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
       appBar: CustomAppBar(
         title: AppStrings.workEntriesTitle,
         onBackPressed: () {
-          //Navigator.pop(context);
           Navigator.pushNamed(context, AppRoutes.home);
-          //.then(
-          //    (_) => context.read<WorkEntryRepository>().getLastWorkEntry());
         },
         onAction: [
           const IconButton(

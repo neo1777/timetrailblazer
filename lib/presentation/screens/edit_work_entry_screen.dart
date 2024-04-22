@@ -11,15 +11,6 @@ import 'package:timetrailblazer/presentation/widgets/work_button.dart';
 ///
 /// Questa schermata consente all'utente di modificare i dettagli di una voce di lavoro esistente,
 /// come la data e l'ora. Le modifiche vengono salvate quando l'utente preme il pulsante "Salva".
-///
-/// Esempio di utilizzo:
-///
-/// Navigator.push(
-///   context,
-///   MaterialPageRoute(
-///     builder: (context) => EditWorkEntryScreen(workEntry: entry),
-///   ),
-/// );
 class EditWorkEntryScreen extends StatelessWidget {
   /// La voce di lavoro da modificare.
   final WorkEntryModel workEntry;
@@ -32,18 +23,13 @@ class EditWorkEntryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Il `BlocProvider` viene utilizzato per fornire il `EditWorkEntryBloc` alla schermata
-    // Viene passata la voce di lavoro iniziale al costruttore del bloc
     return const EditWorkEntryView();
-    // BlocProvider(
-    //   create: (context) => EditWorkEntryBloc(workEntry),
-    //   child: const EditWorkEntryView(),
-    // );
   }
 }
 
 /// Vista della schermata di modifica di una voce di lavoro.
 class EditWorkEntryView extends StatelessWidget {
+  /// Costruttore della vista della schermata di modifica di una voce di lavoro.
   const EditWorkEntryView({super.key});
 
   @override
@@ -114,5 +100,4 @@ class EditWorkEntryView extends StatelessWidget {
       ),
     );
   }
-
 }

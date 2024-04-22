@@ -32,61 +32,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ///
   /// Quando viene premuto il pulsante di entrata:
   /// 1. Inserisce una nuova voce di lavoro di tipo "entrata" nel database.
-  /// 2. Recupera l'ultima voce di lavoro dal database.
-  /// 3. Emette lo stato `HomeExitButtonEnabled` se l'ultima voce è di tipo "entrata",
-  ///    altrimenti emette lo stato `HomeEntryButtonEnabled`.
+  /// 2. Emette lo stato `HomeExitButtonEnabled` per abilitare il pulsante di uscita.
   Future<void> _onEntryButtonPressed(
       EntryButtonPressed event, Emitter<HomeState> emit) async {
     await _workEntryRepository.insertWorkEntry(
       WorkEntryModel(timestamp: DateTime.now(), isEntry: true),
     );
 
-    final lastWorkEntry = await _workEntryRepository.getLastWorkEntry();
-    if (lastWorkEntry != null && lastWorkEntry.isEntry!) {
-      emit(HomeExitButtonEnabled());
-    } else {
-      emit(HomeEntryButtonEnabled());
-    }
+    emit(HomeExitButtonEnabled());
   }
-  // Future<void> _onEntryButtonPressed(
-  //     EntryButtonPressed event, Emitter<HomeState> emit) async {
-  //   await _workEntryRepository.insertWorkEntry(
-  //     WorkEntryModel(timestamp: DateTime.now(), isEntry: true),
-  //   );
-
-  //   emit(HomeExitButtonEnabled());
-  // }
 
   /// Gestore dell'evento `ExitButtonPressed`.
   ///
   /// Quando viene premuto il pulsante di uscita:
   /// 1. Inserisce una nuova voce di lavoro di tipo "uscita" nel database.
-  /// 2. Recupera l'ultima voce di lavoro dal database.
-  /// 3. Emette lo stato `HomeEntryButtonEnabled` se l'ultima voce è di tipo "uscita",
-  ///    altrimenti emette lo stato `HomeExitButtonEnabled`.
+  /// 2. Emette lo stato `HomeEntryButtonEnabled` per abilitare il pulsante di entrata.
   Future<void> _onExitButtonPressed(
       ExitButtonPressed event, Emitter<HomeState> emit) async {
     await _workEntryRepository.insertWorkEntry(
       WorkEntryModel(timestamp: DateTime.now(), isEntry: false),
     );
 
-    final lastWorkEntry = await _workEntryRepository.getLastWorkEntry();
-    if (lastWorkEntry != null && !lastWorkEntry.isEntry!) {
-      emit(HomeEntryButtonEnabled());
-    } else {
-      emit(HomeExitButtonEnabled());
-    }
+    emit(HomeEntryButtonEnabled());
   }
-  // Future<void> _onExitButtonPressed(
-  //     ExitButtonPressed event, Emitter<HomeState> emit) async {
-  //   await _workEntryRepository.insertWorkEntry(
-  //     WorkEntryModel(timestamp: DateTime.now(), isEntry: false),
-  //   );
 
-  //   emit(HomeEntryButtonEnabled());
-  // }
-
-  // Implementa il gestore per l'evento DatabaseReset
+  /// Gestore dell'evento `DatabaseReset`.
+  ///
+  /// Quando viene ricevuto l'evento di reset del database:
+  /// 1. Emette lo stato `HomeInitial` per tornare allo stato iniziale della schermata principale.
   Future<void> _onDatabaseReset(
       DatabaseReset event, Emitter<HomeState> emit) async {
     emit(HomeInitial());
