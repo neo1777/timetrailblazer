@@ -1,7 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:timetrailblazer/config/constants_routes.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
+import 'package:timetrailblazer/presentation/screens/edit_work_entry_screen.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
 
 /// Il widget `DayRangeCalendar` visualizza le voci di lavoro in un calendario variabile.
@@ -83,17 +91,82 @@ class DayRangeCalendar extends StatelessWidget {
                         entry.isEntry! ? Colors.greenAccent : Colors.redAccent;
                     final entryText = entry.isEntry! ? 'Entrata' : 'Uscita';
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    return Row(
                       children: [
-                        // Mostra l'orario di entrata/uscita
-                        CustomAutoSizeText(
-                          '$entryText: ${DateFormat('HH:mm').format(entry.timestamp)}',
-                          TextStyle(color: entryColor),
-                          TextAlign.start,
+                        Expanded(
+                          flex: 13,
+                          child: FittedBox(
+                            child: CustomAutoSizeText(
+                              '$entryText: ${DateFormat('HH:mm').format(entry.timestamp)}',
+                              TextStyle(color: entryColor),
+                              TextAlign.start,
+                            ),
+                          ),
+                        ),
+                        const Spacer(
+                          flex: 25,
+                        ),
+                        Flexible(
+                          flex: 3,
+                          child: FittedBox(
+                            child: IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) =>
+                                //         EditWorkEntryScreen(workEntry: entry),
+                                //   ),
+                                // );
+
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) =>
+                                //         EditWorkEntryScreen(workEntry: entry),
+                                //   ),
+                                // ).then((updatedEntry) {
+                                //   if (updatedEntry != null) {
+                                //     widget.onEntryModified(updatedEntry);
+                                //   }
+                                // });
+                              },
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          flex: 3,
+                          child: FittedBox(
+                            child: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                context.read<WorkEntriesBloc>().add(
+                                    DeleteWorkEntry(
+                                        id: entry.id!,
+                                        startDate: entry.day,
+                                        endDate: entry.timestamp));
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     );
+                    // Row(
+                    //   children: [
+                    //     Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         // Mostra l'orario di entrata/uscita
+                    //         CustomAutoSizeText(
+                    //           '$entryText: ${DateFormat('HH:mm').format(entry.timestamp)}',
+                    //           TextStyle(color: entryColor),
+                    //           TextAlign.start,
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ],
+                    // );
                   },
                 ),
               )

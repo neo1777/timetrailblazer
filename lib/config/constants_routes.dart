@@ -6,6 +6,9 @@ class AppRoutes {
   /// La rotta per la schermata delle voci di lavoro.
   static const String workEntries = '/work_entries';
 
+  /// La rotta per la schermata delle modifiche alle voci di lavoro.
+  static const String editWorkEntry = '/edit_work_entry';
+
   /// La rotta per la schermata delle statistiche di lavoro.
   static const String workStats = '/work_stats';
 }

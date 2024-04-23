@@ -91,32 +91,27 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   /// 6. In caso di errore o se lo stato corrente non è `WorkEntriesLoaded`, emette lo stato `WorkEntriesError` con un messaggio di errore.
   Future<void> _onDeleteWorkEntry(
       DeleteWorkEntry event, Emitter<WorkEntriesState> emit) async {
-    emit(WorkEntriesLoading());
     try {
       await _workEntryRepository.deleteWorkEntryById(event.id);
 
-      if (state is WorkEntriesLoaded) {
-        final startDate = event.startDate;
-        final endDate = event.endDate;
+      final startDate = event.startDate;
+      final endDate = event.endDate;
 
-        // Genera la lista di giorni compresi tra la data di inizio e la data di fine
-        final days = List.generate(
-          endDate.difference(startDate).inDays + 1,
-          (index) => startDate.add(Duration(days: index)),
-        );
+      // Genera la lista di giorni compresi tra la data di inizio e la data di fine
+      final days = List.generate(
+        endDate.difference(startDate).inDays + 1,
+        (index) => startDate.add(Duration(days: index)),
+      );
 
-        final dayWorkEntriesList =
-            await _workEntryRepository.getWorkEntriesByDays(days, endDate);
+      final dayWorkEntriesList =
+          await _workEntryRepository.getWorkEntriesByDays(days, endDate);
 
-        emit(WorkEntriesLoaded(
-            startDate: startDate,
-            endDate: endDate,
-            dayWorkEntriesList: dayWorkEntriesList));
-      } else {
-        emit(const WorkEntriesError(
-            message: 'Impossibile recuperare le date di inizio e fine'));
-      }
+      emit(WorkEntriesLoaded(
+          startDate: startDate,
+          endDate: endDate,
+          dayWorkEntriesList: dayWorkEntriesList));
     } catch (error) {
+      //print(error);
       emit(const WorkEntriesError(
           message: 'Errore durante la cancellazione della voce di lavoro'));
     }

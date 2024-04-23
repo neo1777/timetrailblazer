@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/config/constants_routes.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
@@ -20,15 +22,24 @@ class HomePageScreen extends StatelessWidget {
         title: AppStrings.homeTitle,
       ),
       body: BlocBuilder<HomeBloc, HomeState>(
-        builder: (context, state) {
-          // Determina lo stato dei pulsanti in base allo stato corrente del HomeBloc
-          final isEntryAllowed = state is! HomeExitButtonEnabled;
-          final isExitAllowed = state is HomeExitButtonEnabled;
-
-          // Passa lo stato dei pulsanti al widget HomeScreen
-          return HomeScreen(
-            isEntryAllowed: isEntryAllowed,
-            isExitAllowed: isExitAllowed,
+            builder: (context, state) {
+          return FutureBuilder<WorkEntryModel?>(
+            future: context.read<WorkEntryRepository>().getLastWorkEntry(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Mostra un indicatore di caricamento mentre si recupera l'ultima voce di lavoro
+                return const Center(child: CircularProgressIndicator());
+              }
+              final lastWorkEntry = snapshot.data;
+              final isEntryAllowed =
+                  lastWorkEntry == null || !lastWorkEntry.isEntry!;
+              final isExitAllowed =
+                  lastWorkEntry != null && lastWorkEntry.isEntry!;
+              return HomeScreen(
+                isEntryAllowed: isEntryAllowed,
+                isExitAllowed: isExitAllowed,
+              );
+            },
           );
         },
       ),
