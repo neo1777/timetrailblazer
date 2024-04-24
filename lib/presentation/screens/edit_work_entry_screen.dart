@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
-import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
-import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
 
@@ -68,63 +64,7 @@ class EditWorkEntryView extends StatelessWidget {
     );
   }
 
-  /// Costruisce la sezione per la selezione della data.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  ///   - `workEntry`: la voce di lavoro corrente.
-  Widget _buildDateSection(BuildContext context, WorkEntryModel workEntry) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Flexible(
-          flex: 1,
-          child: CustomAutoSizeText(
-            'Data: ${DateFormat('dd/MM/yyyy').format(workEntry.timestamp)}',
-            Theme.of(context).textTheme.bodyLarge!,
-            TextAlign.left,
-          ),
-        ),
-        const CustomSpacer(flex: 1),
-        Flexible(
-          flex: 1,
-          child: WorkButton(
-            label: AppStrings.selectDate,
-            onPressed: () => _selectDate(context),
-          ),
-        ),
-      ],
-    );
-  }
 
-  /// Costruisce la sezione per la selezione dell'ora.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  ///   - `workEntry`: la voce di lavoro corrente.
-  Widget _buildTimeSection(BuildContext context, WorkEntryModel workEntry) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Flexible(
-          flex: 1,
-          child: CustomAutoSizeText(
-            '${AppStrings.time}: ${TimeOfDay.fromDateTime(workEntry.timestamp).format(context)}',
-            Theme.of(context).textTheme.bodyLarge!,
-            TextAlign.left,
-          ),
-        ),
-        const CustomSpacer(flex: 1),
-        Flexible(
-          flex: 1,
-          child: WorkButton(
-            label: AppStrings.selectTime,
-            onPressed: () => _selectTime(context),
-          ),
-        ),
-      ],
-    );
-  }
 
   /// Costruisce il pulsante per il salvataggio della voce di lavoro.
   ///
@@ -137,67 +77,7 @@ class EditWorkEntryView extends StatelessWidget {
     );
   }
 
-  /// Mostra un selettore di data e aggiorna la data della voce di lavoro.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  Future<void> _selectDate(BuildContext context) async {
-    //final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      //initialDate: editWorkEntryBloc.state.workEntry.timestamp,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
 
-    // Validazione dei dati
-    if (picked != null) {
-      if (picked.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
-        // Mostra un messaggio di errore se la data selezionata è precedente a ieri
-        // ErrorHandler.showErrorDialog(
-        //   AppErrorMessages.invalidDate,
-        //   AppErrorMessages.invalidDateMessage,
-        // );
-        return;
-      }
-      //editWorkEntryBloc.add(UpdateDate(picked));
-    }
-  }
-
-  /// Mostra un selettore di ora e aggiorna l'ora della voce di lavoro.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  Future<void> _selectTime(BuildContext context) async {
-    //final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
-    final TimeOfDay? picked = await showTimePicker(
-      context: context, initialTime: TimeOfDay.fromDateTime(DateTime.now()),
-      // initialTime:
-      //     TimeOfDay.fromDateTime(editWorkEntryBloc.state.workEntry.timestamp),
-    );
-
-    // Validazione dei dati
-    if (picked != null) {
-      final now = DateTime.now();
-      final selectedDateTime = DateTime(
-        // editWorkEntryBloc.state.workEntry.timestamp.year,
-        // editWorkEntryBloc.state.workEntry.timestamp.month,
-        // editWorkEntryBloc.state.workEntry.timestamp.day,
-        picked.hour,
-        picked.minute,
-      );
-
-      if (selectedDateTime.isAfter(now)) {
-        // Mostra un messaggio di errore se l'orario selezionato è nel futuro
-        // ErrorHandler.showErrorDialog(
-        //   AppErrorMessages.invalidTime,
-        //   AppErrorMessages.invalidTimeMessage,
-        // );
-        return;
-      }
-      // editWorkEntryBloc.add(UpdateTime(picked));
-    }
-  }
 
   /// Aggiorna la voce di lavoro nel database e torna alla schermata precedente.
   ///
