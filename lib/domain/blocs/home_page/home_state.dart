@@ -1,18 +1,16 @@
-part of 'home_bloc.dart';
+import 'package:equatable/equatable.dart';
 
-/// Rappresenta lo stato del BLoC `HomeBloc`.
 abstract class HomeState extends Equatable {
-  const HomeState();
-
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-/// Rappresenta lo stato iniziale del BLoC `HomeBloc`.
+// Stato iniziale, quando l'applicazione è appena avviata o in attesa di azioni
 class HomeInitial extends HomeState {}
 
-/// Rappresenta lo stato in cui il pulsante di entrata è abilitato e il pulsante di uscita è disabilitato.
+// Stato quando il pulsante di entrata è disabilitato (perché l'ultima voce è stata un'entrata)
 class HomeEntryButtonEnabled extends HomeState {}
 
-/// Rappresenta lo stato in cui il pulsante di uscita è abilitato e il pulsante di entrata è disabilitato.
+// Stato quando il pulsante di uscita è disabilitato (perché l'ultima voce è stata un'uscita)
 class HomeExitButtonEnabled extends HomeState {}
+

@@ -5,6 +5,8 @@ import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/home_page/home_event.dart';
+import 'package:timetrailblazer/domain/blocs/home_page/home_state.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
@@ -21,28 +23,24 @@ class HomePageScreen extends StatelessWidget {
       appBar: const CustomAppBar(
         title: AppStrings.homeTitle,
       ),
-      body: BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) {
-          return FutureBuilder<WorkEntryModel?>(
-            future: context.read<WorkEntryRepository>().getLastWorkEntry(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                // Mostra un indicatore di caricamento mentre si recupera l'ultima voce di lavoro
-                return const Center(child: CircularProgressIndicator());
-              }
-              final lastWorkEntry = snapshot.data;
-              final isEntryAllowed =
-                  lastWorkEntry == null || !lastWorkEntry.isEntry!;
-              final isExitAllowed =
-                  lastWorkEntry != null && lastWorkEntry.isEntry!;
-              return HomeScreen(
-                isEntryAllowed: isEntryAllowed,
-                isExitAllowed: isExitAllowed,
-              );
-            },
-          );
-        },
-      ),
+      body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+             bool isEntryAllowed = true;
+             bool isExitAllowed = false;
+            if (state is HomeEntryButtonEnabled) {
+              isEntryAllowed = true;
+              isExitAllowed = false;
+            } else if (state is HomeExitButtonEnabled) {
+              isExitAllowed = true;
+              isEntryAllowed = false;
+            }
+
+            print({state.runtimeType});
+
+            return HomeScreen(
+              isEntryAllowed: isEntryAllowed,
+              isExitAllowed: isExitAllowed,
+            );
+          }),
     );
   }
 }
@@ -50,17 +48,17 @@ class HomePageScreen extends StatelessWidget {
 /// Il widget HomeScreen rappresenta il contenuto della schermata principale.
 class HomeScreen extends StatelessWidget {
   /// Flag che indica se il pulsante di entrata è abilitato.
-  final bool isEntryAllowed;
+  bool isEntryAllowed;
 
   /// Flag che indica se il pulsante di uscita è abilitato.
-  final bool isExitAllowed;
+  bool isExitAllowed;
 
   /// Costruttore della classe HomeScreen.
   ///
   /// Accetta i seguenti parametri:
   /// - isEntryAllowed: flag che indica se il pulsante di entrata è abilitato.
   /// - isExitAllowed: flag che indica se il pulsante di uscita è abilitato.
-  const HomeScreen({
+  HomeScreen({
     super.key,
     required this.isEntryAllowed,
     required this.isExitAllowed,
@@ -103,7 +101,9 @@ class HomeScreen extends StatelessWidget {
             child: WorkButton(
               label: AppStrings.entryButtonLabel,
               onPressed: isEntryAllowed
-                  ? () => context.read<HomeBloc>().add(EntryButtonPressed())
+                  ? () {
+                      context.read<HomeBloc>().add(EntryButtonPressed());
+                    }
                   : null,
             ),
           ),
@@ -112,7 +112,9 @@ class HomeScreen extends StatelessWidget {
             child: WorkButton(
               label: AppStrings.exitButtonLabel,
               onPressed: isExitAllowed
-                  ? () => context.read<HomeBloc>().add(ExitButtonPressed())
+                  ? () {
+                      context.read<HomeBloc>().add(ExitButtonPressed());
+                    }
                   : null,
             ),
           ),

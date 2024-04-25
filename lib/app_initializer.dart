@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pine/pine.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:timetrailblazer/app.dart';
 import 'package:timetrailblazer/data/database_helper.dart';
+import 'package:timetrailblazer/data/models/date_range_model.dart';
 import 'package:timetrailblazer/di/bloc_providers.dart';
 import 'package:timetrailblazer/di/mappers.dart';
 import 'package:timetrailblazer/di/providers.dart';
@@ -55,7 +57,10 @@ class AppInitializer {
             providers: getProviders(databaseHelper),
             repositories: getRepositories(),
             blocs: getBlocProviders(),
-            child: const App(),
+            child: ChangeNotifierProvider(
+              create: (context) => DateRangeModel(null, null),
+              child: const App(),
+            ),
           );
         }
       },

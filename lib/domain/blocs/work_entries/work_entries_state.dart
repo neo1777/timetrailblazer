@@ -1,47 +1,35 @@
 part of 'work_entries_bloc.dart';
 
-/// Rappresenta lo stato del BLoC `WorkEntriesBloc`.
 abstract class WorkEntriesState extends Equatable {
-  const WorkEntriesState();
-
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-/// Rappresenta lo stato iniziale del BLoC `WorkEntriesBloc`.
+// Stato iniziale, quando l'applicazione è appena avviata o in attesa di dati
 class WorkEntriesInitial extends WorkEntriesState {}
 
-/// Rappresenta lo stato di caricamento delle voci di lavoro.
+// Stato durante il caricamento delle voci di lavoro
 class WorkEntriesLoading extends WorkEntriesState {}
 
-/// Rappresenta lo stato di caricamento completato delle voci di lavoro.
+// Stato quando le voci di lavoro sono caricate e pronte per essere mostrate
 class WorkEntriesLoaded extends WorkEntriesState {
-  /// La lista delle voci di lavoro raggruppate per giorno.
-  final List<DayWorkEntriesModel> dayWorkEntriesList;
+  final List<DayWorkEntriesModel> entries;
 
-  /// La data di inizio dell'intervallo di date.
-  final DateTime startDate;
-
-  /// La data di fine dell'intervallo di date.
-  final DateTime endDate;
-
-  const WorkEntriesLoaded({
-    required this.startDate,
-    required this.endDate,
-    required this.dayWorkEntriesList,
-  });
+  WorkEntriesLoaded(this.entries);
 
   @override
-  List<Object> get props => [startDate, endDate, dayWorkEntriesList];
+  List<Object?> get props => [entries];
 }
 
-/// Rappresenta lo stato di errore durante il caricamento delle voci di lavoro.
+// Stato in caso di errore nel caricamento delle voci di lavoro
 class WorkEntriesError extends WorkEntriesState {
-  /// Il messaggio di errore.
   final String message;
 
-  const WorkEntriesError({required this.message});
+  WorkEntriesError(this.message);
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
+
+class DatabaseResetSuccess extends WorkEntriesState {}
+

@@ -17,7 +17,7 @@ List<BlocProvider<StateStreamableSource<Object?>>> getBlocProviders() {
     // Il `HomeBloc` è responsabile della gestione dello stato relativo alla schermata principale dell'applicazione.
     // Utilizza l'approccio "lazy" per creare il BLoC solo quando viene effettivamente richiesto.
     BlocProvider<HomeBloc>(
-      create: (context) => HomeBloc(
+      create: (context) => HomeBloc(workEntryRepository:
         context.read<WorkEntryRepository>(),
       ),
       lazy: true,
@@ -28,9 +28,8 @@ List<BlocProvider<StateStreamableSource<Object?>>> getBlocProviders() {
     // Utilizza l'approccio "lazy" per creare il BLoC solo quando viene effettivamente richiesto.
 
     BlocProvider<WorkEntriesBloc>(
-      create: (context) => WorkEntriesBloc(
+      create: (context) => WorkEntriesBloc(workEntryRepository:
         context.read<WorkEntryRepository>(),
-        context.read<HomeBloc>(),
       ),
       lazy: true,
     ),

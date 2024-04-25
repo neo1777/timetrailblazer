@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
 import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
@@ -10,6 +12,11 @@ class WorkEntryRepository {
 
   /// L'istanza di `WorkEntryMapper` utilizzata per la mappatura tra `WorkEntryDTO` e `WorkEntry`.
   final WorkEntryMapper _workEntryMapper;
+
+  final _entriesStreamController = StreamController<WorkEntryModel>.broadcast();
+
+// Stream esposto all'esterno
+  Stream<WorkEntryModel> get entriesStream => _entriesStreamController.stream;
 
   /// Costruttore della classe `WorkEntryRepository`.
   ///
@@ -26,6 +33,8 @@ class WorkEntryRepository {
   Future<void> insertWorkEntry(WorkEntryModel workEntry) async {
     final workEntryDTO = _workEntryMapper.toDTO(workEntry);
     await _workEntryProvider.insertWorkEntry(workEntryDTO);
+    _entriesStreamController
+        .add(workEntry); // Emette l'ultimo workEntry inserito
   }
 
   /// Recupera l'ultima voce di lavoro inserita.
@@ -34,9 +43,14 @@ class WorkEntryRepository {
   /// oppure `null` se non ci sono voci di lavoro.
   Future<WorkEntryModel?> getLastWorkEntry() async {
     final workEntryDTO = await _workEntryProvider.getLastWorkEntry();
+
     if (workEntryDTO != null) {
+      print('getLastWorkEntry ${workEntryDTO.id}  ${workEntryDTO.isEntry}');
+
       return _workEntryMapper.fromDTO(workEntryDTO);
     }
+    print('getLastWorkEntry NULL');
+
     return null;
   }
 
@@ -89,5 +103,10 @@ class WorkEntryRepository {
   /// Restituisce un `Future` che si completa quando la cancellazione è terminata.
   Future<void> deleteWorkEntryById(int id) async {
     await _workEntryProvider.deleteWorkEntryById(id);
+  }
+
+
+  void dispose() {
+    _entriesStreamController.close();
   }
 }

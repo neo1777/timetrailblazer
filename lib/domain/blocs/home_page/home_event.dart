@@ -1,24 +1,22 @@
-part of 'home_bloc.dart';
+import 'package:equatable/equatable.dart';
 
-/// Rappresenta un evento del BLoC `HomeBloc`.
 abstract class HomeEvent extends Equatable {
-  const HomeEvent();
+  @override
+  List<Object?> get props => [];
+}
+class HomeStarted extends HomeEvent {}
+class EntryButtonPressed extends HomeEvent {}
+
+class ExitButtonPressed extends HomeEvent {}
+
+// Evento inviato quando il database viene aggiornato con un nuovo tipo di voce
+class HomeDatabaseUpdated extends HomeEvent {
+  final String lastEntryType;
+
+  HomeDatabaseUpdated(this.lastEntryType);
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [lastEntryType];
 }
 
-/// Rappresenta l'evento di pressione del pulsante di entrata.
-class EntryButtonPressed extends HomeEvent {
-  @override
-  List<Object> get props => [];
-}
-
-/// Rappresenta l'evento di pressione del pulsante di uscita.
-class ExitButtonPressed extends HomeEvent {
-  @override
-  List<Object> get props => [];
-}
-
-/// Rappresenta l'evento di reset del database.
 class DatabaseReset extends HomeEvent {}

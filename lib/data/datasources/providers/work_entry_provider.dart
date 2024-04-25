@@ -57,4 +57,5 @@ class WorkEntryProvider {
   Future<void> deleteWorkEntryById(int id) async {
     await _databaseHelper.deleteWorkEntryById(id);
   }
+
 }

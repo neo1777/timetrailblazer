@@ -1,64 +1,37 @@
 part of 'work_entries_bloc.dart';
 
-/// Rappresenta un evento del BLoC `WorkEntriesBloc`.
 abstract class WorkEntriesEvent extends Equatable {
-  const WorkEntriesEvent();
-
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-/// Rappresenta l'evento di cancellazione/reset del database.
-class ResetDatabase extends WorkEntriesEvent {
-  /// La data di inizio dell'intervallo di date.
-  final DateTime startDate;
-
-  /// La data di fine dell'intervallo di date.
-  final DateTime endDate;
-
-  const ResetDatabase({
-    required this.startDate,
-    required this.endDate,
-  });
-
-  @override
-  List<Object> get props => [startDate, endDate];
-}
-
-/// Rappresenta l'evento di cancellazione di una singola voce di lavoro.
-class DeleteWorkEntry extends WorkEntriesEvent {
-  /// L'ID della voce di lavoro da eliminare.
-  final int id;
-
-  /// La data di inizio dell'intervallo di date.
-  final DateTime startDate;
-
-  /// La data di fine dell'intervallo di date.
-  final DateTime endDate;
-
-  const DeleteWorkEntry({
-    required this.id,
-    required this.startDate,
-    required this.endDate,
-  });
-
-  @override
-  List<Object> get props => [id, startDate, endDate];
-}
-
-/// Rappresenta l'evento di richiesta delle voci di lavoro per un intervallo di date.
+// Evento per richiedere il caricamento delle voci di lavoro per un dato intervallo di date
 class FetchWorkEntries extends WorkEntriesEvent {
-  /// La data di inizio dell'intervallo.
   final DateTime startDate;
-
-  /// La data di fine dell'intervallo.
   final DateTime endDate;
 
-  const FetchWorkEntries({
-    required this.startDate,
-    required this.endDate,
-  });
+  FetchWorkEntries(this.startDate, this.endDate);
 
   @override
-  List<Object> get props => [startDate, endDate];
+  List<Object?> get props => [startDate, endDate];
+}
+
+// Evento inviato quando le voci di lavoro sono state aggiornate
+class WorkEntriesUpdated extends WorkEntriesEvent {
+  final List<WorkEntryModel> updatedEntries;
+
+  WorkEntriesUpdated(this.updatedEntries);
+
+  @override
+  List<Object?> get props => [updatedEntries];
+}
+
+class ResetDatabase extends WorkEntriesEvent {
+  final DateTime startDate;
+  final DateTime endDate;
+
+  ResetDatabase(this.startDate, this.endDate);
+
+  @override
+  List<Object?> get props => [startDate, endDate];
 }

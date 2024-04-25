@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
-import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
 
 /// Il widget `DayRangeCalendar` visualizza le voci di lavoro in un calendario variabile.
@@ -135,11 +133,11 @@ class DayRangeCalendar extends StatelessWidget {
                             child: IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () {
-                                context.read<WorkEntriesBloc>().add(
-                                    DeleteWorkEntry(
-                                        id: entry.id!,
-                                        startDate: entry.day,
-                                        endDate: entry.timestamp));
+                                // context.read<WorkEntriesBloc>().add(
+                                //     DeleteWorkEntry(
+                                //         id: entry.id!,
+                                //         startDate: entry.day,
+                                //         endDate: entry.timestamp));
                               },
                             ),
                           ),
