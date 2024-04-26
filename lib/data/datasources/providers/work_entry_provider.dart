@@ -21,6 +21,14 @@ class WorkEntryProvider {
     await _databaseHelper.insertWorkEntry(workEntryDTO);
   }
 
+  /// Aggiorna una voce di lavoro esistente nel database.
+  ///
+  /// Accetta un parametro [workEntryDTO] di tipo `WorkEntryDTO` che rappresenta la voce di lavoro da aggiornare.
+  ///
+  /// Restituisce un `Future` che si completa quando l'aggiornamento è terminato.
+  Future<void> updateWorkEntry(WorkEntryDTO workEntryDTO) async {
+    await _databaseHelper.updateWorkEntry(workEntryDTO);
+  }
 
   /// Recupera l'ultima voce di lavoro inserita nel database.
   ///

@@ -72,6 +72,23 @@ class DatabaseHelper {
     );
   }
 
+  /// Aggiorna una voce di lavoro esistente nel database.
+  ///
+  /// Riceve come parametro la [workEntryDTO] di tipo [WorkEntryDTO] da aggiornare.
+  /// Utilizza l'ID della [workEntryDTO] per trovare la voce corrispondente e aggiornarla.
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue l'aggiornamento nella tabella `_tableWorkEntries` utilizzando il metodo `update()` di SQLite.
+  /// Restituisce un [Future] che si completa quando l'aggiornamento è stato effettuato.
+  Future<void> updateWorkEntry(WorkEntryDTO workEntryDTO) async {
+    final db = await database;
+    await db.update(
+      _tableWorkEntries,
+      workEntryDTO.toMap(),
+      where: 'id = ?',
+      whereArgs: [workEntryDTO.id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
 
   /// Recupera l'ultima voce di lavoro inserita nel database.
   ///
@@ -150,5 +167,4 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
-
 }

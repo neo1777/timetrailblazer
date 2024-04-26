@@ -37,7 +37,15 @@ class WorkEntryRepository {
         .add(workEntry); // Emette l'ultimo workEntry inserito
   }
 
-
+  /// Aggiorna una voce di lavoro esistente.
+  ///
+  /// Accetta un parametro [workEntry] di tipo `WorkEntryModel` che rappresenta la voce di lavoro da aggiornare.
+  ///
+  /// Restituisce un `Future` che si completa quando l'aggiornamento è terminato.
+  Future<void> updateWorkEntry(WorkEntryModel workEntry) async {
+    final workEntryDTO = _workEntryMapper.toDTO(workEntry);
+    await _workEntryProvider.updateWorkEntry(workEntryDTO);
+  }
 
   /// Recupera l'ultima voce di lavoro inserita.
   ///
@@ -106,7 +114,6 @@ class WorkEntryRepository {
   Future<void> deleteWorkEntryById(int id) async {
     await _workEntryProvider.deleteWorkEntryById(id);
   }
-
 
   void dispose() {
     _entriesStreamController.close();
