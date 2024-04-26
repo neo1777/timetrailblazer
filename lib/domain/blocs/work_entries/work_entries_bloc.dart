@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
@@ -40,6 +42,7 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
         emit(WorkEntriesError("Failed to reset database: ${e.toString()}"));
       }
     });
+
   }
 
   List<DateTime> getDaysInRange(DateTime startDate, DateTime endDate) {
@@ -49,4 +52,5 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
     }
     return days;
   }
+
 }

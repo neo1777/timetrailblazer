@@ -72,6 +72,7 @@ class DatabaseHelper {
     );
   }
 
+
   /// Recupera l'ultima voce di lavoro inserita nel database.
   ///
   /// Recupera l'istanza del database chiamando il getter database.

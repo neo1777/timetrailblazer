@@ -37,6 +37,8 @@ class WorkEntryRepository {
         .add(workEntry); // Emette l'ultimo workEntry inserito
   }
 
+
+
   /// Recupera l'ultima voce di lavoro inserita.
   ///
   /// Restituisce un `Future` che si completa con un oggetto `WorkEntry` rappresentante l'ultima voce di lavoro,

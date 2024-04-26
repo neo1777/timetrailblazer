@@ -21,6 +21,7 @@ class WorkEntryProvider {
     await _databaseHelper.insertWorkEntry(workEntryDTO);
   }
 
+
   /// Recupera l'ultima voce di lavoro inserita nel database.
   ///
   /// Restituisce un `Future` che si completa con un oggetto `WorkEntryDTO` rappresentante l'ultima voce di lavoro,
@@ -57,5 +58,4 @@ class WorkEntryProvider {
   Future<void> deleteWorkEntryById(int id) async {
     await _databaseHelper.deleteWorkEntryById(id);
   }
-
 }

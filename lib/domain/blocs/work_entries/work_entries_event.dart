@@ -26,6 +26,7 @@ class WorkEntriesUpdated extends WorkEntriesEvent {
   List<Object?> get props => [updatedEntries];
 }
 
+
 class ResetDatabase extends WorkEntriesEvent {
   final DateTime startDate;
   final DateTime endDate;
