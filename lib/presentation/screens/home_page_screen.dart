@@ -1,9 +1,9 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:timetrailblazer/config/constants_string.dart';
+
 import 'package:timetrailblazer/config/constants_routes.dart';
-import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
-import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_event.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_state.dart';
@@ -24,23 +24,23 @@ class HomePageScreen extends StatelessWidget {
         title: AppStrings.homeTitle,
       ),
       body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
-             bool isEntryAllowed = true;
-             bool isExitAllowed = false;
-            if (state is HomeEntryButtonEnabled) {
-              isEntryAllowed = true;
-              isExitAllowed = false;
-            } else if (state is HomeExitButtonEnabled) {
-              isExitAllowed = true;
-              isEntryAllowed = false;
-            }
+        bool isEntryAllowed = true;
+        bool isExitAllowed = false;
+        if (state is HomeEntryButtonEnabled) {
+          isEntryAllowed = true;
+          isExitAllowed = false;
+        } else if (state is HomeExitButtonEnabled) {
+          isExitAllowed = true;
+          isEntryAllowed = false;
+        }
 
-            print({state.runtimeType});
+        print({state.runtimeType});
 
-            return HomeScreen(
-              isEntryAllowed: isEntryAllowed,
-              isExitAllowed: isExitAllowed,
-            );
-          }),
+        return HomeScreen(
+          isEntryAllowed: isEntryAllowed,
+          isExitAllowed: isExitAllowed,
+        );
+      }),
     );
   }
 }
@@ -48,17 +48,17 @@ class HomePageScreen extends StatelessWidget {
 /// Il widget HomeScreen rappresenta il contenuto della schermata principale.
 class HomeScreen extends StatelessWidget {
   /// Flag che indica se il pulsante di entrata è abilitato.
-  bool isEntryAllowed;
+  final bool isEntryAllowed;
 
   /// Flag che indica se il pulsante di uscita è abilitato.
-  bool isExitAllowed;
+  final bool isExitAllowed;
 
   /// Costruttore della classe HomeScreen.
   ///
   /// Accetta i seguenti parametri:
   /// - isEntryAllowed: flag che indica se il pulsante di entrata è abilitato.
   /// - isExitAllowed: flag che indica se il pulsante di uscita è abilitato.
-  HomeScreen({
+  const HomeScreen({
     super.key,
     required this.isEntryAllowed,
     required this.isExitAllowed,
