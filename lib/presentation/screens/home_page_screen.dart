@@ -1,12 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
-import 'package:timetrailblazer/domain/blocs/home_page/home_event.dart';
-import 'package:timetrailblazer/domain/blocs/home_page/home_state.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
@@ -24,8 +23,13 @@ class HomePageScreen extends StatelessWidget {
         title: AppStrings.homeTitle,
       ),
       body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+        // Determina se il pulsante di entrata e di uscita devono essere abilitati o meno
+        // in base allo stato corrente del BLoC
+
         bool isEntryAllowed = true;
         bool isExitAllowed = false;
+        BlocProvider.of<HomeBloc>(context).add(HomeStarted());
+
         if (state is HomeEntryButtonEnabled) {
           isEntryAllowed = true;
           isExitAllowed = false;
@@ -34,8 +38,8 @@ class HomePageScreen extends StatelessWidget {
           isEntryAllowed = false;
         }
 
-        print({state.runtimeType});
-
+        // Restituisce il widget `HomeScreen` con i flag appropriati per abilitare/disabilitare
+        // i pulsanti di entrata e uscita
         return HomeScreen(
           isEntryAllowed: isEntryAllowed,
           isExitAllowed: isExitAllowed,
@@ -46,6 +50,9 @@ class HomePageScreen extends StatelessWidget {
 }
 
 /// Il widget HomeScreen rappresenta il contenuto della schermata principale.
+///
+/// Questo widget visualizza il titolo dell'app, una breve descrizione, e i pulsanti
+/// per registrare un'entrata, un'uscita e visualizzare le voci di lavoro.
 class HomeScreen extends StatelessWidget {
   /// Flag che indica se il pulsante di entrata è abilitato.
   final bool isEntryAllowed;

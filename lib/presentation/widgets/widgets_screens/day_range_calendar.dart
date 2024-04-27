@@ -17,6 +17,9 @@ class DayRangeCalendar extends StatelessWidget {
   /// Il controller di scorrimento per il calendario.
   final ScrollController scrollController;
 
+  final DateTime startDate;
+  final DateTime endDate;
+
   /// Costruisce un'istanza di `DayRangeCalendar`.
   ///
   /// Richiede la lista di oggetti `DayWorkEntries` [dayWorkEntriesList] e il controller
@@ -25,6 +28,8 @@ class DayRangeCalendar extends StatelessWidget {
     super.key,
     required this.dayWorkEntriesList,
     required this.scrollController,
+    required this.startDate,
+    required this.endDate,
   });
 
   @override
@@ -108,8 +113,11 @@ class DayRangeCalendar extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        EditWorkEntryScreen(workEntry: entry),
+                                    builder: (context) => EditWorkEntryScreen(
+                                      entryId: entry.id!,
+                                      startDate: startDate,
+                                      endDate: endDate,
+                                    ),
                                   ),
                                 );
 

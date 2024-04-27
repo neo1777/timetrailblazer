@@ -66,4 +66,14 @@ class WorkEntryProvider {
   Future<void> deleteWorkEntryById(int id) async {
     await _databaseHelper.deleteWorkEntryById(id);
   }
+
+  /// Recupera una voce di lavoro dal database in base all'ID.
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da recuperare.
+  ///
+  /// Restituisce un `Future` che si completa con un oggetto `WorkEntryDTO` rappresentante la voce di lavoro,
+  /// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
+  Future<WorkEntryDTO?> getWorkEntryById(int id) async {
+    return await _databaseHelper.getWorkEntryById(id);
+  }
 }

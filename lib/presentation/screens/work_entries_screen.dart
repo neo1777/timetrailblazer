@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/data/models/date_range_model.dart';
-import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
-import 'package:timetrailblazer/domain/blocs/home_page/home_event.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/date_range_picker.dart';
@@ -71,7 +69,6 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                   dateRangeModel.endDate,
                 ),
               );
-              BlocProvider.of<HomeBloc>(context).add(DatabaseReset());
             },
           ),
         ],
@@ -140,6 +137,8 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                   child: DayRangeCalendar(
                     dayWorkEntriesList: dayWorkEntriesList,
                     scrollController: _scrollController,
+                    startDate: dateRangeModel.startDate,
+                    endDate: dateRangeModel.endDate,
                   ),
                 ),
               ],

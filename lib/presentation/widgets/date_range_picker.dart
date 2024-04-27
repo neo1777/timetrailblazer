@@ -16,7 +16,7 @@ class DateRangePicker extends StatelessWidget {
   final Function(DateTime) onEndDateChanged;
 
   /// La funzione di callback da chiamare quando viene premuto il pulsante "Mese corrente".
-  final VoidCallback onCurrentMonthPressed;
+  final VoidCallback? onCurrentMonthPressed;
 
   /// Costruttore della classe `DateRangePicker`.
   ///
@@ -32,7 +32,7 @@ class DateRangePicker extends StatelessWidget {
     required this.endDate,
     required this.onStartDateChanged,
     required this.onEndDateChanged,
-    required this.onCurrentMonthPressed,
+    this.onCurrentMonthPressed,
   });
 
   @override

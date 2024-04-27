@@ -1,241 +1,12 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+
 import 'package:timetrailblazer/config/constants_string.dart';
-import 'package:timetrailblazer/data/models/date_range_model.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/domain/blocs/edit_work_entry/edit_work_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
-import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
-import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
-import 'package:timetrailblazer/presentation/widgets/spacer.dart';
-import 'package:timetrailblazer/presentation/widgets/work_button.dart';
-
-/// Schermata per la modifica di una voce di lavoro.
-///
-/// Questa schermata consente all'utente di modificare i dettagli di una voce di lavoro esistente,
-/// come la data e l'ora. Le modifiche vengono salvate quando l'utente preme il pulsante "Salva".
-class EditWorkEntryScreen extends StatefulWidget {
-  /// La voce di lavoro da modificare.
-  final WorkEntryModel workEntry;
-
-  /// Costruttore della schermata di modifica della voce di lavoro.
-  ///
-  /// Parametri:
-  ///   - `workEntry`: la voce di lavoro da modificare.
-  const EditWorkEntryScreen({super.key, required this.workEntry});
-
-  @override
-  State<EditWorkEntryScreen> createState() => _EditWorkEntryScreenState();
-}
-
-class _EditWorkEntryScreenState extends State<EditWorkEntryScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(
-        title: AppStrings.editWorkEntryTitle,
-        onBackPressed: () => Navigator.pop(context),
-      ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const CustomSpacer(flex: 2),
-            Flexible(
-              flex: 2,
-              child: _buildDateSection(context, widget.workEntry),
-            ),
-            const CustomSpacer(flex: 1),
-            Flexible(
-              flex: 2,
-              child: _buildTimeSection(context, widget.workEntry),
-            ),
-            const CustomSpacer(flex: 1),
-            Flexible(
-              flex: 1,
-              child: _buildSaveButton(context),
-            ),
-            const CustomSpacer(flex: 2),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Costruisce il pulsante per il salvataggio della voce di lavoro.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  Widget _buildSaveButton(BuildContext context) {
-    return WorkButton(
-      label: AppStrings.save,
-      onPressed: () {
-        // Temporary placeholder for save functionality
-        //Navigator.pop(context);
-        _updateWorkEntry(context);
-      },
-    );
-  }
-
-  /// Costruisce la sezione per la selezione della data.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  ///   - `workEntry`: la voce di lavoro corrente.
-  Widget _buildDateSection(BuildContext context, WorkEntryModel workEntry) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Flexible(
-          flex: 1,
-          child: CustomAutoSizeText(
-            'Data: ${DateFormat('dd/MM/yyyy').format(workEntry.timestamp)}',
-            Theme.of(context).textTheme.bodyLarge!,
-            TextAlign.left,
-          ),
-        ),
-        const CustomSpacer(flex: 1),
-        Flexible(
-          flex: 1,
-          child: WorkButton(
-            label: AppStrings.selectDate,
-            onPressed: () {
-              setState(() {});
-              _selectDate(context);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Costruisce la sezione per la selezione dell'ora.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  ///   - `workEntry`: la voce di lavoro corrente.
-  Widget _buildTimeSection(BuildContext context, WorkEntryModel workEntry) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Flexible(
-          flex: 1,
-          child: CustomAutoSizeText(
-            '${AppStrings.time}: ${TimeOfDay.fromDateTime(workEntry.timestamp).format(context)}',
-            Theme.of(context).textTheme.bodyLarge!,
-            TextAlign.left,
-          ),
-        ),
-        const CustomSpacer(flex: 1),
-        Flexible(
-          flex: 1,
-          child: WorkButton(
-            label: AppStrings.selectTime,
-            onPressed: () => _selectTime(context),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Mostra un selettore di data e aggiorna la data della voce di lavoro.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  Future<void> _selectDate(BuildContext context) async {
-    //final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
-    final dateRangeModel = Provider.of<DateRangeModel>(context, listen: false);
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: dateRangeModel.startDate,
-      firstDate: DateTime(2000),
-      lastDate: dateRangeModel.endDate,
-    );
-
-    // Validazione dei dati
-    if (picked != null) {
-      if (picked.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
-        // Mostra un messaggio di errore se la data selezionata è precedente a ieri
-        // ErrorHandler.showErrorDialog(
-        //   AppErrorMessages.invalidDate,
-        //   AppErrorMessages.invalidDateMessage,
-        // );
-        return;
-      }
-      //editWorkEntryBloc.add(UpdateDate(picked));
-    }
-  }
-
-  /// Mostra un selettore di ora e aggiorna l'ora della voce di lavoro.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  Future<void> _selectTime(BuildContext context) async {
-    //final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
-    final dateRangeModel = Provider.of<DateRangeModel>(context, listen: false);
-
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(dateRangeModel.startDate),
-    );
-
-    // Validazione dei dati
-    // if (picked != null) {
-    //   final now = DateTime.now();
-    //   final selectedDateTime = DateTime(
-    //     editWorkEntryBloc.state.workEntry.timestamp.year,
-    //     editWorkEntryBloc.state.workEntry.timestamp.month,
-    //     editWorkEntryBloc.state.workEntry.timestamp.day,
-    //     picked.hour,
-    //     picked.minute,
-    //   );
-
-    //   if (selectedDateTime.isAfter(now)) {
-    //     // Mostra un messaggio di errore se l'orario selezionato è nel futuro
-    //     // ErrorHandler.showErrorDialog(
-    //     //   AppErrorMessages.invalidTime,
-    //     //   AppErrorMessages.invalidTimeMessage,
-    //     // );
-    //     return;
-    //   }
-    //   //editWorkEntryBloc.add(UpdateTime(picked));
-    // }
-  }
-
-  /// Aggiorna la voce di lavoro nel database e torna alla schermata precedente.
-  ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  Future<void> _updateWorkEntry(BuildContext context) async {
-    // final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
-    // final workEntry = editWorkEntryBloc.state.workEntry;
-    try {
-      // Controlla se i dati sono validi prima di chiamare il metodo del repository
-      if (widget.workEntry.timestamp
-          .isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
-        throw Exception(AppErrorMessages.invalidDate);
-      }
-      if (widget.workEntry.timestamp.isAfter(DateTime.now())) {
-        throw Exception(AppErrorMessages.invalidTime);
-      }
-      Navigator.pop(context, widget.workEntry);
-    } catch (e) {
-      // logger.e(AppErrorMessages.updateError, error: e);
-      // ErrorHandler.showErrorDialog(
-      //   AppErrorMessages.updateError,
-      //   AppErrorMessages.updateErrorMessage(e.toString()),
-      // );
-    }
-  }
-}
-
-
-
-/**
-import 'package:flutter/material.dart';
-import 'package:timetrailblazer/config/constants_string.dart';
-import 'package:timetrailblazer/data/models/work_entry_model.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
@@ -245,100 +16,223 @@ import 'package:timetrailblazer/presentation/widgets/work_button.dart';
 /// Questa schermata consente all'utente di modificare i dettagli di una voce di lavoro esistente,
 /// come la data e l'ora. Le modifiche vengono salvate quando l'utente preme il pulsante "Salva".
 class EditWorkEntryScreen extends StatelessWidget {
-  /// La voce di lavoro da modificare.
-  final WorkEntryModel workEntry;
+  /// L'ID della voce di lavoro da modificare.
+  final int entryId;
+  final DateTime startDate;
+  final DateTime endDate;
 
-  /// Costruttore della schermata di modifica della voce di lavoro.
+  /// Costruttore della schermata `EditWorkEntryScreen`.
   ///
-  /// Parametri:
-  ///   - `workEntry`: la voce di lavoro da modificare.
-  const EditWorkEntryScreen({super.key, required this.workEntry});
+  /// Accetta l'ID della voce di lavoro da modificare come parametro obbligatorio.
+  const EditWorkEntryScreen({
+    super.key,
+    required this.entryId,
+    required this.startDate,
+    required this.endDate,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Il `BlocProvider` viene utilizzato per fornire il `EditWorkEntryBloc` alla schermata
-    // Viene passata la voce di lavoro iniziale al costruttore del bloc
-    return const EditWorkEntryView();
+    /// Restituisce un widget `BlocProvider` che fornisce il BLoC `EditWorkBloc` alla sottoalbero di widget.
+    ///
+    /// Il BLoC viene creato con lo stato iniziale `EditWorkInitial` e il repository delle voci di lavoro
+    /// ottenuto dal contesto tramite `context.read()`.
+    ///
+    /// Quando il BLoC viene creato, viene emesso l'evento `LoadWorkEntry` per caricare la voce di lavoro
+    /// corrispondente all'ID fornito.
+    ///
+    /// Il figlio del `BlocProvider` è la vista effettiva della schermata, rappresentata da `EditWorkEntryView`.
+    return BlocProvider(
+      create: (context) => EditWorkBloc(
+        EditWorkInitial(),
+        workEntryRepository: context.read(),
+      )..add(LoadWorkEntry(entryId: entryId)),
+      child: EditWorkEntryView(
+        entryId: entryId,
+        startDate: startDate,
+        endDate: endDate,
+      ),
+    );
   }
 }
 
 /// Vista della schermata di modifica di una voce di lavoro.
+///
+/// Questa vista visualizza i widget per la modifica dei dettagli della voce di lavoro,
+/// come la data e l'ora, e il pulsante di salvataggio.
+///
+/// La vista reagisce agli stati emessi dal BLoC `EditWorkBloc` e aggiorna l'interfaccia utente
+/// di conseguenza.
 class EditWorkEntryView extends StatelessWidget {
-  const EditWorkEntryView({super.key});
+  final int entryId;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  /// Costruttore della vista `EditWorkEntryView`.
+  const EditWorkEntryView({
+    super.key,
+    required this.entryId,
+    required this.startDate,
+    required this.endDate,
+  });
 
   @override
   Widget build(BuildContext context) {
+    /// Restituisce un widget `Scaffold` che rappresenta la struttura di base della schermata.
+    ///
+    /// La barra delle applicazioni viene creata utilizzando il widget `CustomAppBar` e visualizza
+    /// il titolo della schermata e un pulsante per tornare indietro.
+    ///
+    /// Il corpo della schermata è un widget `BlocBuilder` che ricostruisce l'interfaccia utente
+    /// in base agli stati emessi dal BLoC `EditWorkBloc`.
     return Scaffold(
       appBar: CustomAppBar(
         title: AppStrings.editWorkEntryTitle,
         onBackPressed: () => Navigator.pop(context),
       ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // const CustomSpacer(flex: 2),
-            // Flexible(
-            //   flex: 2,
-            //   child: _buildDateSection(context, workEntry),
-            // ),
-            // const CustomSpacer(flex: 1),
-            // Flexible(
-            //   flex: 2,
-            //   child: _buildTimeSection(context, workEntry),
-            // ),
-            const CustomSpacer(flex: 1),
-            Flexible(
-              flex: 1,
-              child: _buildSaveButton(context),
-            ),
-            const CustomSpacer(flex: 2),
-          ],
-        ),
+      body: BlocBuilder<EditWorkBloc, EditWorkState>(
+        builder: (context, state) {
+          /// Se lo stato è `EditWorkLoading`, viene visualizzato un indicatore di caricamento.
+          if (state is EditWorkLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          /// Se lo stato è `EditWorkDataChanged`, vengono visualizzati i widget per la modifica
+          /// dei dettagli della voce di lavoro e il pulsante di salvataggio.
+          else if (state is EditWorkDataChanged) {
+            final workEntry = state.workEntry;
+            return SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CustomSpacer(flex: 1),
+                  _buildDateButton(context, workEntry.timestamp),
+                  const CustomSpacer(flex: 1),
+                  _buildTimeButton(context, workEntry.timestamp),
+                  const CustomSpacer(flex: 10),
+                  _buildSaveButton(context, state.isSaveEnabled, workEntry),
+                  const CustomSpacer(flex: 1),
+                ],
+              ),
+            );
+          }
+
+          /// Se lo stato è `EditWorkError`, viene visualizzato un messaggio di errore.
+          else if (state is EditWorkError) {
+            return Center(child: Text(state.message));
+          }
+
+          /// Se lo stato non corrisponde a nessuno dei casi precedenti, viene restituito un
+          /// contenitore vuoto.
+          else {
+            return Container();
+          }
+        },
       ),
     );
   }
 
-
-
-  /// Costruisce il pulsante per il salvataggio della voce di lavoro.
+  /// Costruisce il pulsante per la selezione della data.
   ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  Widget _buildSaveButton(BuildContext context) {
+  /// Accetta il contesto e la data attualmente selezionata come parametri.
+  ///
+  /// Restituisce un widget WorkButton che visualizza la data attualmente selezionata
+  /// e permette all'utente di selezionare una nuova data quando viene premuto.
+  ///
+  /// Quando il pulsante viene premuto, viene mostrato un selettore di data (showDatePicker)
+  /// che consente all'utente di selezionare una nuova data.
+  ///
+  /// Se l'utente seleziona una nuova data, viene emesso l'evento DateChanged al BLoC EditWorkBloc
+  /// con la nuova data selezionata.
+  Widget _buildDateButton(BuildContext context, DateTime selectedDate) {
+    final editWorkBloc = context.read<EditWorkBloc>();
     return WorkButton(
-      label: AppStrings.save,
-      onPressed: () => _updateWorkEntry(context),
+      label: 'Data: ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
+      onPressed: () async {
+        final pickedDate = await showDatePicker(
+          context: context,
+          initialDate: selectedDate,
+          firstDate: DateTime(2000),
+          lastDate: DateTime.now(),
+        );
+
+        if (pickedDate != null) {
+          editWorkBloc.add(DateChanged(newDate: pickedDate));
+        }
+      },
     );
   }
 
-
-
-  /// Aggiorna la voce di lavoro nel database e torna alla schermata precedente.
+  /// Costruisce il pulsante per la selezione dell'ora.
   ///
-  /// Parametri:
-  ///   - `context`: il contesto del widget.
-  Future<void> _updateWorkEntry(BuildContext context) async {
-    // final editWorkEntryBloc = context.read<EditWorkEntryBloc>();
-    // final workEntry = editWorkEntryBloc.state.workEntry;
-    try {
-      // Controlla se i dati sono validi prima di chiamare il metodo del repository
-      // if (workEntry.timestamp
-      //     .isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
-      //   throw Exception(AppErrorMessages.invalidDate);
-      // }
-      // if (workEntry.timestamp.isAfter(DateTime.now())) {
-      //   throw Exception(AppErrorMessages.invalidTime);
-      // }
-      // context.read<WorkEntriesBloc>().add(UpdateWorkEntry(workEntry));
-      Navigator.pop(context);
-    } catch (e) {
-      // logger.e(AppErrorMessages.updateError, error: e);
-      // ErrorHandler.showErrorDialog(
-      //   AppErrorMessages.updateError,
-      //   AppErrorMessages.updateErrorMessage(e.toString()),
-      // );
-    }
+  /// Accetta il contesto e l'ora attualmente selezionata come parametri.
+  ///
+  /// Restituisce un widget WorkButton che visualizza l'ora attualmente selezionata
+  /// e permette all'utente di selezionare una nuova ora quando viene premuto.
+  ///
+  /// Quando il pulsante viene premuto, viene mostrato un selettore di ora (showTimePicker)
+  /// che consente all'utente di selezionare una nuova ora.
+  ///
+  /// Se l'utente seleziona una nuova ora, viene emesso l'evento TimeChanged al BLoC EditWorkBloc
+  /// con la nuova ora selezionata.
+  Widget _buildTimeButton(BuildContext context, DateTime selectedTime) {
+    final editWorkBloc = context.read<EditWorkBloc>();
+
+    return WorkButton(
+      label: 'Ora: ${DateFormat('HH:mm').format(selectedTime)}',
+      onPressed: () async {
+        final pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(selectedTime),
+        );
+
+        if (pickedTime != null) {
+          editWorkBloc.add(TimeChanged(
+              newTime: DateTime(
+            selectedTime.year,
+            selectedTime.month,
+            selectedTime.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          )));
+        }
+      },
+    );
+  }
+
+  /// Costruisce il pulsante di salvataggio.
+  ///
+  /// Accetta il contesto, un flag che indica se il salvataggio è abilitato e la voce di lavoro
+  /// da salvare come parametri.
+  ///
+  /// Restituisce un widget WorkButton che visualizza l'etichetta "Salva" e permette all'utente
+  /// di salvare le modifiche alla voce di lavoro quando viene premuto.
+  ///
+  /// Il pulsante è abilitato solo se il flag isSaveEnabled è true.
+  ///
+  /// Quando il pulsante viene premuto, viene emesso l'evento SaveWorkEntry al BLoC EditWorkBloc
+  /// con la voce di lavoro da salvare e la schermata viene chiusa.
+  Widget _buildSaveButton(
+      BuildContext context, bool isSaveEnabled, WorkEntryModel workEntry) {
+    final editWorkBloc = context.read<EditWorkBloc>();
+    final workEntriesBloc = context.read<WorkEntriesBloc>();
+
+    return WorkButton(
+      label: AppStrings.save,
+      onPressed: isSaveEnabled
+          ? () {
+              editWorkBloc.add(SaveWorkEntry(workEntry: workEntry));
+
+              // Emetti l'evento FetchWorkEntries con le date di inizio e di fine passate
+              workEntriesBloc.add(FetchWorkEntries(
+                startDate,
+                endDate,
+              ));
+
+              Navigator.pop(context);
+            }
+          : null,
+    );
   }
 }
-*/

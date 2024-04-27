@@ -55,11 +55,9 @@ class WorkEntryRepository {
     final workEntryDTO = await _workEntryProvider.getLastWorkEntry();
 
     if (workEntryDTO != null) {
-      print('getLastWorkEntry ${workEntryDTO.id}  ${workEntryDTO.isEntry}');
 
       return _workEntryMapper.fromDTO(workEntryDTO);
     }
-    print('getLastWorkEntry NULL');
 
     return null;
   }
@@ -114,6 +112,36 @@ class WorkEntryRepository {
   Future<void> deleteWorkEntryById(int id) async {
     await _workEntryProvider.deleteWorkEntryById(id);
   }
+
+  /// Recupera una voce di lavoro dal database in base all'ID.
+///
+/// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da recuperare.
+///
+/// Restituisce un `Future` che si completa con un oggetto `WorkEntryModel` rappresentante la voce di lavoro,
+/// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
+Future<WorkEntryModel?> getWorkEntryById(int id) async {
+  final workEntryDTO = await _workEntryProvider.getWorkEntryById(id);
+  if (workEntryDTO != null) {
+    return _workEntryMapper.fromDTO(workEntryDTO);
+  }
+  return null;
+}
+
+/// Salva una voce di lavoro nel database.
+///
+/// Accetta un parametro [workEntry] di tipo `WorkEntryModel` che rappresenta la voce di lavoro da salvare.
+///
+/// Se la voce di lavoro ha un ID, viene considerata una voce esistente e viene aggiornata nel database.
+/// Se la voce di lavoro non ha un ID, viene considerata una nuova voce e viene inserita nel database.
+///
+/// Restituisce un `Future` che si completa quando il salvataggio è terminato.
+Future<void> saveWorkEntry(WorkEntryModel workEntry) async {
+  if (workEntry.id != null) {
+    await updateWorkEntry(workEntry);
+  } else {
+    await insertWorkEntry(workEntry);
+  }
+}
 
   void dispose() {
     _entriesStreamController.close();

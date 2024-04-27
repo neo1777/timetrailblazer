@@ -1,4 +1,5 @@
-/// La classe `AppStrings` contiene le costanti per i testi dell'applicazione.
+/// La classe `AppStrings` contiene le costanti per i testi utilizzati nell'applicazione.
+/// Queste stringhe sono utilizzate per garantire la coerenza del testo in tutta l'app e facilitare eventuali modifiche.
 class AppStrings {
   static const String entryRegistered = 'Entrata registrata';
   static const String exitRegistered = 'Uscita registrata';
@@ -33,6 +34,7 @@ class AppStrings {
 }
 
 /// La classe `AppSuccessMessages` contiene le costanti per i messaggi di successo dell'applicazione.
+/// Utilizzate per fornire feedback positivo all'utente in risposta alle sue azioni.
 class AppSuccessMessages {
   static const String csvImportCompleted = 'Importazione CSV completata';
   static const String csvExportCompleted =
@@ -40,6 +42,7 @@ class AppSuccessMessages {
 }
 
 /// La classe `AppErrorMessages` contiene le costanti per i messaggi di errore dell'applicazione.
+/// Questi messaggi aiutano a informare l'utente di problemi o errori durante l'utilizzo dell'app.
 class AppErrorMessages {
   static const String insertEntryError =
       'Errore durante l\'inserimento della voce di lavoro';

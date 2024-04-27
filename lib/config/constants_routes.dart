@@ -1,4 +1,5 @@
 /// La classe `AppRoutes` contiene le costanti per le rotte dell'applicazione.
+/// Ogni costante rappresenta un percorso specifico all'interno dell'app e viene utilizzata per la navigazione.
 class AppRoutes {
   /// La rotta per la schermata principale.
   static const String home = '/';

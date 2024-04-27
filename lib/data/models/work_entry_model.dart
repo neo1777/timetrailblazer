@@ -25,4 +25,19 @@ class WorkEntryModel {
     required this.timestamp,
     required this.isEntry,
   }) : day = DateTime(timestamp.year, timestamp.month, timestamp.day);
+
+  /// Crea una copia di questa istanza di `WorkEntryModel` con le proprietà specificate modificate.
+  ///
+  /// Restituisce una nuova istanza di `WorkEntryModel` con le proprietà aggiornate.
+  WorkEntryModel copyWith({
+    int? id,
+    DateTime? timestamp,
+    bool? isEntry,
+  }) {
+    return WorkEntryModel(
+      id: id ?? this.id,
+      timestamp: timestamp ?? this.timestamp,
+      isEntry: isEntry ?? this.isEntry,
+    );
+  }
 }

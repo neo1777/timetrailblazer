@@ -14,22 +14,13 @@ class WorkEntriesLoading extends WorkEntriesState {}
 // Stato quando le voci di lavoro sono caricate e pronte per essere mostrate
 class WorkEntriesLoaded extends WorkEntriesState {
   final List<DayWorkEntriesModel> entries;
-
   WorkEntriesLoaded(this.entries);
-
-  @override
-  List<Object?> get props => [entries];
 }
 
 // Stato in caso di errore nel caricamento delle voci di lavoro
 class WorkEntriesError extends WorkEntriesState {
   final String message;
-
   WorkEntriesError(this.message);
-
-  @override
-  List<Object?> get props => [message];
 }
 
 class DatabaseResetSuccess extends WorkEntriesState {}
-

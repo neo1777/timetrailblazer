@@ -167,4 +167,32 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
+  /// Recupera una voce di lavoro dal database in base all'ID.
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da recuperare.
+  ///
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue una query sulla tabella `_tableWorkEntries` utilizzando il metodo `query()` di SQLite.
+  /// Filtra i risultati in base all'ID specificato utilizzando la clausola `where`.
+  ///
+  /// Se vengono trovate voci di lavoro corrispondenti all'ID, converte la prima voce in un oggetto `WorkEntryDTO`
+  /// utilizzando il metodo `fromMap()` e la restituisce.
+  ///
+  /// Se non vengono trovate voci di lavoro corrispondenti all'ID, restituisce `null`.
+  ///
+  /// Restituisce un `Future` che si completa con un oggetto `WorkEntryDTO` rappresentante la voce di lavoro,
+  /// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
+  Future<WorkEntryDTO?> getWorkEntryById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableWorkEntries,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return WorkEntryDTO.fromMap(maps.first);
+    }
+    return null;
+  }
 }

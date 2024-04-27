@@ -1,4 +1,4 @@
-import 'package:equatable/equatable.dart';
+part of 'home_bloc.dart';
 
 abstract class HomeState extends Equatable {
   @override
@@ -13,4 +13,3 @@ class HomeEntryButtonEnabled extends HomeState {}
 
 // Stato quando il pulsante di uscita è disabilitato (perché l'ultima voce è stata un'uscita)
 class HomeExitButtonEnabled extends HomeState {}
-
