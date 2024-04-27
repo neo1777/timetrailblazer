@@ -9,6 +9,9 @@ class WorkButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   /// La larghezza del pulsante.
+  ///
+  /// Questo parametro opzionale consente di specificare una larghezza personalizzata per il pulsante.
+  /// Se non viene fornito, il pulsante si adatterà automaticamente alla larghezza del contenuto.
   final double? width;
 
   /// Costruttore della classe `WorkButton`.

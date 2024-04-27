@@ -1,5 +1,6 @@
 import 'package:timetrailblazer/data/database_helper.dart';
 import 'package:timetrailblazer/data/dtos/work_entry_dto.dart';
+import 'package:timetrailblazer/data/dtos/work_stats_dto.dart';
 
 /// La classe `WorkEntryProvider` fornisce i metodi per interagire con il database
 /// attraverso l'utilizzo di `WorkEntryDTO`.
@@ -75,5 +76,39 @@ class WorkEntryProvider {
   /// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
   Future<WorkEntryDTO?> getWorkEntryById(int id) async {
     return await _databaseHelper.getWorkEntryById(id);
+  }
+
+  /// Recupera le statistiche di lavoro giornaliere dal database.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro giornaliere.
+  Future<List<WorkStatsDTO>> getDailyWorkStats() async {
+    return await _databaseHelper.getDailyWorkStats();
+  }
+
+  /// Recupera le statistiche di lavoro mensili dal database.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro mensili.
+  Future<List<WorkStatsDTO>> getMonthlyWorkStats() async {
+    return await _databaseHelper.getMonthlyWorkStats();
+  }
+
+  /// Recupera le statistiche di lavoro per l'intervallo di date selezionato dal database.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [startDate]: la data di inizio dell'intervallo.
+  /// - [endDate]: la data di fine dell'intervallo.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro per l'intervallo di date selezionato.
+  Future<List<WorkStatsDTO>> getSelectedRangeWorkStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    return await _databaseHelper.getSelectedRangeWorkStats(
+      startDate: startDate,
+      endDate: endDate,
+    );
   }
 }

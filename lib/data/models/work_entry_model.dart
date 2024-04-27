@@ -10,6 +10,9 @@ class WorkEntryModel {
   final bool? isEntry;
 
   /// La data della voce di lavoro (senza l'ora).
+  ///
+  /// Rappresenta la data in cui è stata registrata la voce di lavoro, senza includere l'informazione sull'ora specifica.
+  /// Viene calcolata automaticamente a partire dal parametro `timestamp` durante la creazione dell'istanza di `WorkEntryModel`.
   final DateTime day;
 
   /// Costruttore della classe `WorkEntry`.
@@ -27,6 +30,10 @@ class WorkEntryModel {
   }) : day = DateTime(timestamp.year, timestamp.month, timestamp.day);
 
   /// Crea una copia di questa istanza di `WorkEntryModel` con le proprietà specificate modificate.
+  ///
+  /// Questo metodo consente di creare una nuova istanza di `WorkEntryModel` a partire da un'istanza esistente,
+  /// permettendo di modificare solo le proprietà specificate.
+  /// I parametri `id`, `timestamp` e `isEntry` sono opzionali. Se non vengono forniti, verranno utilizzati i valori dell'istanza originale.
   ///
   /// Restituisce una nuova istanza di `WorkEntryModel` con le proprietà aggiornate.
   WorkEntryModel copyWith({

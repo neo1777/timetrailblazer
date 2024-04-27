@@ -4,6 +4,7 @@ import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart'
 import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
 
 /// La classe `WorkEntryRepository` rappresenta il repository per la gestione delle voci di lavoro.
 class WorkEntryRepository {
@@ -13,10 +14,7 @@ class WorkEntryRepository {
   /// L'istanza di `WorkEntryMapper` utilizzata per la mappatura tra `WorkEntryDTO` e `WorkEntry`.
   final WorkEntryMapper _workEntryMapper;
 
-  final _entriesStreamController = StreamController<WorkEntryModel>.broadcast();
 
-// Stream esposto all'esterno
-  Stream<WorkEntryModel> get entriesStream => _entriesStreamController.stream;
 
   /// Costruttore della classe `WorkEntryRepository`.
   ///
@@ -33,8 +31,6 @@ class WorkEntryRepository {
   Future<void> insertWorkEntry(WorkEntryModel workEntry) async {
     final workEntryDTO = _workEntryMapper.toDTO(workEntry);
     await _workEntryProvider.insertWorkEntry(workEntryDTO);
-    _entriesStreamController
-        .add(workEntry); // Emette l'ultimo workEntry inserito
   }
 
   /// Aggiorna una voce di lavoro esistente.
@@ -55,7 +51,6 @@ class WorkEntryRepository {
     final workEntryDTO = await _workEntryProvider.getLastWorkEntry();
 
     if (workEntryDTO != null) {
-
       return _workEntryMapper.fromDTO(workEntryDTO);
     }
 
@@ -114,36 +109,89 @@ class WorkEntryRepository {
   }
 
   /// Recupera una voce di lavoro dal database in base all'ID.
-///
-/// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da recuperare.
-///
-/// Restituisce un `Future` che si completa con un oggetto `WorkEntryModel` rappresentante la voce di lavoro,
-/// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
-Future<WorkEntryModel?> getWorkEntryById(int id) async {
-  final workEntryDTO = await _workEntryProvider.getWorkEntryById(id);
-  if (workEntryDTO != null) {
-    return _workEntryMapper.fromDTO(workEntryDTO);
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da recuperare.
+  ///
+  /// Restituisce un `Future` che si completa con un oggetto `WorkEntryModel` rappresentante la voce di lavoro,
+  /// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
+  Future<WorkEntryModel?> getWorkEntryById(int id) async {
+    final workEntryDTO = await _workEntryProvider.getWorkEntryById(id);
+    if (workEntryDTO != null) {
+      return _workEntryMapper.fromDTO(workEntryDTO);
+    }
+    return null;
   }
-  return null;
-}
 
-/// Salva una voce di lavoro nel database.
-///
-/// Accetta un parametro [workEntry] di tipo `WorkEntryModel` che rappresenta la voce di lavoro da salvare.
-///
-/// Se la voce di lavoro ha un ID, viene considerata una voce esistente e viene aggiornata nel database.
-/// Se la voce di lavoro non ha un ID, viene considerata una nuova voce e viene inserita nel database.
-///
-/// Restituisce un `Future` che si completa quando il salvataggio è terminato.
-Future<void> saveWorkEntry(WorkEntryModel workEntry) async {
-  if (workEntry.id != null) {
-    await updateWorkEntry(workEntry);
-  } else {
-    await insertWorkEntry(workEntry);
+  /// Salva una voce di lavoro nel database.
+  ///
+  /// Accetta un parametro [workEntry] di tipo `WorkEntryModel` che rappresenta la voce di lavoro da salvare.
+  ///
+  /// Se la voce di lavoro ha un ID, viene considerata una voce esistente e viene aggiornata nel database.
+  /// Se la voce di lavoro non ha un ID, viene considerata una nuova voce e viene inserita nel database.
+  ///
+  /// Restituisce un `Future` che si completa quando il salvataggio è terminato.
+  Future<void> saveWorkEntry(WorkEntryModel workEntry) async {
+    if (workEntry.id != null) {
+      await updateWorkEntry(workEntry);
+    } else {
+      await insertWorkEntry(workEntry);
+    }
   }
-}
 
-  void dispose() {
-    _entriesStreamController.close();
+  /// Recupera le statistiche di lavoro giornaliere.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `DailyWorkStats`
+  /// rappresentanti le statistiche di lavoro giornaliere.
+  Future<List<DailyWorkStats>> getDailyWorkStats() async {
+
+    final workEntryDTOs = await _workEntryProvider.getDailyWorkStats();
+    return workEntryDTOs
+        .map((dto) => DailyWorkStats(
+              date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+              workedHours: Duration(milliseconds: dto.workedMillis),
+              overtimeHours: Duration(milliseconds: dto.overtimeMillis),
+            ))
+        .toList();
   }
+
+  /// Recupera le statistiche di lavoro mensili.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `MonthlyWorkStats`
+  /// rappresentanti le statistiche di lavoro mensili.
+  Future<List<MonthlyWorkStats>> getMonthlyWorkStats() async {
+
+    final workEntryDTOs = await _workEntryProvider.getMonthlyWorkStats();
+    return workEntryDTOs
+        .map((dto) => MonthlyWorkStats(
+              month: DateTime(dto.year!, dto.month!),
+              workedHours: Duration(milliseconds: dto.workedMillis),
+              overtimeHours: Duration(milliseconds: dto.overtimeMillis),
+            ))
+        .toList();
+  }
+
+/// Recupera le statistiche di lavoro per l'intervallo di date selezionato.
+///
+/// Accetta i seguenti parametri:
+/// - [startDate]: la data di inizio dell'intervallo.
+/// - [endDate]: la data di fine dell'intervallo.
+///
+/// Restituisce un `Future` che si completa con una lista di oggetti `DailyWorkStats`
+/// rappresentanti le statistiche di lavoro per l'intervallo di date selezionato.
+Future<List<DailyWorkStats>> getSelectedRangeWorkStats({
+  required DateTime startDate,
+  required DateTime endDate,
+}) async {
+  final workEntryDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
+    startDate: startDate,
+    endDate: endDate,
+  );
+  return workEntryDTOs
+      .map((dto) => DailyWorkStats(
+            date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+            workedHours: Duration(milliseconds: dto.workedMillis),
+            overtimeHours: Duration(milliseconds: dto.overtimeMillis),
+          ))
+      .toList();
+}
 }

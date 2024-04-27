@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
 
 /// Restituisce una lista di `BlocProvider` per l'iniezione dei BLoC nell'albero dei widget.
 ///
@@ -30,6 +31,13 @@ List<BlocProvider<StateStreamableSource<Object?>>> getBlocProviders() {
     BlocProvider<WorkEntriesBloc>(
       create: (context) => WorkEntriesBloc(
         workEntryRepository: context.read<WorkEntryRepository>(),
+      ),
+      lazy: true,
+    ),
+
+    BlocProvider<WorkStatsBloc>(
+      create: (context) => WorkStatsBloc(
+        context.read<WorkEntryRepository>(),
       ),
       lazy: true,
     ),

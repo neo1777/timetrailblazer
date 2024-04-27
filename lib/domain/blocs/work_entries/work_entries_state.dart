@@ -24,3 +24,6 @@ class WorkEntriesError extends WorkEntriesState {
 }
 
 class DatabaseResetSuccess extends WorkEntriesState {}
+
+class WorkEntryDeleted extends WorkEntriesState {}
+

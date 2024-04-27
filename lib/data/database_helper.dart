@@ -1,5 +1,7 @@
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:timetrailblazer/data/dtos/work_entry_dto.dart';
+import 'package:timetrailblazer/data/dtos/work_stats_dto.dart';
 
 /// La classe `DatabaseHelper` fornisce i metodi per l'accesso al database SQLite.
 class DatabaseHelper {
@@ -11,6 +13,9 @@ class DatabaseHelper {
 
   /// Il nome della tabella delle voci di lavoro.
   static const String _tableWorkEntries = 'work_entries';
+  static const String _columnId = 'id';
+  static const String _columnTimestamp = 'timestamp';
+  static const String _columnIsEntry = 'isEntry';
 
   /// L'istanza del database.
   static Database? _database;
@@ -50,9 +55,9 @@ class DatabaseHelper {
   Future<void> _createDatabase(Database db, int version) async {
     await db.execute('''
       CREATE TABLE $_tableWorkEntries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        timestamp INTEGER NOT NULL,
-        isEntry INTEGER NOT NULL
+        $_columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $_columnTimestamp INTEGER NOT NULL,
+        $_columnIsEntry INTEGER NOT NULL
       )
     ''');
   }
@@ -67,7 +72,10 @@ class DatabaseHelper {
     final db = await database;
     await db.insert(
       _tableWorkEntries,
-      workEntryDTO.toMap(),
+      {
+        _columnTimestamp: workEntryDTO.timestamp,
+        _columnIsEntry: workEntryDTO.isEntry,
+      },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -83,8 +91,11 @@ class DatabaseHelper {
     final db = await database;
     await db.update(
       _tableWorkEntries,
-      workEntryDTO.toMap(),
-      where: 'id = ?',
+      {
+        _columnTimestamp: workEntryDTO.timestamp,
+        _columnIsEntry: workEntryDTO.isEntry,
+      },
+      where: '$_columnId = ?',
       whereArgs: [workEntryDTO.id],
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -101,7 +112,7 @@ class DatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       _tableWorkEntries,
-      orderBy: 'timestamp DESC',
+      orderBy: '$_columnTimestamp DESC',
       limit: 1,
     );
     if (maps.isNotEmpty) {
@@ -194,5 +205,77 @@ class DatabaseHelper {
       return WorkEntryDTO.fromMap(maps.first);
     }
     return null;
+  }
+
+  /// Recupera le statistiche di lavoro giornaliere dal database.
+  ///
+  /// Esegue una query SQL per aggregare le voci di lavoro raggruppate per giorno
+  /// e calcolare le ore lavorate e le ore di straordinario per ciascun giorno.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro giornaliere.
+  Future<List<WorkStatsDTO>> getDailyWorkStats() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    SELECT 
+      DATE(timestamp / 1000, 'unixepoch') AS date,
+      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) AS workedMillis,
+      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) - 28800000 AS overtimeMillis
+    FROM $_tableWorkEntries w
+    GROUP BY DATE(timestamp / 1000, 'unixepoch')
+  ''');
+    return maps.map((map) => WorkStatsDTO.fromMap(map)).toList();
+  }
+
+  /// Recupera le statistiche di lavoro mensili dal database.
+  ///
+  /// Esegue una query SQL per aggregare le voci di lavoro raggruppate per mese
+  /// e calcolare le ore lavorate e le ore di straordinario per ciascun mese.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro mensili.
+  Future<List<WorkStatsDTO>> getMonthlyWorkStats() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    SELECT
+      strftime('%Y', timestamp / 1000, 'unixepoch') AS year,
+      strftime('%m', timestamp / 1000, 'unixepoch') AS month,
+      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) AS workedMillis,
+      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) - 28800000 * COUNT(DISTINCT DATE(timestamp / 1000, 'unixepoch')) AS overtimeMillis
+    FROM $_tableWorkEntries w
+    GROUP BY strftime('%Y', timestamp / 1000, 'unixepoch'), strftime('%m', timestamp / 1000, 'unixepoch')
+  ''');
+    return maps.map((map) => WorkStatsDTO.fromMap(map)).toList();
+  }
+
+  /// Recupera le statistiche di lavoro per l'intervallo di date selezionato dal database.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [startDate]: la data di inizio dell'intervallo.
+  /// - [endDate]: la data di fine dell'intervallo.
+  ///
+  /// Esegue una query SQL per aggregare le voci di lavoro nell'intervallo di date specificato
+  /// e calcolare le ore lavorate e le ore di straordinario per ciascun giorno.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro per l'intervallo di date selezionato.
+  Future<List<WorkStatsDTO>> getSelectedRangeWorkStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    SELECT
+      DATE(timestamp / 1000, 'unixepoch') AS date,
+      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) AS workedMillis,
+      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) - 28800000 AS overtimeMillis
+    FROM $_tableWorkEntries w
+    WHERE DATE(timestamp / 1000, 'unixepoch') BETWEEN ? AND ?
+    GROUP BY DATE(timestamp / 1000, 'unixepoch')
+  ''', [
+      DateFormat('yyyy-MM-dd').format(startDate),
+      DateFormat('yyyy-MM-dd').format(endDate),
+    ]);
+    return maps.map((map) => WorkStatsDTO.fromMap(map)).toList();
   }
 }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
@@ -24,6 +25,7 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
     on<FetchWorkEntries>(_fetchWorkEntries);
     on<WorkEntriesUpdated>(_workEntriesUpdated);
     on<ResetDatabase>(_resetDatabase);
+    on<DeleteWorkEntry>(_deleteWorkEntry);
   }
 
   /// Gestore dell'evento [FetchWorkEntries].
@@ -75,10 +77,21 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
     try {
       await workEntryRepository.resetDatabase();
       add(FetchWorkEntries(event.startDate, event.endDate));
-
       emit(DatabaseResetSuccess());
     } catch (e) {
       emit(WorkEntriesError("Failed to reset database: ${e.toString()}"));
+    }
+  }
+
+  _deleteWorkEntry(
+      DeleteWorkEntry event, Emitter<WorkEntriesState> emit) async {
+    emit(WorkEntriesLoading());
+    try {
+      await workEntryRepository.deleteWorkEntryById(event.id);
+      add(FetchWorkEntries(event.startDate, event.endDate));
+      emit(WorkEntryDeleted());
+    } catch (e) {
+      emit(WorkEntriesError("Failed to delete entry: ${e.toString()}"));
     }
   }
 }

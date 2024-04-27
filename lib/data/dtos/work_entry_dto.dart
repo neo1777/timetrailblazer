@@ -1,4 +1,8 @@
 /// La classe `WorkEntryDTO` rappresenta l'oggetto di trasferimento dati (DTO) per una voce di lavoro.
+///
+/// Un DTO è un oggetto che contiene i dati nella forma richiesta per il trasferimento tra diversi strati dell'applicazione,
+/// come il database o le API esterne. La classe `WorkEntryDTO` definisce la struttura dei dati per una voce di lavoro
+/// e fornisce metodi per la conversione da e verso un formato di mappa chiave-valore.
 class WorkEntryDTO {
   /// L'ID univoco della voce di lavoro (può essere null per le nuove voci).
   final int? id;
@@ -6,7 +10,10 @@ class WorkEntryDTO {
   /// Il timestamp della voce di lavoro in millisecondi.
   final int timestamp;
 
-  /// Un flag che indica se la voce è un'entrata (1) o un'uscita (0).
+/// Un flag che indica se la voce è un'entrata (1) o un'uscita (0).
+  ///
+  /// - Il valore 1 rappresenta un'entrata, ovvero quando l'utente inizia un turno di lavoro.
+  /// - Il valore 0 rappresenta un'uscita, ovvero quando l'utente termina un turno di lavoro.
   final int isEntry;
 
   /// Costruttore della classe `WorkEntryDTO`.

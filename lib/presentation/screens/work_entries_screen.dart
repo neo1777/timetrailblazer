@@ -67,6 +67,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                 ResetDatabase(
                   dateRangeModel.startDate,
                   dateRangeModel.endDate,
+                  context: context,
                 ),
               );
             },
@@ -145,7 +146,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
             );
           } else if (state is WorkEntriesError) {
             // Mostra un messaggio di errore in caso di errore durante il caricamento delle voci di lavoro
-            return Center(child: Text(state.message));
+            return const Center(child: Text(AppErrorMessages.getEntriesError));
           } else {
             // Stato non gestito, mostra un contenitore vuoto
             return Container();
