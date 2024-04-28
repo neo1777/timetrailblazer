@@ -107,11 +107,18 @@ class EditWorkEntryView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const CustomSpacer(flex: 1),
-                  _buildDateButton(context, workEntry.timestamp),
+                  Flexible(
+                      flex: 2,
+                      child: _buildDateButton(context, workEntry.timestamp)),
                   const CustomSpacer(flex: 1),
-                  _buildTimeButton(context, workEntry.timestamp),
+                  Flexible(
+                      flex: 2,
+                      child: _buildTimeButton(context, workEntry.timestamp)),
                   const CustomSpacer(flex: 10),
-                  _buildSaveButton(context, state.isSaveEnabled, workEntry),
+                  Flexible(
+                      flex: 2,
+                      child: _buildSaveButton(
+                          context, state.isSaveEnabled, workEntry)),
                   const CustomSpacer(flex: 1),
                 ],
               ),

@@ -211,6 +211,24 @@ class DatabaseHelper {
     return null;
   }
 
+  /// Recupera tutte le voci di lavoro dal database.
+  ///
+  /// Esegue una query sulla tabella `_tableWorkEntries` per recuperare tutte le voci di lavoro.
+  /// Ordina le voci di lavoro in base al campo `_columnTimestamp` in ordine crescente.
+  /// Mappa i risultati della query in una lista di oggetti `WorkEntryDTO` utilizzando il metodo `fromMap`.
+  ///
+  /// Restituisce un `Future` che si completa con la lista di tutte le voci di lavoro presenti nel database.
+  Future<List<WorkEntryDTO>> getAllWorkEntries() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableWorkEntries,
+      orderBy: '$_columnTimestamp ASC',
+    );
+    return List.generate(maps.length, (i) {
+      return WorkEntryDTO.fromMap(maps[i]);
+    });
+  }
+
   /// Recupera le statistiche di lavoro giornaliere dal database.
   ///
   /// Esegue una query SQL per aggregare le voci di lavoro raggruppate per giorno
@@ -236,19 +254,15 @@ class DatabaseHelper {
       WHERE isEntry = 1
       GROUP BY DATE(timestamp / 1000, 'unixepoch')
     ''');
-      print('getDailyWorkStats query result: $maps');
       final List<WorkStatsDTO> dtos = maps.map((map) {
-        print('getDailyWorkStats map: $map');
         return WorkStatsDTO.fromMap({
           'date': map['date'],
           'workedSeconds': map['workedSeconds'] ?? 0,
           'overtimeSeconds': map['overtimeSeconds'] ?? 0,
         });
       }).toList();
-      print('getDailyWorkStats result: $dtos');
       return dtos;
     } catch (e) {
-      print('Errore in getDailyWorkStats: $e');
       return [];
     }
   }
@@ -279,9 +293,7 @@ class DatabaseHelper {
       WHERE isEntry = 1
       GROUP BY strftime('%Y', timestamp / 1000, 'unixepoch'), strftime('%m', timestamp / 1000, 'unixepoch')
     ''');
-      print('getMonthlyWorkStats query result: $maps');
       final List<WorkStatsDTO> dtos = maps.map((map) {
-        print('getMonthlyWorkStats map: $map');
         return WorkStatsDTO.fromMap({
           'year': int.tryParse(map['year'] ?? '') ?? 0,
           'month': int.tryParse(map['month'] ?? '') ?? 0,
@@ -289,10 +301,8 @@ class DatabaseHelper {
           'overtimeSeconds': map['overtimeSeconds'] ?? 0,
         });
       }).toList();
-      print('getMonthlyWorkStats result: $dtos');
       return dtos;
     } catch (e) {
-      print('Errore in getMonthlyWorkStats: $e');
       return [];
     }
   }
@@ -332,19 +342,15 @@ class DatabaseHelper {
         DateFormat('yyyy-MM-dd').format(startDate),
         DateFormat('yyyy-MM-dd').format(endDate),
       ]);
-      print('getSelectedRangeWorkStats query result: $maps');
       final List<WorkStatsDTO> dtos = maps.map((map) {
-        print('getSelectedRangeWorkStats map: $map');
         return WorkStatsDTO.fromMap({
           'date': map['date'],
           'workedSeconds': map['workedSeconds'] ?? 0,
           'overtimeSeconds': map['overtimeSeconds'] ?? 0,
         });
       }).toList();
-      print('getSelectedRangeWorkStats result: $dtos');
       return dtos;
     } catch (e) {
-      print('Errore in getSelectedRangeWorkStats: $e');
       return [];
     }
   }

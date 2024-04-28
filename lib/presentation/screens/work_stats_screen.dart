@@ -41,46 +41,71 @@ class WorkStatsScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const CustomSpacer(flex: 1),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        WorkButton(
-                          label: 'Giornaliero',
-                          onPressed: () {
-                            context.read<WorkStatsBloc>().add(ShowDailyStats());
-                          },
-                        ),
-                        WorkButton(
-                          label: 'Mensile',
-                          onPressed: () {
-                            context
-                                .read<WorkStatsBloc>()
-                                .add(ShowMonthlyStats());
-                          },
-                        ),
-                        WorkButton(
-                          label: 'Intervallo selezionato',
-                          onPressed: () {
-                            context
-                                .read<WorkStatsBloc>()
-                                .add(ShowSelectedRangeStats(
-                                  startDate: dateRangeModel.startDate,
-                                  endDate: dateRangeModel.endDate,
-                                ));
-                          },
-                        ),
-                      ],
+                    Flexible(
+                      flex: 1,
+                      fit: FlexFit.tight,
+                      child: Container(
+                        color: Colors.transparent,
+                      ),
                     ),
                     const CustomSpacer(flex: 1),
+                    Flexible(
+                      flex: 5,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Flexible(
+                            flex: 2,
+                            child: WorkButton(
+                              label: 'Giornaliero',
+                              onPressed: () {
+                                context
+                                    .read<WorkStatsBloc>()
+                                    .add(ShowDailyStats());
+                              },
+                            ),
+                          ),
+                          Flexible(
+                            flex: 2,
+                            child: WorkButton(
+                              label: 'Mensile',
+                              onPressed: () {
+                                context
+                                    .read<WorkStatsBloc>()
+                                    .add(ShowMonthlyStats());
+                              },
+                            ),
+                          ),
+                          Flexible(
+                            flex: 2,
+                            child: WorkButton(
+                              label: 'Intervallo selezionato',
+                              onPressed: () {
+                                context
+                                    .read<WorkStatsBloc>()
+                                    .add(ShowSelectedRangeStats(
+                                      startDate: dateRangeModel.startDate,
+                                      endDate: dateRangeModel.endDate,
+                                    ));
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const CustomSpacer(flex: 2),
                     // Mostra il titolo con le date di inizio e fine per l'intervallo selezionato
                     if (state.selectedView == StatsView.selectedRange)
-                      Text(
-                        'Dal ${DateFormat('dd/MM/yyyy').format(dateRangeModel.startDate)} al ${DateFormat('dd/MM/yyyy').format(dateRangeModel.endDate)}',
-                        style: Theme.of(context).textTheme.titleLarge,
+                      Flexible(
+                        flex: 5,
+                        child: Text(
+                          'Dal ${DateFormat('dd/MM/yyyy').format(dateRangeModel.startDate)} al ${DateFormat('dd/MM/yyyy').format(dateRangeModel.endDate)}',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                       ),
                     const CustomSpacer(flex: 1),
-                    Expanded(
+                    Flexible(
+                      flex: 5,
                       child: state.selectedView == StatsView.daily
                           ? _buildDailyStatsList(dailyStats)
                           : state.selectedView == StatsView.monthly

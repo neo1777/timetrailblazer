@@ -75,15 +75,19 @@ class DayRangeCalendar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Mostra la data formattata del giorno
-            CustomAutoSizeText(
-              formattedDate,
-              Theme.of(context).textTheme.titleSmall!,
-              TextAlign.center,
+            Flexible(
+              flex: 2,
+              child: CustomAutoSizeText(
+                formattedDate,
+                Theme.of(context).textTheme.titleSmall!,
+                TextAlign.center,
+              ),
             ),
-            const SizedBox(height: 8),
+            //const SizedBox(height: 8),
             // Mostra le voci di lavoro per il giorno corrente, se presenti
             if (workEntries != null)
-              Expanded(
+              Flexible(
+                flex: 1,
                 child: ListView.builder(
                   itemCount: workEntries.length,
                   itemBuilder: (context, index) {
@@ -94,7 +98,7 @@ class DayRangeCalendar extends StatelessWidget {
 
                     return Row(
                       children: [
-                        Expanded(
+                        Flexible(
                           flex: 13,
                           child: FittedBox(
                             child: CustomAutoSizeText(
@@ -182,10 +186,13 @@ class DayRangeCalendar extends StatelessWidget {
               )
             else
               // Mostra un messaggio se non ci sono voci di lavoro per il giorno corrente
-              const CustomAutoSizeText(
-                'Nessuna registrazione',
-                TextStyle(fontWeight: FontWeight.bold),
-                TextAlign.center,
+              const Flexible(
+                flex: 2,
+                child: CustomAutoSizeText(
+                  'Nessuna registrazione',
+                  TextStyle(fontWeight: FontWeight.bold),
+                  TextAlign.center,
+                ),
               ),
           ],
         ),

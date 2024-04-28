@@ -8,6 +8,7 @@ import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/date_range_picker.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
+import 'package:timetrailblazer/presentation/widgets/widgets_screens/csv_import_export_widget.dart';
 import 'package:timetrailblazer/presentation/widgets/widgets_screens/day_range_calendar.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
 
@@ -52,14 +53,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
           Navigator.pushNamed(context, AppRoutes.home);
         },
         onAction: [
-          const IconButton(
-            icon: Icon(Icons.file_upload),
-            onPressed: null,
-          ),
-          const IconButton(
-            icon: Icon(Icons.file_download),
-            onPressed: null,
-          ),
+          const CsvImportExportWidget(),
           IconButton(
             icon: const Icon(Icons.delete_forever),
             onPressed: () {
@@ -81,68 +75,72 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (state is WorkEntriesLoaded) {
             final dayWorkEntriesList = state.entries;
-            return Column(
-              children: [
-                const CustomSpacer(flex: 1),
-                Flexible(
-                  flex: 3,
-                  child: Consumer<DateRangeModel>(
-                      builder: (context, model, child) {
-                    return DateRangePicker(
+            return SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CustomSpacer(flex: 1),
+                  Flexible(
+                    flex: 3,
+                    child: Consumer<DateRangeModel>(
+                        builder: (context, model, child) {
+                      return DateRangePicker(
+                        startDate: dateRangeModel.startDate,
+                        endDate: dateRangeModel.endDate,
+                        onStartDateChanged: (date) {
+                          dateRangeModel.startDate = date;
+                          // Aggiorna le voci di lavoro quando la data di inizio viene modificata
+                          context.read<WorkEntriesBloc>().add(FetchWorkEntries(
+                                dateRangeModel.startDate,
+                                dateRangeModel.endDate,
+                              ));
+                        },
+                        onEndDateChanged: (date) {
+                          dateRangeModel.endDate = date;
+                          // Aggiorna le voci di lavoro quando la data di fine viene modificata
+                          context.read<WorkEntriesBloc>().add(FetchWorkEntries(
+                                dateRangeModel.startDate,
+                                dateRangeModel.endDate,
+                              ));
+                        },
+                        onCurrentMonthPressed: () {
+                          final now = DateTime.now();
+                          dateRangeModel.startDate =
+                              DateTime(now.year, now.month, 1);
+                          dateRangeModel.endDate =
+                              DateTime(now.year, now.month + 1, 0);
+                          // Aggiorna le voci di lavoro quando viene premuto il pulsante "Mese corrente"
+                          context.read<WorkEntriesBloc>().add(FetchWorkEntries(
+                                dateRangeModel.startDate,
+                                dateRangeModel.endDate,
+                              ));
+                        },
+                      );
+                    }),
+                  ),
+                  const CustomSpacer(flex: 1),
+                  Flexible(
+                    flex: 3,
+                    child: WorkButton(
+                      label: AppStrings.workStatsTitle,
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.workStats);
+                      },
+                    ),
+                  ),
+                  const CustomSpacer(flex: 2),
+                  Flexible(
+                    flex: 20,
+                    child: DayRangeCalendar(
+                      dayWorkEntriesList: dayWorkEntriesList,
+                      scrollController: _scrollController,
                       startDate: dateRangeModel.startDate,
                       endDate: dateRangeModel.endDate,
-                      onStartDateChanged: (date) {
-                        dateRangeModel.startDate = date;
-                        // Aggiorna le voci di lavoro quando la data di inizio viene modificata
-                        context.read<WorkEntriesBloc>().add(FetchWorkEntries(
-                              dateRangeModel.startDate,
-                              dateRangeModel.endDate,
-                            ));
-                      },
-                      onEndDateChanged: (date) {
-                        dateRangeModel.endDate = date;
-                        // Aggiorna le voci di lavoro quando la data di fine viene modificata
-                        context.read<WorkEntriesBloc>().add(FetchWorkEntries(
-                              dateRangeModel.startDate,
-                              dateRangeModel.endDate,
-                            ));
-                      },
-                      onCurrentMonthPressed: () {
-                        final now = DateTime.now();
-                        dateRangeModel.startDate =
-                            DateTime(now.year, now.month, 1);
-                        dateRangeModel.endDate =
-                            DateTime(now.year, now.month + 1, 0);
-                        // Aggiorna le voci di lavoro quando viene premuto il pulsante "Mese corrente"
-                        context.read<WorkEntriesBloc>().add(FetchWorkEntries(
-                              dateRangeModel.startDate,
-                              dateRangeModel.endDate,
-                            ));
-                      },
-                    );
-                  }),
-                ),
-                const CustomSpacer(flex: 1),
-                Flexible(
-                  flex: 3,
-                  child: WorkButton(
-                    label: AppStrings.workStatsTitle,
-                    onPressed: () {
-                      Navigator.pushNamed(context, AppRoutes.workStats);
-                    },
+                    ),
                   ),
-                ),
-                const CustomSpacer(flex: 1),
-                Expanded(
-                  flex: 20,
-                  child: DayRangeCalendar(
-                    dayWorkEntriesList: dayWorkEntriesList,
-                    scrollController: _scrollController,
-                    startDate: dateRangeModel.startDate,
-                    endDate: dateRangeModel.endDate,
-                  ),
-                ),
-              ],
+                ],
+              ),
             );
           } else if (state is WorkEntriesError) {
             // Mostra un messaggio di errore in caso di errore durante il caricamento delle voci di lavoro
