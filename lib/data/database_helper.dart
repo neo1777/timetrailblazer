@@ -60,6 +60,10 @@ class DatabaseHelper {
         $_columnIsEntry INTEGER NOT NULL
       )
     ''');
+    // Crea un indice sulla colonna 'timestamp' per migliorare le prestazioni delle query
+    await db.execute('''
+      CREATE INDEX idx_timestamp ON $_tableWorkEntries ($_columnTimestamp)
+    ''');
   }
 
   /// Inserisce una nuova voce di lavoro nel database.
@@ -216,15 +220,37 @@ class DatabaseHelper {
   /// rappresentanti le statistiche di lavoro giornaliere.
   Future<List<WorkStatsDTO>> getDailyWorkStats() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.rawQuery('''
-    SELECT 
-      DATE(timestamp / 1000, 'unixepoch') AS date,
-      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) AS workedMillis,
-      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) - 28800000 AS overtimeMillis
-    FROM $_tableWorkEntries w
-    GROUP BY DATE(timestamp / 1000, 'unixepoch')
-  ''');
-    return maps.map((map) => WorkStatsDTO.fromMap(map)).toList();
+    try {
+      final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        DATE(timestamp / 1000, 'unixepoch') AS date,
+        IFNULL(SUM(CASE WHEN isEntry = 1 THEN (
+          SELECT IFNULL((timestamp - w.timestamp) / 1000, 0)
+          FROM $_tableWorkEntries 
+          WHERE id > w.id AND isEntry = 0 AND DATE(timestamp / 1000, 'unixepoch') = DATE(w.timestamp / 1000, 'unixepoch')
+          ORDER BY timestamp 
+          LIMIT 1
+        ) ELSE 0 END), 0) AS workedSeconds,
+        0 AS overtimeSeconds
+      FROM $_tableWorkEntries w
+      WHERE isEntry = 1
+      GROUP BY DATE(timestamp / 1000, 'unixepoch')
+    ''');
+      print('getDailyWorkStats query result: $maps');
+      final List<WorkStatsDTO> dtos = maps.map((map) {
+        print('getDailyWorkStats map: $map');
+        return WorkStatsDTO.fromMap({
+          'date': map['date'],
+          'workedSeconds': map['workedSeconds'] ?? 0,
+          'overtimeSeconds': map['overtimeSeconds'] ?? 0,
+        });
+      }).toList();
+      print('getDailyWorkStats result: $dtos');
+      return dtos;
+    } catch (e) {
+      print('Errore in getDailyWorkStats: $e');
+      return [];
+    }
   }
 
   /// Recupera le statistiche di lavoro mensili dal database.
@@ -236,16 +262,39 @@ class DatabaseHelper {
   /// rappresentanti le statistiche di lavoro mensili.
   Future<List<WorkStatsDTO>> getMonthlyWorkStats() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.rawQuery('''
-    SELECT
-      strftime('%Y', timestamp / 1000, 'unixepoch') AS year,
-      strftime('%m', timestamp / 1000, 'unixepoch') AS month,
-      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) AS workedMillis,
-      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) - 28800000 * COUNT(DISTINCT DATE(timestamp / 1000, 'unixepoch')) AS overtimeMillis
-    FROM $_tableWorkEntries w
-    GROUP BY strftime('%Y', timestamp / 1000, 'unixepoch'), strftime('%m', timestamp / 1000, 'unixepoch')
-  ''');
-    return maps.map((map) => WorkStatsDTO.fromMap(map)).toList();
+    try {
+      final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT
+        strftime('%Y', timestamp / 1000, 'unixepoch') AS year,
+        strftime('%m', timestamp / 1000, 'unixepoch') AS month,
+        IFNULL(SUM(CASE WHEN isEntry = 1 THEN (
+          SELECT IFNULL((timestamp - w.timestamp) / 1000, 0)
+          FROM $_tableWorkEntries
+          WHERE id > w.id AND isEntry = 0 AND DATE(timestamp / 1000, 'unixepoch') = DATE(w.timestamp / 1000, 'unixepoch')
+          ORDER BY timestamp
+          LIMIT 1
+        ) ELSE 0 END), 0) AS workedSeconds,
+        0 AS overtimeSeconds
+      FROM $_tableWorkEntries w
+      WHERE isEntry = 1
+      GROUP BY strftime('%Y', timestamp / 1000, 'unixepoch'), strftime('%m', timestamp / 1000, 'unixepoch')
+    ''');
+      print('getMonthlyWorkStats query result: $maps');
+      final List<WorkStatsDTO> dtos = maps.map((map) {
+        print('getMonthlyWorkStats map: $map');
+        return WorkStatsDTO.fromMap({
+          'year': int.tryParse(map['year'] ?? '') ?? 0,
+          'month': int.tryParse(map['month'] ?? '') ?? 0,
+          'workedSeconds': map['workedSeconds'] ?? 0,
+          'overtimeSeconds': map['overtimeSeconds'] ?? 0,
+        });
+      }).toList();
+      print('getMonthlyWorkStats result: $dtos');
+      return dtos;
+    } catch (e) {
+      print('Errore in getMonthlyWorkStats: $e');
+      return [];
+    }
   }
 
   /// Recupera le statistiche di lavoro per l'intervallo di date selezionato dal database.
@@ -264,18 +313,39 @@ class DatabaseHelper {
     required DateTime endDate,
   }) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.rawQuery('''
-    SELECT
-      DATE(timestamp / 1000, 'unixepoch') AS date,
-      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) AS workedMillis,
-      SUM(CASE WHEN isEntry = 1 THEN (SELECT timestamp FROM $_tableWorkEntries WHERE id > w.id AND isEntry = 0 ORDER BY timestamp LIMIT 1) - timestamp ELSE 0 END) - 28800000 AS overtimeMillis
-    FROM $_tableWorkEntries w
-    WHERE DATE(timestamp / 1000, 'unixepoch') BETWEEN ? AND ?
-    GROUP BY DATE(timestamp / 1000, 'unixepoch')
-  ''', [
-      DateFormat('yyyy-MM-dd').format(startDate),
-      DateFormat('yyyy-MM-dd').format(endDate),
-    ]);
-    return maps.map((map) => WorkStatsDTO.fromMap(map)).toList();
+    try {
+      final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT
+        DATE(timestamp / 1000, 'unixepoch') AS date,
+        IFNULL(SUM(CASE WHEN isEntry = 1 THEN (
+          SELECT IFNULL((timestamp - w.timestamp) / 1000, 0)
+          FROM $_tableWorkEntries
+          WHERE id > w.id AND isEntry = 0 AND DATE(timestamp / 1000, 'unixepoch') = DATE(w.timestamp / 1000, 'unixepoch')
+          ORDER BY timestamp
+          LIMIT 1
+        ) ELSE 0 END), 0) AS workedSeconds,
+        0 AS overtimeSeconds
+      FROM $_tableWorkEntries w
+      WHERE isEntry = 1 AND DATE(timestamp / 1000, 'unixepoch') BETWEEN ? AND ?
+      GROUP BY DATE(timestamp / 1000, 'unixepoch')
+    ''', [
+        DateFormat('yyyy-MM-dd').format(startDate),
+        DateFormat('yyyy-MM-dd').format(endDate),
+      ]);
+      print('getSelectedRangeWorkStats query result: $maps');
+      final List<WorkStatsDTO> dtos = maps.map((map) {
+        print('getSelectedRangeWorkStats map: $map');
+        return WorkStatsDTO.fromMap({
+          'date': map['date'],
+          'workedSeconds': map['workedSeconds'] ?? 0,
+          'overtimeSeconds': map['overtimeSeconds'] ?? 0,
+        });
+      }).toList();
+      print('getSelectedRangeWorkStats result: $dtos');
+      return dtos;
+    } catch (e) {
+      print('Errore in getSelectedRangeWorkStats: $e');
+      return [];
+    }
   }
 }

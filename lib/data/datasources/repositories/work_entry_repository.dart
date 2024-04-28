@@ -143,32 +143,26 @@ class WorkEntryRepository {
   /// Restituisce un `Future` che si completa con una lista di oggetti `DailyWorkStats`
   /// rappresentanti le statistiche di lavoro giornaliere.
   Future<List<DailyWorkStats>> getDailyWorkStats() async {
-
-    final workEntryDTOs = await _workEntryProvider.getDailyWorkStats();
-    return workEntryDTOs
-        .map((dto) => DailyWorkStats(
-              date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
-              workedHours: Duration(milliseconds: dto.workedMillis),
-              overtimeHours: Duration(milliseconds: dto.overtimeMillis),
-            ))
-        .toList();
-  }
+  final workStatsDTOs = await _workEntryProvider.getDailyWorkStats();
+  return workStatsDTOs.map((dto) => DailyWorkStats(
+    date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+    workedHours: Duration(seconds: dto.workedSeconds),
+    overtimeHours: Duration(seconds: dto.overtimeSeconds),
+  )).toList();
+}
 
   /// Recupera le statistiche di lavoro mensili.
   ///
   /// Restituisce un `Future` che si completa con una lista di oggetti `MonthlyWorkStats`
   /// rappresentanti le statistiche di lavoro mensili.
   Future<List<MonthlyWorkStats>> getMonthlyWorkStats() async {
-
-    final workEntryDTOs = await _workEntryProvider.getMonthlyWorkStats();
-    return workEntryDTOs
-        .map((dto) => MonthlyWorkStats(
-              month: DateTime(dto.year!, dto.month!),
-              workedHours: Duration(milliseconds: dto.workedMillis),
-              overtimeHours: Duration(milliseconds: dto.overtimeMillis),
-            ))
-        .toList();
-  }
+  final workStatsDTOs = await _workEntryProvider.getMonthlyWorkStats();
+  return workStatsDTOs.map((dto) => MonthlyWorkStats(
+    month: DateTime(dto.year!, dto.month!),
+    workedHours: Duration(seconds: dto.workedSeconds),
+    overtimeHours: Duration(seconds: dto.overtimeSeconds),
+  )).toList();
+}
 
 /// Recupera le statistiche di lavoro per l'intervallo di date selezionato.
 ///
@@ -182,16 +176,14 @@ Future<List<DailyWorkStats>> getSelectedRangeWorkStats({
   required DateTime startDate,
   required DateTime endDate,
 }) async {
-  final workEntryDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
+  final workStatsDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
     startDate: startDate,
     endDate: endDate,
   );
-  return workEntryDTOs
-      .map((dto) => DailyWorkStats(
-            date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
-            workedHours: Duration(milliseconds: dto.workedMillis),
-            overtimeHours: Duration(milliseconds: dto.overtimeMillis),
-          ))
-      .toList();
+  return workStatsDTOs.map((dto) => DailyWorkStats(
+    date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+    workedHours: Duration(seconds: dto.workedSeconds),
+    overtimeHours: Duration(seconds: dto.overtimeSeconds),
+  )).toList();
 }
 }

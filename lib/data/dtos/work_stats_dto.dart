@@ -23,13 +23,13 @@ class WorkStatsDTO {
   ///
   /// Rappresenta la somma totale delle ore lavorate per il periodo di tempo specificato (giorno, mese o intervallo selezionato).
   /// Il valore è espresso in millisecondi per consentire calcoli precisi e flessibili.
-  final int workedMillis;
+  final int workedSeconds;
 
   /// Il totale delle ore di straordinario in millisecondi.
   ///
   /// Rappresenta la somma totale delle ore di straordinario lavorate per il periodo di tempo specificato (giorno, mese o intervallo selezionato).
   /// Il valore è espresso in millisecondi per consentire calcoli precisi e flessibili.
-  final int overtimeMillis;
+  final int overtimeSeconds;
 
   /// Costruttore della classe `WorkStatsDTO`.
   ///
@@ -43,8 +43,8 @@ class WorkStatsDTO {
     this.date,
     this.year,
     this.month,
-    required this.workedMillis,
-    required this.overtimeMillis,
+    required this.workedSeconds,
+    required this.overtimeSeconds,
   });
 
   /// Crea un oggetto `WorkStatsDTO` a partire da una mappa chiave-valore.
@@ -62,10 +62,10 @@ class WorkStatsDTO {
       date: map['date'] != null
           ? DateTime.parse(map['date']).millisecondsSinceEpoch
           : null,
-      year: map['year'] != null ? int.parse(map['year']) : null,
-      month: map['month'] != null ? int.parse(map['month']) : null,
-      workedMillis: map['workedMillis'],
-      overtimeMillis: map['overtimeMillis'],
+      year: map['year'],
+      month: map['month'],
+      workedSeconds: map['workedSeconds'] ?? 0,
+      overtimeSeconds: map['overtimeSeconds'] ?? 0,
     );
   }
 }
