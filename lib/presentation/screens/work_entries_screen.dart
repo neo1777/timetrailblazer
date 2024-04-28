@@ -53,7 +53,10 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
           Navigator.pushNamed(context, AppRoutes.home);
         },
         onAction: [
-          const CsvImportExportWidget(),
+          CsvImportExportWidget(
+            startDate: dateRangeModel.startDate,
+            endDate: dateRangeModel.endDate,
+          ),
           IconButton(
             icon: const Icon(Icons.delete_forever),
             onPressed: () {
