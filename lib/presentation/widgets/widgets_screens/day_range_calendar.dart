@@ -7,6 +7,7 @@ import 'package:timetrailblazer/data/models/work_entry_model.dart';
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
 import 'package:timetrailblazer/presentation/screens/edit_work_entry_screen.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
+import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 
 /// Il widget `DayRangeCalendar` visualizza le voci di lavoro in un calendario variabile.
 ///
@@ -40,9 +41,9 @@ class DayRangeCalendar extends StatelessWidget {
     return GridView.builder(
       controller: scrollController,
       itemCount: dayWorkEntriesList.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 2.0,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
+        childAspectRatio: 1.5,
         mainAxisSpacing: 10.0,
         crossAxisSpacing: 10.0,
       ),
@@ -67,27 +68,31 @@ class DayRangeCalendar extends StatelessWidget {
 
     return Card(
       elevation: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const CustomSpacer(
+              flex: 1,
+            ),
             // Mostra la data formattata del giorno
             Flexible(
-              flex: 2,
+              flex: 10,
               child: CustomAutoSizeText(
                 formattedDate,
-                Theme.of(context).textTheme.titleSmall!,
+                Theme.of(context).textTheme.labelSmall!,
                 TextAlign.center,
               ),
             ),
-            //const SizedBox(height: 8),
-            // Mostra le voci di lavoro per il giorno corrente, se presenti
+            const CustomSpacer(
+              flex: 2,
+            ), // Mostra le voci di lavoro per il giorno corrente, se presenti
             if (workEntries != null)
               Flexible(
-                flex: 1,
+                flex: 10,
                 child: ListView.builder(
                   itemCount: workEntries.length,
                   itemBuilder: (context, index) {
@@ -97,22 +102,42 @@ class DayRangeCalendar extends StatelessWidget {
                     final entryText = entry.isEntry! ? 'Entrata' : 'Uscita';
 
                     return Row(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
-                          flex: 13,
+                          flex: 60,
                           child: FittedBox(
                             child: CustomAutoSizeText(
-                              '$entryText: ${DateFormat('HH:mm').format(entry.timestamp)}',
-                              TextStyle(color: entryColor),
-                              TextAlign.start,
+                              '$entryText:',
+                              TextStyle(
+                                  color: entryColor,
+                                  fontWeight: FontWeight.w700),
+                              TextAlign.justify,
                             ),
                           ),
                         ),
-                        const Spacer(
-                          flex: 25,
+                        const CustomSpacer(
+                          flex: 1,
                         ),
                         Flexible(
-                          flex: 3,
+                          flex: 25,
+                          child: FittedBox(
+                            child: CustomAutoSizeText(
+                              DateFormat('HH:mm').format(entry.timestamp),
+                              TextStyle(
+                                  color: entryColor,
+                                  fontWeight: FontWeight.w600),
+                              TextAlign.justify,
+                            ),
+                          ),
+                        ),
+                        const CustomSpacer(
+                          flex: 45,
+                        ),
+                        Flexible(
+                          flex: 18,
                           child: FittedBox(
                             child: IconButton(
                               icon: const Icon(Icons.edit),
@@ -144,7 +169,7 @@ class DayRangeCalendar extends StatelessWidget {
                           ),
                         ),
                         Flexible(
-                          flex: 3,
+                          flex: 18,
                           child: FittedBox(
                             child: IconButton(
                               icon: const Icon(Icons.delete),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:timetrailblazer/data/database_helper.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 
@@ -28,11 +29,18 @@ class CsvExporter {
     );
     return null;
   }
+final DateFormat dateFormat = DateFormat("dd/MM/yyyy HH:mm", "it_IT");
 
-  final csvData = workEntries.map((entry) => [entry.id, entry.timestamp, entry.isEntry]).toList();
-  final csvString = const ListToCsvConverter().convert(csvData);
+    final csvData = workEntries.map((entry) => [
+          entry.id,
+          dateFormat.format(DateTime.fromMillisecondsSinceEpoch(entry.timestamp)),
+          entry.isEntry
+        ]).toList();
 
-  final String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    final csvString = const ListToCsvConverter().convert(csvData);
+
+    final String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+
 
   if (selectedDirectory == null) {
     ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(

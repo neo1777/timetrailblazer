@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:timetrailblazer/data/database_helper.dart';
 import 'package:timetrailblazer/data/dtos/work_entry_dto.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
@@ -46,10 +47,13 @@ class CsvImporter {
 
     final csvList = const CsvToListConverter().convert(csvString);
 
+     final DateFormat dateFormat = DateFormat("dd/MM/yyyy HH:mm", "it_IT");
+
     final workEntries = csvList.map((row) {
+      final timestamp = dateFormat.parseStrict(row[1]).millisecondsSinceEpoch;
       return WorkEntryDTO(
         id: row[0],
-        timestamp: row[1],
+        timestamp: timestamp,
         isEntry: row[2],
       );
     }).toList();
