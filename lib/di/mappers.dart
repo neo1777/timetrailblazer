@@ -1,6 +1,6 @@
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import 'package:timetrailblazer/data/dependencies/mappers/work_entry_mapper.dart';
+import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
 
 /// Restituisce una lista di `SingleChildWidget` per l'iniezione dei mapper nell'albero dei widget.
 ///

@@ -1,9 +1,15 @@
-// Costanti per i testi
+/// La classe `AppStrings` contiene le costanti per i testi utilizzati nell'applicazione.
+/// Queste stringhe sono utilizzate per garantire la coerenza del testo in tutta l'app e facilitare eventuali modifiche.
 class AppStrings {
   static const String entryRegistered = 'Entrata registrata';
   static const String exitRegistered = 'Uscita registrata';
+  static const String appName = 'TimeTrailblazer';
+  static const String appFooter =
+      'TimeTrailblazer - L\'app per una gestione del tempo impeccabile, sviluppata da Neo1777.';
   static const String appTitle = 'Registrazione Orari di Lavoro';
   static const String homeTitle = 'Registrazione orari di lavoro';
+  static const String appDescription =
+      'L\'app essenziale per tracciare i tuoi orari di lavoro.';
   static const String workEntriesTitle = 'Registrazioni Orari di Lavoro';
   static const String workStatsTitle = 'Statistiche di lavoro';
   static const String confirmResetTitle = 'Conferma Reset';
@@ -27,14 +33,16 @@ class AppStrings {
   static const String viewEntriesButtonLabel = 'Visualizza registrazioni';
 }
 
-// Costanti per i testi di successo
+/// La classe `AppSuccessMessages` contiene le costanti per i messaggi di successo dell'applicazione.
+/// Utilizzate per fornire feedback positivo all'utente in risposta alle sue azioni.
 class AppSuccessMessages {
   static const String csvImportCompleted = 'Importazione CSV completata';
   static const String csvExportCompleted =
       'File CSV esportato correttamente in';
 }
 
-// Costanti per i testi di errore
+/// La classe `AppErrorMessages` contiene le costanti per i messaggi di errore dell'applicazione.
+/// Questi messaggi aiutano a informare l'utente di problemi o errori durante l'utilizzo dell'app.
 class AppErrorMessages {
   static const String insertEntryError =
       'Errore durante l\'inserimento della voce di lavoro';

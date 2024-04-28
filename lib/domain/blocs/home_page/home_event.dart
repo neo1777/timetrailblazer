@@ -1,19 +1,25 @@
-// home_page_event.dart
 part of 'home_bloc.dart';
 
-/// Rappresenta un evento del BLoC `HomeBloc`.
+/// La classe astratta `HomeEvent` rappresenta gli eventi che possono essere gestiti dal `HomeBloc`.
+/// Questi eventi sono utilizzati per comunicare le interazioni dell'utente o le modifiche di stato al bloc.
 abstract class HomeEvent extends Equatable {
-  const HomeEvent();
+  @override
+  List<Object?> get props => [];
 }
 
-/// Rappresenta l'evento di pressione del pulsante di entrata.
-class EntryButtonPressed extends HomeEvent {
-  @override
-  List<Object> get props => [];
+class HomeStarted extends HomeEvent {}
+
+class EntryButtonPressed extends HomeEvent {}
+
+class ExitButtonPressed extends HomeEvent {}
+
+/// L'evento `HomeDatabaseUpdated` viene emesso quando il database delle voci di lavoro viene aggiornato.
+///
+/// Contiene la proprietà `lastEntryType` che rappresenta il tipo dell'ultima voce di lavoro registrata (entrata o uscita).
+/// Questa informazione viene utilizzata dal bloc per aggiornare lo stato dell'interfaccia utente in base all'ultima voce.
+class HomeDatabaseUpdated extends HomeEvent {
+  final String lastEntryType;
+  HomeDatabaseUpdated(this.lastEntryType);
 }
 
-/// Rappresenta l'evento di pressione del pulsante di uscita.
-class ExitButtonPressed extends HomeEvent {
-  @override
-  List<Object> get props => [];
-}
+class DatabaseReset extends HomeEvent {}

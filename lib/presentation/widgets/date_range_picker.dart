@@ -16,15 +16,23 @@ class DateRangePicker extends StatelessWidget {
   final Function(DateTime) onEndDateChanged;
 
   /// La funzione di callback da chiamare quando viene premuto il pulsante "Mese corrente".
-  final VoidCallback onCurrentMonthPressed;
+  final VoidCallback? onCurrentMonthPressed;
 
+  /// Costruttore della classe `DateRangePicker`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - `startDate`: la data di inizio dell'intervallo selezionato.
+  /// - `endDate`: la data di fine dell'intervallo selezionato.
+  /// - `onStartDateChanged`: la funzione di callback da chiamare quando la data di inizio viene modificata.
+  /// - `onEndDateChanged`: la funzione di callback da chiamare quando la data di fine viene modificata.
+  /// - `onCurrentMonthPressed`: la funzione di callback da chiamare quando viene premuto il pulsante "Mese corrente".
   const DateRangePicker({
     super.key,
     required this.startDate,
     required this.endDate,
     required this.onStartDateChanged,
     required this.onEndDateChanged,
-    required this.onCurrentMonthPressed,
+    this.onCurrentMonthPressed,
   });
 
   @override

@@ -3,14 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pine/pine.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:timetrailblazer/app.dart';
 import 'package:timetrailblazer/data/database_helper.dart';
-import 'package:timetrailblazer/dependencies/bloc_providers.dart';
-import 'package:timetrailblazer/dependencies/mappers.dart';
-import 'package:timetrailblazer/dependencies/providers.dart';
-import 'package:timetrailblazer/dependencies/repositories.dart';
-import 'package:timetrailblazer/utils/logger.dart';
+import 'package:timetrailblazer/data/models/date_range_model.dart';
+import 'package:timetrailblazer/di/bloc_providers.dart';
+import 'package:timetrailblazer/di/mappers.dart';
+import 'package:timetrailblazer/di/providers.dart';
+import 'package:timetrailblazer/di/repositories.dart';
 
 /// La classe `AppInitializer` contiene la logica di inizializzazione dell'app.
 ///
@@ -30,7 +31,6 @@ class AppInitializer {
   static Future<Widget> initialize() async {
     WidgetsFlutterBinding.ensureInitialized();
     await initializeDateFormatting('it_IT', null);
-
     if (Platform.isWindows || Platform.isLinux) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
@@ -39,36 +39,27 @@ class AppInitializer {
     final databaseHelper = DatabaseHelper();
 
     return FutureBuilder(
-      future: databaseHelper.initializeDatabase(),
+      future: databaseHelper.database,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            logger.e('Errore durante l\'inizializzazione del database',
-                error: snapshot.error);
-            return MaterialApp(
-              home: Scaffold(
-                body: Center(
-                  child: Text(
-                    'Errore durante l\'inizializzazione del database: ${snapshot.error}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
-                  ),
-                ),
-              ),
-            );
-          } else {
-            return DependencyInjectorHelper(
-              mappers: getMappers(),
-              providers: getProviders(databaseHelper),
-              repositories: getRepositories(),
-              blocs: getBlocProviders(),
-              child: const App(),
-            );
-          }
-        } else {
-          return const MaterialApp(
+        if (snapshot.hasError) {
+          return MaterialApp(
             home: Scaffold(
               body: Center(
-                child: CircularProgressIndicator(),
+                child: Text(
+                  'Errore durante l\'inizializzazione del database: ${snapshot.error}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
+                ),
               ),
+            ),
+          );
+        } else {
+          return DependencyInjectorHelper(
+            mappers: getMappers(),
+            providers: getProviders(databaseHelper),
+            repositories: getRepositories(),
+            blocs: getBlocProviders(),
+            child: ChangeNotifierProvider(
+              create: (context) => DateRangeModel(null, null),
+              child: const App(),
             ),
           );
         }
