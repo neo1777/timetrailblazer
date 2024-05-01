@@ -1,11 +1,9 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
-import 'package:timetrailblazer/utils/error_handling.dart';
 
 part 'work_entries_event.dart';
 part 'work_entries_state.dart';
