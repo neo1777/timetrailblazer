@@ -7,6 +7,8 @@ import 'package:timetrailblazer/app_initializer.dart';
 /// 1. Chiama il metodo `initialize` della classe `AppInitializer` per inizializzare l'app.
 /// 2. Avvia l'applicazione Flutter con il widget root restituito da `AppInitializer.initialize()`.
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   final app = await AppInitializer.initialize();
   runApp(app);
 }

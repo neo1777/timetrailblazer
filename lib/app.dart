@@ -3,7 +3,6 @@ import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/presentation/screens/home_page_screen.dart';
 import 'package:timetrailblazer/presentation/screens/work_entries_screen.dart';
 import 'package:timetrailblazer/presentation/screens/work_stats_screen.dart';
-import 'package:timetrailblazer/presentation/widgets/widgets_screens/csv_import_export_widget.dart';
 
 /// La classe principale dell'applicazione che rappresenta il punto di ingresso dell'app.
 /// Estende la classe `StatelessWidget` di Flutter, che indica che questo widget non ha uno stato mutabile.
@@ -18,7 +17,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: CsvImportExportWidget.navigatorKey,
+      //navigatorKey: CsvImportExportWidget.navigatorKey,
 
       title:
           'timetrailblazer', // Il titolo dell'applicazione, utilizzato per scopi di accessibilità e indicizzazione
