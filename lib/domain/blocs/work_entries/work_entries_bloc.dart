@@ -1,9 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/utils/error_handling.dart';
 
 part 'work_entries_event.dart';
 part 'work_entries_state.dart';
@@ -44,7 +46,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
           await workEntryRepository.getWorkEntriesByDays(days, event.endDate);
       emit(WorkEntriesLoaded(entries));
     } catch (e) {
-      emit(WorkEntriesError("Failed to load entries: ${e.toString()}"));
+      emit(WorkEntriesError(
+          AppErrorMessages.fetchEntriesErrorMessage(e.toString())));
     }
   }
 
@@ -79,7 +82,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
       add(FetchWorkEntries(event.startDate, event.endDate));
       emit(DatabaseResetSuccess());
     } catch (e) {
-      emit(WorkEntriesError("Failed to reset database: ${e.toString()}"));
+      emit(WorkEntriesError(AppErrorMessages.resetDatabaseError));
+      event.onErrorCallback(AppErrorMessages.errorOccurred, e.toString());
     }
   }
 
@@ -91,7 +95,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
       add(FetchWorkEntries(event.startDate, event.endDate));
       emit(WorkEntryDeleted());
     } catch (e) {
-      emit(WorkEntriesError("Failed to delete entry: ${e.toString()}"));
+      emit(WorkEntriesError(AppErrorMessages.workEntriesOperationErrorMessage(e.toString())));
+      event.onErrorCallback(AppErrorMessages.errorOccurred, e.toString());
     }
   }
 }

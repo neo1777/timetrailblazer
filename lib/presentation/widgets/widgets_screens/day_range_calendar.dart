@@ -181,8 +181,7 @@ class DayRangeCalendar extends StatelessWidget {
                                       DeleteWorkEntry(
                                         id: entry.id!,
                                         startDate: dateRangeModel.startDate,
-                                        endDate: dateRangeModel.endDate,
-                                        context: context,
+                                        endDate: dateRangeModel.endDate, onErrorCallback: (_,__) {  },
                                       ),
                                     );
                               },

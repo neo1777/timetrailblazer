@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
@@ -25,8 +26,8 @@ class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
   /// Registra i gestori degli eventi utilizzando il metodo `on` di `Bloc`.
   EditWorkBloc(super.initialState, {required this.workEntryRepository}) {
     on<LoadWorkEntry>(_onLoadWorkEntry);
-    on<DateChanged>(_onDateChanged);
-    on<TimeChanged>(_onTimeChanged);
+    on<UpdateDate>(_onUpdateDate);
+    on<UpdateTime>(_onUpdateTime);
     on<SaveWorkEntry>(_onSaveWorkEntry);
   }
 
@@ -63,7 +64,7 @@ class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
   ///
   /// Crea una copia della voce di lavoro corrente con la data aggiornata e emette un nuovo stato
   /// `EditWorkDataChanged` con la voce di lavoro aggiornata e `isSaveEnabled` impostato su `true`.
-  void _onDateChanged(DateChanged event, Emitter<EditWorkState> emit) {
+  void _onUpdateDate(UpdateDate event, Emitter<EditWorkState> emit) {
     if (state is EditWorkDataChanged) {
       final currentState = state as EditWorkDataChanged;
       final updatedEntry = currentState.workEntry.copyWith(
@@ -86,7 +87,7 @@ class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
   ///
   /// Crea una copia della voce di lavoro corrente con l'ora aggiornata e emette un nuovo stato
   /// `EditWorkDataChanged` con la voce di lavoro aggiornata e `isSaveEnabled` impostato su `true`.
-  void _onTimeChanged(TimeChanged event, Emitter<EditWorkState> emit) {
+  void _onUpdateTime(UpdateTime event, Emitter<EditWorkState> emit) {
     if (state is EditWorkDataChanged) {
       final currentState = state as EditWorkDataChanged;
       final updatedEntry = currentState.workEntry.copyWith(

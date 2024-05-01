@@ -36,12 +36,12 @@ class WorkEntriesUpdated extends WorkEntriesEvent {
 class ResetDatabase extends WorkEntriesEvent {
   final DateTime startDate;
   final DateTime endDate;
-  final BuildContext context;
+  final Function(String, String) onErrorCallback;
 
   ResetDatabase(
     this.startDate,
     this.endDate, {
-    required this.context,
+    required this.onErrorCallback,
   });
 }
 
@@ -49,11 +49,11 @@ class DeleteWorkEntry extends WorkEntriesEvent {
   final int id;
   final DateTime startDate;
   final DateTime endDate;
-  final BuildContext context;
+  final Function(String, String) onErrorCallback;
   DeleteWorkEntry({
     required this.id,
     required this.startDate,
     required this.endDate,
-    required this.context,
+    required this.onErrorCallback,
   });
 }

@@ -10,6 +10,7 @@ import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
+import 'package:timetrailblazer/utils/error_handling.dart';
 
 /// Schermata per la modifica di una voce di lavoro.
 ///
@@ -92,14 +93,9 @@ class EditWorkEntryView extends StatelessWidget {
       ),
       body: BlocBuilder<EditWorkBloc, EditWorkState>(
         builder: (context, state) {
-          /// Se lo stato è `EditWorkLoading`, viene visualizzato un indicatore di caricamento.
           if (state is EditWorkLoading) {
             return const Center(child: CircularProgressIndicator());
-          }
-
-          /// Se lo stato è `EditWorkDataChanged`, vengono visualizzati i widget per la modifica
-          /// dei dettagli della voce di lavoro e il pulsante di salvataggio.
-          else if (state is EditWorkDataChanged) {
+          } else if (state is EditWorkDataChanged) {
             final workEntry = state.workEntry;
             return SafeArea(
               child: Column(
@@ -127,12 +123,13 @@ class EditWorkEntryView extends StatelessWidget {
 
           /// Se lo stato è `EditWorkError`, viene visualizzato un messaggio di errore.
           else if (state is EditWorkError) {
-            return Center(child: Text(state.message));
-          }
-
-          /// Se lo stato non corrisponde a nessuno dei casi precedenti, viene restituito un
-          /// contenitore vuoto.
-          else {
+            ErrorHandling.showErrorDialog(
+              AppErrorMessages.errorOccurred,
+              state.message,
+              (title, message) => _showErrorDialog(context, title, message),
+            );
+            return Container();
+          } else {
             return Container();
           }
         },
@@ -165,7 +162,7 @@ class EditWorkEntryView extends StatelessWidget {
         );
 
         if (pickedDate != null) {
-          editWorkBloc.add(DateChanged(newDate: pickedDate));
+          editWorkBloc.add(UpdateDate(newDate: pickedDate));
         }
       },
     );
@@ -195,14 +192,7 @@ class EditWorkEntryView extends StatelessWidget {
         );
 
         if (pickedTime != null) {
-          editWorkBloc.add(TimeChanged(
-              newTime: DateTime(
-            selectedTime.year,
-            selectedTime.month,
-            selectedTime.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          )));
+          editWorkBloc.add(UpdateTime(newTime: pickedTime));
         }
       },
     );
@@ -240,6 +230,22 @@ class EditWorkEntryView extends StatelessWidget {
               Navigator.pop(context);
             }
           : null,
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -44,6 +44,10 @@ class AppSuccessMessages {
 /// La classe `AppErrorMessages` contiene le costanti per i messaggi di errore dell'applicazione.
 /// Questi messaggi aiutano a informare l'utente di problemi o errori durante l'utilizzo dell'app.
 class AppErrorMessages {
+  static const String unexpectedError = 'Si è verificato un errore imprevisto.';
+  static String unexpectedErrorMessage(String message) =>
+      'Si è verificato un errore imprevisto: $message. Si prega di contattare l\'assistenza.';
+  static const String errorOccurred = 'Si è verificato un errore';
   static const String insertEntryError =
       'Errore durante l\'inserimento della voce di lavoro';
   static const String getEntriesError =

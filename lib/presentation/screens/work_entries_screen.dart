@@ -11,6 +11,7 @@ import 'package:timetrailblazer/presentation/widgets/date_range_picker.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 import 'package:timetrailblazer/presentation/widgets/widgets_screens/day_range_calendar.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
+import 'package:timetrailblazer/utils/error_handling.dart';
 
 /// La schermata che mostra le voci di lavoro registrate.
 class WorkEntriesScreen extends StatefulWidget {
@@ -53,10 +54,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
           Navigator.pushNamed(context, AppRoutes.home);
         },
         onAction: [
-          const DataTransferWidget(
-            // startDate: dateRangeModel.startDate,
-            // endDate: dateRangeModel.endDate,
-          ),
+          const DataTransferWidget(),
           IconButton(
             icon: const Icon(Icons.delete_forever),
             onPressed: () {
@@ -64,7 +62,7 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
                 ResetDatabase(
                   dateRangeModel.startDate,
                   dateRangeModel.endDate,
-                  context: context,
+                  onErrorCallback: _showErrorDialog,
                 ),
               );
             },
@@ -74,7 +72,6 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
       body: BlocBuilder<WorkEntriesBloc, WorkEntriesState>(
         builder: (context, state) {
           if (state is WorkEntriesLoading) {
-            // Mostra un indicatore di caricamento mentre le voci di lavoro vengono caricate
             return const Center(child: CircularProgressIndicator());
           } else if (state is WorkEntriesLoaded) {
             final dayWorkEntriesList = state.entries;
@@ -147,12 +144,39 @@ class WorkEntriesScreenState extends State<WorkEntriesScreen> {
             );
           } else if (state is WorkEntriesError) {
             // Mostra un messaggio di errore in caso di errore durante il caricamento delle voci di lavoro
-            return const Center(child: Text(AppErrorMessages.getEntriesError));
+            ErrorHandling.handleError(state.message, _showErrorSnackBar);
+            return Container();
           } else {
-            // Stato non gestito, mostra un contenitore vuoto
             return Container();
           }
         },
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

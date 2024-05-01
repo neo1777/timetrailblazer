@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:timetrailblazer/config/database_constants.dart';
+
 import 'package:timetrailblazer/data/dtos/work_entry_dto.dart';
 import 'package:timetrailblazer/data/dtos/work_stats_dto.dart';
 
@@ -12,10 +14,11 @@ class DatabaseHelper {
   static const int _databaseVersion = 1;
 
   /// Il nome della tabella delle voci di lavoro.
-  static const String _tableWorkEntries = 'work_entries';
-  static const String _columnId = 'id';
-  static const String _columnTimestamp = 'timestamp';
-  static const String _columnIsEntry = 'isEntry';
+  // Utilizzo delle costanti per i nomi delle tabelle e delle colonne
+  static const String _tableWorkEntries = DatabaseConstants.tableWorkEntries;
+  static const String _columnId = DatabaseConstants.columnId;
+  static const String _columnTimestamp = DatabaseConstants.columnTimestamp;
+  static const String _columnIsEntry = DatabaseConstants.columnIsEntry;
 
   /// L'istanza del database.
   static Database? _database;
