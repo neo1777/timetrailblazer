@@ -30,9 +30,13 @@ class WorkEntryProvider {
   }
 
   /// Metodo per il recupero delle voci di lavoro in un intervallo di date specificato.
-  Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(DateTime startDate, DateTime endDate) async {
-    final workEntries = await _database.getWorkEntriesByDateRange(startDate, endDate);
-    return workEntries.map((workEntry) => WorkEntryDTO.fromWorkEntry(workEntry)).toList();
+  Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(
+      DateTime startDate, DateTime endDate) async {
+    final workEntries =
+        await _database.getWorkEntriesByDateRange(startDate, endDate);
+    return workEntries
+        .map((workEntry) => WorkEntryDTO.fromWorkEntry(workEntry))
+        .toList();
   }
 
   /// Metodo per il reset del database cancellando tutte le voci di lavoro.
@@ -106,7 +110,8 @@ class WorkEntryProvider {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final workEntries = await _database.getWorkEntriesByDateRange(startDate, endDate);
+    final workEntries =
+        await _database.getWorkEntriesByDateRange(startDate, endDate);
     final selectedRangeStats = <WorkStatsDTO>[];
 
     final groupedEntries = _groupEntriesByDate(workEntries);
@@ -131,7 +136,8 @@ class WorkEntryProvider {
   /// Metodo privato per raggruppare le voci di lavoro per data.
   Map<DateTime, List<WorkEntry>> _groupEntriesByDate(List<WorkEntry> entries) {
     return entries.fold({}, (map, entry) {
-      final date = DateTime(entry.timestamp.year, entry.timestamp.month, entry.timestamp.day);
+      final date = DateTime(
+          entry.timestamp.year, entry.timestamp.month, entry.timestamp.day);
       map[date] ??= [];
       map[date]!.add(entry);
       return map;
@@ -166,7 +172,37 @@ class WorkEntryProvider {
 
   /// Metodo privato per calcolare i secondi di straordinario dato un elenco di voci di lavoro.
   int _calculateOvertimeSeconds(List<WorkEntry> entries) {
-    // TODO: Implementare la logica per il calcolo dei secondi di straordinario
-    return 0;
+    int overtimeSeconds = 0;
+    const int regularWorkHours = 8;
+
+    final groupedEntries =
+        entries.fold<Map<DateTime, List<WorkEntry>>>({}, (map, entry) {
+      final date = DateTime(
+          entry.timestamp.year, entry.timestamp.month, entry.timestamp.day);
+      map[date] ??= [];
+      map[date]!.add(entry);
+      return map;
+    });
+
+    for (final entriesPerDay in groupedEntries.values) {
+      int workedSeconds = 0;
+
+      for (int i = 0; i < entriesPerDay.length; i += 2) {
+        if (i + 1 < entriesPerDay.length) {
+          final entryTimestamp = entriesPerDay[i].timestamp;
+          final exitTimestamp = entriesPerDay[i + 1].timestamp;
+          final duration = exitTimestamp.difference(entryTimestamp);
+          workedSeconds += duration.inSeconds;
+        }
+      }
+
+      final workedHours = workedSeconds / 3600;
+      if (workedHours > regularWorkHours) {
+        final overtimeHours = workedHours - regularWorkHours;
+        overtimeSeconds += (overtimeHours * 3600).toInt();
+      }
+    }
+
+    return overtimeSeconds;
   }
 }

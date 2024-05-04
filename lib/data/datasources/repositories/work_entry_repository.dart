@@ -2,7 +2,6 @@ import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart'
 import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
-import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_state.dart';
 
 /// Classe che rappresenta il repository per la gestione delle voci di lavoro.
