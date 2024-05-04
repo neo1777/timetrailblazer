@@ -225,6 +225,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.6"
+  dio:
+    dependency: transitive
+    description:
+      name: dio
+      sha256: "11e40df547d418cc0c4900a9318b26304e665da6fa4755399a9ff9efd09034b5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.4.3+1"
   drift:
     dependency: "direct main"
     description:
@@ -528,6 +536,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  logging_appenders:
+    dependency: transitive
+    description:
+      name: logging_appenders
+      sha256: "1fb8a008c04246f4677a0d034d69779a5975e56e02573a5162240239b247e239"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0+1"
   matcher:
     dependency: transitive
     description:
@@ -821,6 +837,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.2"
+  sqlite3_async:
+    dependency: "direct main"
+    description:
+      name: sqlite3_async
+      sha256: f94eca895a8a3a0ea114f9ee2f0e14ecffd5db938cc175aefc31a0faffe91cc0
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
+  sqlite3_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: sqlite3_flutter_libs
+      sha256: fb2a106a2ea6042fe57de2c47074cc31539a941819c91e105b864744605da3f5
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.21"
   sqlparser:
     dependency: transitive
     description:

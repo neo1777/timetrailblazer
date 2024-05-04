@@ -27,6 +27,8 @@ dependencies:
   flutter_file_dialog: ^3.0.2
   file_selector: ^1.0.3
   drift: ^2.17.0
+  sqlite3_flutter_libs: ^0.5.21
+  sqlite3_async: ^1.0.4
 
 
 dev_dependencies:
