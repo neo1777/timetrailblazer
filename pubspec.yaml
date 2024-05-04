@@ -24,6 +24,8 @@ dependencies:
   sqflite_common_ffi: ^2.3.3
   auto_size_text: ^3.0.0
   bloc: ^8.1.4
+  flutter_file_dialog: ^3.0.2
+  file_selector: ^1.0.3
 
 
 dev_dependencies:

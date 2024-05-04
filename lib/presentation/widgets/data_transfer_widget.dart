@@ -10,23 +10,24 @@ class DataTransferWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        ElevatedButton(
+        IconButton(
+          icon: const Icon(Icons.file_upload),
           onPressed: () async {
-            final filePath = await DataExporter.exportToCsv();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Dati esportati in $filePath')),
-            );
+            await DataImporter.importFromCsv()
+                .then((value) => ScaffoldMessenger.of(context).showSnackBar(
+                       const SnackBar(
+                          content: Text('Dati importati con successo')),
+                    ));
           },
-          child: const Text('Esporta CSV'),
         ),
-        ElevatedButton(
+        IconButton(
+          icon: const Icon(Icons.file_download),
           onPressed: () async {
-            await DataImporter.importFromCsv();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Dati importati con successo')),
-            );
+            await DataExporter.exportToCsv()
+                .then((value) => ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Dati esportati in $value')),
+                    ));
           },
-          child: const Text('Importa CSV'),
         ),
       ],
     );

@@ -1,6 +1,9 @@
 import 'dart:io';
+
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:timetrailblazer/data/database_helper.dart';
 import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
@@ -8,36 +11,69 @@ import 'package:timetrailblazer/data/models/work_entry_model.dart';
 class DataImporter {
   /// Importa i dati delle voci di lavoro da un file CSV nel database.
   ///
-  /// Questa funzione utilizza il pacchetto `file_picker` per consentire all'utente
-  /// di selezionare un file CSV dal dispositivo. Legge il contenuto del file CSV
-  /// utilizzando la libreria `csv` e converte i dati in una lista di oggetti
-  /// `WorkEntry`. Infine, inserisce le voci di lavoro nel database utilizzando
-  /// il metodo `insertWorkEntry` della classe `DatabaseHelper`.
+  /// Questa funzione utilizza un approccio diverso a seconda della piattaforma:
+  /// - Web: Utilizza `file_picker` per consentire all'utente di selezionare un file CSV.
+  /// - Android/iOS: Utilizza `FlutterFileDialog` per consentire all'utente di selezionare un file CSV.
+  /// - Linux/macOS/Windows: Utilizza `file_picker` per consentire all'utente di selezionare un file CSV.
+  ///
+  /// Dopo aver selezionato il file CSV, legge il contenuto del file utilizzando la libreria `csv`
+  /// e converte i dati in una lista di oggetti `WorkEntry`. Infine, inserisce le voci di lavoro nel
+  /// database utilizzando il metodo `insertWorkEntry` della classe `DatabaseHelper`.
   static Future<void> importFromCsv() async {
     final databaseHelper = DatabaseHelper();
 
+    String? csvString;
 
-    // Seleziona il file CSV utilizzando il file picker
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['csv'],
-    );
+    if (kIsWeb) {
+      // Per il web, utilizza file_picker per selezionare il file CSV
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+      if (result != null) {
+        csvString = String.fromCharCodes(result.files.single.bytes!);
+      }
+    } else {
+      if (Platform.isAndroid || Platform.isIOS) {
+        // Per Android e iOS, utilizza FlutterFileDialog per selezionare il file CSV
+        const params = OpenFileDialogParams(
+          dialogType: OpenFileDialogType.document,
+          sourceType: SourceType.photoLibrary,
+          fileExtensionsFilter: ['csv'],
+        );
+        final filePath = await FlutterFileDialog.pickFile(params: params);
+        if (filePath != null) {
+          final file = File(filePath);
+          csvString = await file.readAsString();
+        }
+      } else {
+        // Per Linux, macOS e Windows, utilizza file_picker per selezionare il file CSV
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['csv'],
+        );
+        if (result != null) {
+          final file = File(result.files.single.path!);
+          csvString = await file.readAsString();
+        }
+      }
+    }
 
-    if (result != null) {
-      final file = File(result.files.single.path!);
-      final csvString = await file.readAsString();
-
+    if (csvString != null) {
       // Converti il contenuto CSV in una lista di mappe
       final csvList = const CsvToListConverter().convert(csvString);
 
       // Converti la lista di mappe in una lista di oggetti WorkEntry
-      final workEntries = csvList.skip(1).map((row) {
+      final workEntries = csvList.map((row) {
         return WorkEntryModel(
           id: row[0],
-          timestamp: DateTime.fromMillisecondsSinceEpoch(row[1]),
-          isEntry: row[2] == 1,
+          timestamp: DateTime.parse(row[1]),
+          isEntry: bool.parse(row[2]),
         );
       }).toList();
+
+      //Resetta il database
+      await databaseHelper.deleteAllWorkEntries();
 
       // Inserisci le voci di lavoro nel database
       for (final entry in workEntries) {

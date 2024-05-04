@@ -1,0 +1,3879 @@
+./lib/main.dart:
+```
+import 'package:flutter/material.dart';
+import 'package:timetrailblazer/app_initializer.dart';
+
+/// Il punto di ingresso dell'applicazione TimeTrailBlazer.
+///
+/// Questa funzione `main` esegue le seguenti operazioni:
+/// 1. Chiama il metodo `initialize` della classe `AppInitializer` per inizializzare l'app.
+/// 2. Avvia l'applicazione Flutter con il widget root restituito da `AppInitializer.initialize()`.
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final app = await AppInitializer.initialize();
+  runApp(app);
+}
+
+```
+
+./lib/domain/blocs/home_page/home_bloc.dart:
+```
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+
+part 'home_event.dart';
+part 'home_state.dart';
+
+/// La classe `HomeBloc` gestisce la logica di business e lo stato della schermata principale dell'applicazione.
+///
+/// Questo BLoC si occupa di gestire lo stato dei pulsanti "Entrata" e "Uscita" sulla base dell'ultima voce di lavoro registrata.
+/// Fornisce eventi e stati appropriati per consentire l'interazione con la schermata principale.
+class HomeBloc extends Bloc<HomeEvent, HomeState> {
+  /// Il repository delle voci di lavoro utilizzato per accedere ai dati.
+  final WorkEntryRepository workEntryRepository;
+
+  /// Costruttore della classe `HomeBloc`.
+  ///
+  /// Accetta un parametro [workEntryRepository] di tipo [WorkEntryRepository] per accedere ai dati delle voci di lavoro.
+  /// Inizializza lo stato iniziale a [HomeInitial] e registra i gestori degli eventi utilizzando il metodo `on`.
+  HomeBloc({required this.workEntryRepository}) : super(HomeInitial()) {
+    on<HomeStarted>(_homeStarted);
+    on<EntryButtonPressed>(_entryButtonPressed);
+    on<ExitButtonPressed>(_exitButtonPressed);
+    on<DatabaseReset>(_databaseReset);
+  }
+
+  /// Gestore dell'evento [HomeStarted].
+  ///
+  /// Questo metodo viene chiamato quando viene ricevuto l'evento [HomeStarted].
+  /// Recupera l'ultima voce di lavoro dal repository e imposta lo stato appropriato in base al valore di [isEntry].
+  _homeStarted(HomeStarted event, Emitter<HomeState> emit) async {
+    final lastEntry = await workEntryRepository.getLastWorkEntry();
+    if (lastEntry == null) {
+      emit(HomeEntryButtonEnabled());
+    } else {
+      emit(lastEntry.isEntry!
+          ? HomeExitButtonEnabled()
+          : HomeEntryButtonEnabled());
+    }
+  }
+
+  /// Gestore dell'evento [EntryButtonPressed].
+  ///
+  /// Questo metodo viene chiamato quando viene ricevuto l'evento [EntryButtonPressed].
+  /// Inserisce una nuova voce di lavoro con [isEntry] impostato su true (entrata) e imposta lo stato [HomeExitButtonEnabled].
+  _entryButtonPressed(EntryButtonPressed event, Emitter<HomeState> emit) async {
+    await workEntryRepository.insertWorkEntry(WorkEntryModel(
+        timestamp: DateTime.now(), // ora corrente come timestamp
+        isEntry: true)); // Assumi che true indichi un'entrata
+    emit(HomeExitButtonEnabled());
+  }
+
+  /// Gestore dell'evento [ExitButtonPressed].
+  ///
+  /// Questo metodo viene chiamato quando viene ricevuto l'evento [ExitButtonPressed].
+  /// Inserisce una nuova voce di lavoro con [isEntry] impostato su false (uscita) e imposta lo stato [HomeEntryButtonEnabled].
+  _exitButtonPressed(ExitButtonPressed event, Emitter<HomeState> emit) async {
+    await workEntryRepository.insertWorkEntry(WorkEntryModel(
+        timestamp: DateTime.now(), // ora corrente come timestamp
+        isEntry: false)); // Assumi che false indichi un'uscita
+    emit(HomeEntryButtonEnabled());
+  }
+
+  /// Gestore dell'evento [DatabaseReset].
+  ///
+  /// Questo metodo viene chiamato quando viene ricevuto l'evento [DatabaseReset].
+  /// Imposta lo stato [HomeEntryButtonEnabled] per abilitare il pulsante di entrata dopo il reset del database.
+  _databaseReset(DatabaseReset event, Emitter<HomeState> emit) {
+    emit(HomeEntryButtonEnabled());
+  }
+}
+
+```
+
+./lib/domain/blocs/home_page/home_state.dart:
+```
+part of 'home_bloc.dart';
+
+abstract class HomeState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+// Stato iniziale, quando l'applicazione è appena avviata o in attesa di azioni
+class HomeInitial extends HomeState {}
+
+// Stato quando il pulsante di entrata è disabilitato (perché l'ultima voce è stata un'entrata)
+class HomeEntryButtonEnabled extends HomeState {}
+
+// Stato quando il pulsante di uscita è disabilitato (perché l'ultima voce è stata un'uscita)
+class HomeExitButtonEnabled extends HomeState {}
+
+```
+
+./lib/domain/blocs/home_page/home_event.dart:
+```
+part of 'home_bloc.dart';
+
+/// La classe astratta `HomeEvent` rappresenta gli eventi che possono essere gestiti dal `HomeBloc`.
+/// Questi eventi sono utilizzati per comunicare le interazioni dell'utente o le modifiche di stato al bloc.
+abstract class HomeEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class HomeStarted extends HomeEvent {}
+
+class EntryButtonPressed extends HomeEvent {}
+
+class ExitButtonPressed extends HomeEvent {}
+
+/// L'evento `HomeDatabaseUpdated` viene emesso quando il database delle voci di lavoro viene aggiornato.
+///
+/// Contiene la proprietà `lastEntryType` che rappresenta il tipo dell'ultima voce di lavoro registrata (entrata o uscita).
+/// Questa informazione viene utilizzata dal bloc per aggiornare lo stato dell'interfaccia utente in base all'ultima voce.
+class HomeDatabaseUpdated extends HomeEvent {
+  final String lastEntryType;
+  HomeDatabaseUpdated(this.lastEntryType);
+}
+
+class DatabaseReset extends HomeEvent {}
+
+```
+
+./lib/domain/blocs/work_stats/work_stats_event.dart:
+```
+part of 'work_stats_bloc.dart';
+
+abstract class WorkStatsEvent extends Equatable {
+  const WorkStatsEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+/// Evento per mostrare le statistiche giornaliere.
+class ShowDailyStats extends WorkStatsEvent {}
+
+/// Evento per mostrare le statistiche mensili.
+class ShowMonthlyStats extends WorkStatsEvent {}
+
+/// Evento per mostrare le statistiche per l'intervallo selezionato.
+class ShowSelectedRangeStats extends WorkStatsEvent {
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const ShowSelectedRangeStats({
+    required this.startDate,
+    required this.endDate,
+  });
+
+  @override
+  List<Object> get props => [startDate, endDate];
+}
+
+
+
+
+```
+
+./lib/domain/blocs/work_stats/work_stats_state.dart:
+```
+part of 'work_stats_bloc.dart';
+
+abstract class WorkStatsState extends Equatable {
+  const WorkStatsState();
+
+  @override
+  List<Object> get props => [];
+}
+
+/// Stato di caricamento delle statistiche di lavoro.
+class WorkStatsLoading extends WorkStatsState {}
+
+/// Stato di caricamento completato delle statistiche di lavoro.
+class WorkStatsLoaded extends WorkStatsState {
+  /// Lista delle statistiche giornaliere.
+  final List<DailyWorkStats> dailyStats;
+
+  /// Lista delle statistiche mensili.
+  final List<MonthlyWorkStats> monthlyStats;
+
+  /// Lista delle statistiche per l'intervallo selezionato.
+  final List<DailyWorkStats> selectedRangeStats;
+
+  /// Visualizzazione delle statistiche selezionata.
+  final StatsView selectedView;
+
+  final DateTime selectedStartDate;
+  final DateTime selectedEndDate;
+
+  const WorkStatsLoaded({
+    required this.dailyStats,
+    required this.monthlyStats,
+    required this.selectedRangeStats,
+    required this.selectedView,
+    required this.selectedStartDate,
+    required this.selectedEndDate,
+  });
+
+  @override
+  List<Object> get props => [
+        dailyStats,
+        monthlyStats,
+        selectedRangeStats,
+        selectedView,
+        selectedStartDate,
+        selectedEndDate,
+      ];
+}
+
+/// Stato di errore durante il caricamento delle statistiche di lavoro.
+class WorkStatsError extends WorkStatsState {
+  /// Messaggio di errore.
+  final String message;
+
+  const WorkStatsError(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+/// Enum per le possibili visualizzazioni delle statistiche.
+enum StatsView {
+  daily,
+  monthly,
+  selectedRange,
+}
+
+/// Classe che rappresenta le statistiche di lavoro giornaliere.
+class DailyWorkStats {
+  /// Data delle statistiche.
+  final DateTime date;
+
+  /// Durata delle ore lavorate.
+  final Duration workedHours;
+
+  /// Durata delle ore di straordinario.
+  final Duration overtimeHours;
+
+  DailyWorkStats({
+    required this.date,
+    required this.workedHours,
+    required this.overtimeHours,
+  });
+}
+
+/// Classe che rappresenta le statistiche di lavoro mensili.
+class MonthlyWorkStats {
+  /// Mese delle statistiche.
+  final DateTime month;
+
+  /// Durata delle ore lavorate.
+  final Duration workedHours;
+
+  /// Durata delle ore di straordinario.
+  final Duration overtimeHours;
+
+  MonthlyWorkStats({
+    required this.month,
+    required this.workedHours,
+    required this.overtimeHours,
+  });
+}
+
+```
+
+./lib/domain/blocs/work_stats/work_stats_bloc.dart:
+```
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+
+part 'work_stats_event.dart';
+part 'work_stats_state.dart';
+
+class WorkStatsBloc extends Bloc<WorkStatsEvent, WorkStatsState> {
+  final WorkEntryRepository _workEntryRepository;
+
+  WorkStatsBloc(this._workEntryRepository) : super(WorkStatsLoading()) {
+    on<ShowDailyStats>(_onShowDailyStats);
+    on<ShowMonthlyStats>(_onShowMonthlyStats);
+    on<ShowSelectedRangeStats>(_onShowSelectedRangeStats);
+  }
+
+  /// Gestore dell'evento `ShowDailyStats`.
+  ///
+  /// Quando viene ricevuto l'evento `ShowDailyStats`, questo metodo recupera le statistiche giornaliere
+  /// dal repository delle voci di lavoro utilizzando il metodo `getDailyWorkStats()`.
+  ///
+  /// Se il recupero delle statistiche ha successo, viene emesso lo stato `WorkStatsLoaded` contenente le statistiche giornaliere
+  /// e le altre statistiche precedentemente caricate (mensili e per intervallo selezionato).
+  /// In caso di errore durante il recupero delle statistiche, viene emesso lo stato `WorkStatsError` con un messaggio di errore.
+  void _onShowDailyStats(
+      ShowDailyStats event, Emitter<WorkStatsState> emit) async {
+    emit(WorkStatsLoading());
+    try {
+      final dailyStats = await _workEntryRepository.getDailyWorkStats();
+      emit(WorkStatsLoaded(
+        dailyStats: dailyStats,
+        monthlyStats: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).monthlyStats
+            : [],
+        selectedRangeStats: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).selectedRangeStats
+            : [],
+        selectedView: StatsView.daily,
+        selectedStartDate: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).selectedStartDate
+            : DateTime.now().subtract(const Duration(days: 7)),
+        selectedEndDate: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).selectedEndDate
+            : DateTime.now(),
+      ));
+    } catch (e) {
+      emit(WorkStatsError('Failed to load daily stats: ${e.toString()}'));
+    }
+  }
+
+  /// Gestore dell'evento `ShowMonthlyStats`.
+  ///
+  /// Quando viene ricevuto l'evento `ShowMonthlyStats`, questo metodo recupera le statistiche mensili
+  /// dal repository delle voci di lavoro utilizzando il metodo `getMonthlyWorkStats()`.
+  ///
+  /// Se il recupero delle statistiche ha successo, viene emesso lo stato `WorkStatsLoaded` contenente le statistiche mensili
+  /// e le altre statistiche precedentemente caricate (giornaliere e per intervallo selezionato).
+  /// In caso di errore durante il recupero delle statistiche, viene emesso lo stato `WorkStatsError` con un messaggio di errore.
+  void _onShowMonthlyStats(
+      ShowMonthlyStats event, Emitter<WorkStatsState> emit) async {
+    emit(WorkStatsLoading());
+    try {
+      final monthlyStats = await _workEntryRepository.getMonthlyWorkStats();
+      emit(WorkStatsLoaded(
+        dailyStats: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).dailyStats
+            : [],
+        monthlyStats: monthlyStats,
+        selectedRangeStats: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).selectedRangeStats
+            : [],
+        selectedView: StatsView.monthly,
+        selectedStartDate: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).selectedStartDate
+            : DateTime.now().subtract(const Duration(days: 7)),
+        selectedEndDate: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).selectedEndDate
+            : DateTime.now(),
+      ));
+    } catch (e) {
+      emit(WorkStatsError('Failed to load monthly stats: ${e.toString()}'));
+    }
+  }
+
+  /// Gestore dell'evento `ShowSelectedRangeStats`.
+  ///
+  /// Quando viene ricevuto l'evento `ShowSelectedRangeStats`, questo metodo recupera le statistiche per l'intervallo di date selezionato
+  /// dal repository delle voci di lavoro utilizzando il metodo `getSelectedRangeWorkStats()`.
+  ///
+  /// Se il recupero delle statistiche ha successo, viene emesso lo stato `WorkStatsLoaded` contenente le statistiche per l'intervallo selezionato
+  /// e le altre statistiche precedentemente caricate (giornaliere e mensili).
+  /// In caso di errore durante il recupero delle statistiche, viene emesso lo stato `WorkStatsError` con un messaggio di errore.
+  void _onShowSelectedRangeStats(
+      ShowSelectedRangeStats event, Emitter<WorkStatsState> emit) async {
+    emit(WorkStatsLoading());
+    try {
+      final selectedRangeStats =
+          await _workEntryRepository.getSelectedRangeWorkStats(
+        startDate: event.startDate,
+        endDate: event.endDate,
+      );
+      emit(WorkStatsLoaded(
+        dailyStats: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).dailyStats
+            : [],
+        monthlyStats: state is WorkStatsLoaded
+            ? (state as WorkStatsLoaded).monthlyStats
+            : [],
+        selectedRangeStats: selectedRangeStats,
+        selectedView: StatsView.selectedRange,
+        selectedStartDate: event.startDate,
+        selectedEndDate: event.endDate,
+      ));
+    } catch (e) {
+      emit(WorkStatsError(
+          'Failed to load selected range stats: ${e.toString()}'));
+    }
+  }
+}
+
+```
+
+./lib/domain/blocs/work_entries/work_entries_event.dart:
+```
+part of 'work_entries_bloc.dart';
+
+abstract class WorkEntriesEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+/// L'evento [FetchWorkEntries] richiede il caricamento delle voci di lavoro per un dato intervallo di date.
+///
+/// Contiene le proprietà [startDate] e [endDate] che rappresentano l'intervallo di date per il quale caricare le voci di lavoro.
+class FetchWorkEntries extends WorkEntriesEvent {
+  final DateTime startDate;
+  final DateTime endDate;
+
+  FetchWorkEntries(
+    this.startDate,
+    this.endDate,
+  );
+}
+
+/// L'evento `WorkEntriesUpdated` viene emesso quando le voci di lavoro sono state aggiornate.
+///
+/// Contiene la proprietà `updatedEntries` che rappresenta la lista aggiornata delle voci di lavoro.
+/// Questo evento viene utilizzato per comunicare al bloc che le voci di lavoro sono state modificate
+/// e che lo stato dell'interfaccia utente deve essere aggiornato di conseguenza.
+class WorkEntriesUpdated extends WorkEntriesEvent {
+  final List<WorkEntryModel> updatedEntries;
+
+  WorkEntriesUpdated(this.updatedEntries);
+}
+
+/// L'evento `ResetDatabase` viene emesso quando si desidera resettare il database delle voci di lavoro.
+///
+/// Contiene le proprietà `startDate` e `endDate` che rappresentano l'intervallo di date per il quale resettare le voci di lavoro.
+/// Quando questo evento viene gestito dal bloc, tutte le voci di lavoro all'interno dell'intervallo specificato vengono eliminate dal database.
+class ResetDatabase extends WorkEntriesEvent {
+  final DateTime startDate;
+  final DateTime endDate;
+  final Function(String, String) onErrorCallback;
+
+  ResetDatabase(
+    this.startDate,
+    this.endDate, {
+    required this.onErrorCallback,
+  });
+}
+
+class DeleteWorkEntry extends WorkEntriesEvent {
+  final int id;
+  final DateTime startDate;
+  final DateTime endDate;
+  final Function(String, String) onErrorCallback;
+  DeleteWorkEntry({
+    required this.id,
+    required this.startDate,
+    required this.endDate,
+    required this.onErrorCallback,
+  });
+}
+```
+
+./lib/domain/blocs/work_entries/work_entries_state.dart:
+```
+part of 'work_entries_bloc.dart';
+
+abstract class WorkEntriesState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+// Stato iniziale, quando l'applicazione è appena avviata o in attesa di dati
+class WorkEntriesInitial extends WorkEntriesState {}
+
+// Stato durante il caricamento delle voci di lavoro
+class WorkEntriesLoading extends WorkEntriesState {}
+
+// Stato quando le voci di lavoro sono caricate e pronte per essere mostrate
+class WorkEntriesLoaded extends WorkEntriesState {
+  final List<DayWorkEntriesModel> entries;
+  WorkEntriesLoaded(this.entries);
+}
+
+// Stato in caso di errore nel caricamento delle voci di lavoro
+class WorkEntriesError extends WorkEntriesState {
+  final String message;
+  WorkEntriesError(this.message);
+}
+
+class DatabaseResetSuccess extends WorkEntriesState {}
+
+class WorkEntryDeleted extends WorkEntriesState {}
+
+
+```
+
+./lib/domain/blocs/work_entries/work_entries_bloc.dart:
+```
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+
+part 'work_entries_event.dart';
+part 'work_entries_state.dart';
+
+/// La classe `WorkEntriesBloc` gestisce la logica di business e lo stato delle voci di lavoro.
+///
+/// Questo BLoC si occupa di caricare, aggiornare e resettare le voci di lavoro in base agli eventi ricevuti.
+/// Fornisce stati appropriati per rappresentare il caricamento, il successo o l'errore durante le operazioni sulle voci di lavoro.
+class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
+  /// Il repository delle voci di lavoro utilizzato per accedere ai dati.
+  final WorkEntryRepository workEntryRepository;
+
+  /// Costruttore della classe `WorkEntriesBloc`.
+  ///
+  /// Accetta un parametro [workEntryRepository] di tipo [WorkEntryRepository] per accedere ai dati delle voci di lavoro.
+  /// Inizializza lo stato iniziale a [WorkEntriesInitial] e registra i gestori degli eventi utilizzando il metodo `on`.
+  WorkEntriesBloc({required this.workEntryRepository})
+      : super(WorkEntriesInitial()) {
+    on<FetchWorkEntries>(_fetchWorkEntries);
+    on<WorkEntriesUpdated>(_workEntriesUpdated);
+    on<ResetDatabase>(_resetDatabase);
+    on<DeleteWorkEntry>(_deleteWorkEntry);
+  }
+
+  /// Gestore dell'evento [FetchWorkEntries].
+  ///
+  /// Questo metodo viene chiamato quando viene ricevuto l'evento [FetchWorkEntries].
+  /// Imposta lo stato [WorkEntriesLoading] durante il caricamento delle voci di lavoro.
+  /// Recupera le voci di lavoro dall'intervallo di date specificato utilizzando il repository.
+  /// In caso di successo, imposta lo stato [WorkEntriesLoaded] con le voci di lavoro caricate.
+  /// In caso di errore, imposta lo stato [WorkEntriesError] con un messaggio di errore appropriato.
+  _fetchWorkEntries(
+      FetchWorkEntries event, Emitter<WorkEntriesState> emit) async {
+    emit(WorkEntriesLoading());
+    try {
+      List<DateTime> days = getDaysInRange(event.startDate, event.endDate);
+      var entries =
+          await workEntryRepository.getWorkEntriesByDays(days, event.endDate);
+      emit(WorkEntriesLoaded(entries));
+    } catch (e) {
+      emit(WorkEntriesError(
+          AppErrorMessages.fetchEntriesErrorMessage(e.toString())));
+    }
+  }
+
+  List<DateTime> getDaysInRange(DateTime startDate, DateTime endDate) {
+    List<DateTime> days = [];
+    for (int i = 0; i <= endDate.difference(startDate).inDays; i++) {
+      days.add(startDate.add(Duration(days: i)));
+    }
+    return days;
+  }
+
+  /// Gestore dell'evento [WorkEntriesUpdated].
+  ///
+  /// Questo metodo viene chiamato quando viene ricevuto l'evento [WorkEntriesUpdated].
+  /// Imposta lo stato [WorkEntriesLoaded] con le voci di lavoro aggiornate.
+  _workEntriesUpdated(
+      WorkEntriesUpdated event, Emitter<WorkEntriesState> emit) {
+    emit(WorkEntriesLoaded(event.updatedEntries.cast<DayWorkEntriesModel>()));
+  }
+
+  /// Gestore dell'evento [ResetDatabase].
+  ///
+  /// Questo metodo viene chiamato quando viene ricevuto l'evento [ResetDatabase].
+  /// Imposta lo stato [WorkEntriesLoading] durante il reset del database.
+  /// Resetta il database utilizzando il repository.
+  /// In caso di successo, emette l'evento [FetchWorkEntries] per ricaricare le voci di lavoro e imposta lo stato [DatabaseResetSuccess].
+  /// In caso di errore, imposta lo stato [WorkEntriesError] con un messaggio di errore appropriato.
+  _resetDatabase(ResetDatabase event, Emitter<WorkEntriesState> emit) async {
+    emit(WorkEntriesLoading());
+    try {
+      await workEntryRepository.resetDatabase();
+      add(FetchWorkEntries(event.startDate, event.endDate));
+      emit(DatabaseResetSuccess());
+    } catch (e) {
+      emit(WorkEntriesError(AppErrorMessages.resetDatabaseError));
+      event.onErrorCallback(AppErrorMessages.errorOccurred, e.toString());
+    }
+  }
+
+  _deleteWorkEntry(
+      DeleteWorkEntry event, Emitter<WorkEntriesState> emit) async {
+    emit(WorkEntriesLoading());
+    try {
+      await workEntryRepository.deleteWorkEntryById(event.id);
+      add(FetchWorkEntries(event.startDate, event.endDate));
+      emit(WorkEntryDeleted());
+    } catch (e) {
+      emit(WorkEntriesError(AppErrorMessages.workEntriesOperationErrorMessage(e.toString())));
+      event.onErrorCallback(AppErrorMessages.errorOccurred, e.toString());
+    }
+  }
+}
+
+```
+
+./lib/domain/blocs/edit_work_entry/edit_work_state.dart:
+```
+part of 'edit_work_bloc.dart';
+
+/// La classe base astratta per gli stati del BLoC `EditWorkBloc`.
+///
+/// Tutti gli stati del BLoC devono estendere questa classe.
+///
+/// Implementa `Equatable` per consentire il confronto tra gli stati.
+abstract class EditWorkState extends Equatable {
+  /// Restituisce una lista di oggetti che rappresentano le proprietà dell'oggetto stato.
+  ///
+  /// Questa lista viene utilizzata da `Equatable` per determinare l'uguaglianza tra gli stati.
+  ///
+  /// Per impostazione predefinita, restituisce una lista vuota.
+  @override
+  List<Object?> get props => [];
+}
+
+/// Stato iniziale del BLoC `EditWorkBloc`.
+///
+/// Questo stato viene emesso quando il BLoC viene inizializzato.
+class EditWorkInitial extends EditWorkState {}
+
+/// Stato che indica che è in corso il caricamento dei dati della voce di lavoro.
+///
+/// Questo stato viene emesso quando il BLoC sta caricando i dati della voce di lavoro dal repository.
+class EditWorkLoading extends EditWorkState {}
+
+/// Stato che rappresenta i dati modificati della voce di lavoro.
+///
+/// Questo stato viene emesso quando i dati della voce di lavoro sono stati modificati,
+/// ad esempio quando viene modificata la data o l'ora.
+///
+/// Contiene la voce di lavoro modificata e un flag `isSaveEnabled` che indica se il pulsante
+/// di salvataggio deve essere abilitato o meno.
+class EditWorkDataChanged extends EditWorkState {
+  /// La voce di lavoro modificata.
+  final WorkEntryModel workEntry;
+
+  /// Flag che indica se il pulsante di salvataggio deve essere abilitato.
+  final bool isSaveEnabled;
+
+  /// Costruttore della classe `EditWorkDataChanged`.
+  ///
+  /// Accetta la voce di lavoro modificata come parametro obbligatorio e un flag opzionale
+  /// `isSaveEnabled` che indica se il pulsante di salvataggio deve essere abilitato.
+  EditWorkDataChanged({required this.workEntry, this.isSaveEnabled = false});
+
+  /// Restituisce una lista di oggetti che rappresentano le proprietà dell'oggetto stato.
+  ///
+  /// Questa lista viene utilizzata da `Equatable` per determinare l'uguaglianza tra gli stati.
+  ///
+  /// Include la voce di lavoro modificata e il flag `isSaveEnabled`.
+  @override
+  List<Object> get props => [workEntry, isSaveEnabled];
+}
+
+/// Stato che indica che il salvataggio della voce di lavoro è stato completato con successo.
+///
+/// Questo stato viene emesso quando la voce di lavoro modificata è stata salvata correttamente
+/// nel repository.
+class EditWorkSaved extends EditWorkState {}
+
+/// Stato che rappresenta un errore durante la modifica della voce di lavoro.
+///
+/// Questo stato viene emesso quando si verifica un errore durante il caricamento, la modifica
+/// o il salvataggio della voce di lavoro.
+///
+/// Contiene un messaggio di errore che descrive l'errore verificatosi.
+class EditWorkError extends EditWorkState {
+  /// Il messaggio di errore.
+  final String message;
+
+  /// Costruttore della classe `EditWorkError`.
+  ///
+  /// Accetta il messaggio di errore come parametro obbligatorio.
+  EditWorkError({required this.message});
+
+  /// Restituisce una lista di oggetti che rappresentano le proprietà dell'oggetto stato.
+  ///
+  /// Questa lista viene utilizzata da `Equatable` per determinare l'uguaglianza tra gli stati.
+  ///
+  /// Include il messaggio di errore.
+  @override
+  List<Object> get props => [message];
+}
+```
+
+./lib/domain/blocs/edit_work_entry/edit_work_bloc.dart:
+```
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+
+part 'edit_work_event.dart';
+part 'edit_work_state.dart';
+
+/// La classe `EditWorkBloc` è un BLoC (Business Logic Component) che gestisce la logica di business
+/// per la modifica di una voce di lavoro.
+///
+/// Questo BLoC risponde agli eventi di modifica della voce di lavoro, come il caricamento dei dati iniziali,
+/// la modifica della data e dell'ora, e il salvataggio delle modifiche.
+///
+/// Gli stati emessi dal BLoC rappresentano lo stato corrente della modifica della voce di lavoro,
+/// come lo stato di caricamento, lo stato con i dati modificati e lo stato di salvataggio completato.
+class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
+  /// Il repository delle voci di lavoro utilizzato per accedere ai dati.
+  final WorkEntryRepository workEntryRepository;
+
+  /// Costruttore della classe `EditWorkBloc`.
+  ///
+  /// Accetta lo stato iniziale del BLoC e il repository delle voci di lavoro come parametri.
+  ///
+  /// Registra i gestori degli eventi utilizzando il metodo `on` di `Bloc`.
+  EditWorkBloc(super.initialState, {required this.workEntryRepository}) {
+    on<LoadWorkEntry>(_onLoadWorkEntry);
+    on<UpdateDate>(_onUpdateDate);
+    on<UpdateTime>(_onUpdateTime);
+    on<SaveWorkEntry>(_onSaveWorkEntry);
+  }
+
+  /// Gestore dell'evento `LoadWorkEntry`.
+  ///
+  /// Quando viene ricevuto l'evento `LoadWorkEntry`, questo metodo carica la voce di lavoro
+  /// corrispondente all'ID fornito utilizzando il `workEntryRepository`.
+  ///
+  /// Se la voce di lavoro viene trovata, emette lo stato `EditWorkDataChanged` con la voce di lavoro caricata
+  /// e `isSaveEnabled` impostato su `false`.
+  ///
+  /// Se la voce di lavoro non viene trovata, emette lo stato `EditWorkError` con un messaggio di errore.
+  ///
+  /// In caso di errore durante il caricamento, emette lo stato `EditWorkError` con il messaggio di errore.
+  void _onLoadWorkEntry(
+      LoadWorkEntry event, Emitter<EditWorkState> emit) async {
+    try {
+      emit(EditWorkLoading());
+      var entry = await workEntryRepository.getWorkEntryById(event.entryId);
+      if (entry != null) {
+        emit(EditWorkDataChanged(workEntry: entry, isSaveEnabled: false));
+      } else {
+        emit(EditWorkError(message: 'Entry not found'));
+      }
+    } catch (e) {
+      emit(EditWorkError(message: e.toString()));
+    }
+  }
+
+  /// Gestore dell'evento `DateChanged`.
+  ///
+  /// Quando viene ricevuto l'evento `DateChanged`, questo metodo aggiorna la data della voce di lavoro
+  /// nello stato corrente `EditWorkDataChanged`.
+  ///
+  /// Crea una copia della voce di lavoro corrente con la data aggiornata e emette un nuovo stato
+  /// `EditWorkDataChanged` con la voce di lavoro aggiornata e `isSaveEnabled` impostato su `true`.
+  void _onUpdateDate(UpdateDate event, Emitter<EditWorkState> emit) {
+    if (state is EditWorkDataChanged) {
+      final currentState = state as EditWorkDataChanged;
+      final updatedEntry = currentState.workEntry.copyWith(
+        timestamp: DateTime(
+          event.newDate.year,
+          event.newDate.month,
+          event.newDate.day,
+          currentState.workEntry.timestamp.hour,
+          currentState.workEntry.timestamp.minute,
+        ),
+      );
+      emit(EditWorkDataChanged(workEntry: updatedEntry, isSaveEnabled: true));
+    }
+  }
+
+  /// Gestore dell'evento `TimeChanged`.
+  ///
+  /// Quando viene ricevuto l'evento `TimeChanged`, questo metodo aggiorna l'ora della voce di lavoro
+  /// nello stato corrente `EditWorkDataChanged`.
+  ///
+  /// Crea una copia della voce di lavoro corrente con l'ora aggiornata e emette un nuovo stato
+  /// `EditWorkDataChanged` con la voce di lavoro aggiornata e `isSaveEnabled` impostato su `true`.
+  void _onUpdateTime(UpdateTime event, Emitter<EditWorkState> emit) {
+    if (state is EditWorkDataChanged) {
+      final currentState = state as EditWorkDataChanged;
+      final updatedEntry = currentState.workEntry.copyWith(
+        timestamp: DateTime(
+          currentState.workEntry.timestamp.year,
+          currentState.workEntry.timestamp.month,
+          currentState.workEntry.timestamp.day,
+          event.newTime.hour,
+          event.newTime.minute,
+        ),
+      );
+      emit(EditWorkDataChanged(workEntry: updatedEntry, isSaveEnabled: true));
+    }
+  }
+
+  /// Gestore dell'evento `SaveWorkEntry`.
+  ///
+  /// Quando viene ricevuto l'evento `SaveWorkEntry`, questo metodo salva la voce di lavoro modificata
+  /// utilizzando il `workEntryRepository`.
+  ///
+  /// Emette lo stato `EditWorkLoading` durante il salvataggio.
+  ///
+  /// Se il salvataggio ha successo, emette lo stato `EditWorkSaved`.
+  ///
+  /// In caso di errore durante il salvataggio, emette lo stato `EditWorkError` con il messaggio di errore.
+  void _onSaveWorkEntry(
+      SaveWorkEntry event, Emitter<EditWorkState> emit) async {
+    try {
+      emit(EditWorkLoading());
+      await workEntryRepository.saveWorkEntry(event.workEntry);
+      emit(EditWorkSaved());
+    } catch (e) {
+      emit(EditWorkError(message: e.toString()));
+    }
+  }
+}
+
+```
+
+./lib/domain/blocs/edit_work_entry/edit_work_event.dart:
+```
+part of 'edit_work_bloc.dart';
+
+abstract class EditWorkEvent extends Equatable {
+  const EditWorkEvent();
+
+  @override
+  List<Object> get props => [];
+}
+// Evento per caricare i dati esistenti dell'entry
+class LoadWorkEntry extends EditWorkEvent {
+  final int entryId;
+
+  const LoadWorkEntry({required this.entryId});
+
+  @override
+  List<Object> get props => [entryId];
+}
+// Evento per modificare la data dell'entry
+class UpdateDate extends EditWorkEvent {
+  final DateTime newDate;
+
+  const UpdateDate({required this.newDate});
+
+  @override
+  List<Object> get props => [newDate];
+}
+
+// Evento per modificare l'ora dell'entry
+class UpdateTime extends EditWorkEvent {
+  final TimeOfDay newTime;
+
+  const UpdateTime({required this.newTime});
+
+  @override
+  List<Object> get props => [newTime];
+}
+// Evento per salvare le modifiche
+class SaveWorkEntry extends EditWorkEvent {
+  final WorkEntryModel workEntry;
+
+  const SaveWorkEntry({required this.workEntry});
+
+  @override
+  List<Object> get props => [workEntry];
+}
+```
+
+./lib/app.dart:
+```
+import 'package:flutter/material.dart';
+import 'package:timetrailblazer/config/constants_routes.dart';
+import 'package:timetrailblazer/presentation/screens/home_page_screen.dart';
+import 'package:timetrailblazer/presentation/screens/work_entries_screen.dart';
+import 'package:timetrailblazer/presentation/screens/work_stats_screen.dart';
+
+/// La classe principale dell'applicazione che rappresenta il punto di ingresso dell'app.
+/// Estende la classe `StatelessWidget` di Flutter, che indica che questo widget non ha uno stato mutabile.
+class App extends StatelessWidget {
+  /// Il costruttore della classe `App`.
+  /// Accetta una chiave opzionale `key` che viene passata al costruttore della superclasse `StatelessWidget`.
+  const App({super.key});
+
+  /// Il metodo `build` è un override del metodo della superclasse `StatelessWidget`.
+  /// Viene chiamato quando il widget deve essere renderizzato.
+  /// Accetta un parametro `context` che rappresenta la posizione del widget nell'albero dei widget.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      //navigatorKey: CsvImportExportWidget.navigatorKey,
+
+      title:
+          'timetrailblazer', // Il titolo dell'applicazione, utilizzato per scopi di accessibilità e indicizzazione
+      initialRoute: AppRoutes
+          .home, // La rotta iniziale dell'applicazione, in questo caso la HomePage
+      routes: {
+        // Un oggetto `Map` che definisce le rotte dell'applicazione e i corrispondenti widget da visualizzare
+        AppRoutes.home: (context) =>
+            const HomePageScreen(), // La rotta per la HomePage, che viene visualizzata quando l'app viene avviata
+        AppRoutes.workEntries: (context) =>
+            const WorkEntriesScreen(), // La rotta per la WorkEntriesScreen, che mostra le voci di lavoro registrate
+        AppRoutes.workStats: (context) =>
+            const WorkStatsScreen(), // La rotta per la WorkStatsScreen, che mostra le statistiche di lavoro
+      },
+    );
+  }
+}
+
+```
+
+./lib/config/constants_routes.dart:
+```
+/// La classe `AppRoutes` contiene le costanti per le rotte dell'applicazione.
+/// Ogni costante rappresenta un percorso specifico all'interno dell'app e viene utilizzata per la navigazione.
+class AppRoutes {
+  /// La rotta per la schermata principale.
+  static const String home = '/';
+
+  /// La rotta per la schermata delle voci di lavoro.
+  static const String workEntries = '/work_entries';
+
+  /// La rotta per la schermata delle modifiche alle voci di lavoro.
+  static const String editWorkEntry = '/edit_work_entry';
+
+  /// La rotta per la schermata delle statistiche di lavoro.
+  static const String workStats = '/work_stats';
+}
+
+```
+
+./lib/config/constants_string.dart:
+```
+/// La classe `AppStrings` contiene le costanti per i testi utilizzati nell'applicazione.
+/// Queste stringhe sono utilizzate per garantire la coerenza del testo in tutta l'app e facilitare eventuali modifiche.
+class AppStrings {
+  static const String entryRegistered = 'Entrata registrata';
+  static const String exitRegistered = 'Uscita registrata';
+  static const String appName = 'TimeTrailblazer';
+  static const String appFooter =
+      'TimeTrailblazer - L\'app per una gestione del tempo impeccabile, sviluppata da Neo1777.';
+  static const String appTitle = 'Registrazione Orari di Lavoro';
+  static const String homeTitle = 'Registrazione orari di lavoro';
+  static const String appDescription =
+      'L\'app essenziale per tracciare i tuoi orari di lavoro.';
+  static const String workEntriesTitle = 'Registrazioni Orari di Lavoro';
+  static const String workStatsTitle = 'Statistiche di lavoro';
+  static const String confirmResetTitle = 'Conferma Reset';
+  static const String confirmResetMessage =
+      'Sei sicuro di voler resettare il database? Questa azione è irreversibile.';
+  static const String cancelButtonText = 'Annulla';
+  static const String confirmButtonText = 'Conferma';
+  static const String databaseResetSuccess = 'Database resettato con successo';
+  static const String databaseResetError =
+      'Errore durante il reset del database:';
+  static const String dataLoadError = 'Errore nel caricamento dei dati';
+  static const String editWorkEntryTitle = 'Modifica registrazione';
+  static const String date = 'Data';
+  static const String time = 'Ora';
+  static const String selectDate = 'Seleziona data';
+  static const String selectTime = 'Seleziona ora';
+  static const String save = 'Salva';
+  static const String error = 'Errore';
+  static const String entryButtonLabel = 'Entrata';
+  static const String exitButtonLabel = 'Uscita';
+  static const String viewEntriesButtonLabel = 'Visualizza registrazioni';
+}
+
+/// La classe `AppSuccessMessages` contiene le costanti per i messaggi di successo dell'applicazione.
+/// Utilizzate per fornire feedback positivo all'utente in risposta alle sue azioni.
+class AppSuccessMessages {
+  static const String csvImportCompleted = 'Importazione CSV completata';
+  static const String csvExportCompleted =
+      'File CSV esportato correttamente in';
+}
+
+/// La classe `AppErrorMessages` contiene le costanti per i messaggi di errore dell'applicazione.
+/// Questi messaggi aiutano a informare l'utente di problemi o errori durante l'utilizzo dell'app.
+class AppErrorMessages {
+  static const String unexpectedError = 'Si è verificato un errore imprevisto.';
+  static String unexpectedErrorMessage(String message) =>
+      'Si è verificato un errore imprevisto: $message. Si prega di contattare l\'assistenza.';
+  static const String errorOccurred = 'Si è verificato un errore';
+  static const String insertEntryError =
+      'Errore durante l\'inserimento della voce di lavoro';
+  static const String getEntriesError =
+      'Errore durante il recupero delle voci di lavoro';
+  static const String resetDatabaseError =
+      'Errore durante il reset del database';
+  static const String invalidDate = 'Data non valida';
+  static const String invalidDateMessage =
+      'Non è possibile registrare voci di lavoro per date precedenti a ieri. Per favore, seleziona una data valida.';
+  static const String invalidTime = 'Orario non valido';
+  static const String invalidTimeMessage =
+      'Non è possibile selezionare un orario futuro. Per favore, seleziona un orario valido.';
+  static const String updateError = 'Errore di aggiornamento';
+  static String updateErrorMessage(String message) =>
+      'Errore durante l\'aggiornamento della voce di lavoro: $message. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.';
+  static const String registrationError = 'Errore di registrazione';
+  static String registrationErrorMessage(String message) =>
+      'Errore durante la registrazione della voce di lavoro: $message. Si prega di verificare i dati inseriti e riprovare. Se il problema persiste, contattare l\'assistenza.';
+  static const String csvExportError = 'Errore durante l\'esportazione CSV:';
+  static const String csvImportError = 'Errore durante l\'importazione CSV:';
+  static const String csvSelectError =
+      'Errore durante la selezione del file CSV. Per favore, riprova e seleziona un file CSV valido.';
+  static const String csvSelectNullError =
+      'Nessun file CSV selezionato. Per favore, seleziona un file CSV per l\'importazione.';
+  static const String fetchEntriesError =
+      'Errore durante il recupero delle voci di lavoro';
+  static String fetchEntriesErrorMessage(String message) =>
+      'Errore durante il recupero delle voci di lavoro: $message. Si prega di riprovare più tardi o contattare l\'assistenza se il problema persiste.';
+  static const String workEntriesOperationError =
+      'Errore durante l\'operazione sulle voci di lavoro';
+  static String workEntriesOperationErrorMessage(String message) =>
+      'Errore durante l\'operazione sulle voci di lavoro: $message. Si prega di verificare la connessione di rete e riprovare. Se il problema persiste, contattare l\'assistenza.';
+  static const String loadStatsError =
+      'Errore durante il caricamento delle statistiche';
+  static const String retryOrCheckNetwork =
+      'Si prega di riprovare più tardi o verificare la connessione di rete.';
+  static const String checkStorageAndPermissions =
+      'Si prega di verificare che ci sia spazio sufficiente sul dispositivo e che l\'applicazione abbia i permessi necessari per scrivere i file.';
+  static const String csvFileNotFound = 'File CSV non trovato';
+  static const String emptyCsvFile = 'File CSV vuoto';
+  static const String retryLater = 'Si prega di riprovare più tardi.';
+  static const updateDateError =
+      'Errore durante l\'aggiornamento della data della voce di lavoro';
+  static updateDateErrorMessage(String message) =>
+      'Errore durante l\'aggiornamento della data della voce di lavoro: $message. Si prega di verificare la data selezionata e riprovare.';
+  static const updateTimeError =
+      'Errore durante l\'aggiornamento dell\'ora della voce di lavoro';
+  static updateTimeErrorMessage(String message) =>
+      'Errore durante l\'aggiornamento dell\'ora della voce di lavoro: $message. Si prega di verificare l\'ora selezionata e riprovare.';
+  static const providerInsertError =
+      'Errore durante l\'inserimento della voce di lavoro';
+  static providerInsertErrorMessage(String message) =>
+      'Errore durante l\'inserimento della voce di lavoro: $message';
+  static const providerGetError =
+      'Errore durante il recupero delle voci di lavoro';
+  static providerGetErrorMessage(String message) =>
+      'Errore durante il recupero delle voci di lavoro: $message';
+  static const providerDeleteAllError =
+      'Errore durante l\'eliminazione di tutte le voci di lavoro';
+  static providerDeleteAllErrorMessage(String message) =>
+      'Errore durante l\'eliminazione di tutte le voci di lavoro: $message';
+  static const providerDeleteError =
+      'Errore durante l\'eliminazione della voce di lavoro';
+  static providerDeleteErrorMessage(String message) =>
+      'Errore durante l\'eliminazione della voce di lavoro: $message';
+  static const providerUpdateError =
+      'Errore durante l\'aggiornamento della voce di lavoro';
+  static providerUpdateErrorMessage(String message) =>
+      'Errore durante l\'aggiornamento della voce di lavoro: $message';
+  static const providerGetLastError =
+      'Errore durante il recupero dell\'ultima voce di lavoro';
+  static providerGetLastErrorMessage(String message) =>
+      'Errore durante il recupero dell\'ultima voce di lavoro: $message';
+  static const repositoryInsertError =
+      'Errore durante l\'inserimento della voce di lavoro nel repository';
+  static repositoryInsertErrorMessage(String message) =>
+      'Errore durante l\'inserimento della voce di lavoro nel repository: $message';
+  static const repositoryGetError =
+      'Errore durante il recupero delle voci di lavoro nel repository';
+  static repositoryGetErrorMessage(String message) =>
+      'Errore durante il recupero delle voci di lavoro nel repository: $message';
+  static const repositoryDeleteAllError =
+      'Errore durante l\'eliminazione di tutte le voci di lavoro nel repository';
+  static repositoryDeleteAllErrorMessage(String message) =>
+      'Errore durante l\'eliminazione di tutte le voci di lavoro nel repository: $message';
+  static const repositoryDeleteError =
+      'Errore durante l\'eliminazione della voce di lavoro nel repository';
+  static repositoryDeleteErrorMessage(String message) =>
+      'Errore durante l\'eliminazione della voce di lavoro nel repository: $message';
+  static const repositoryUpdateError =
+      'Errore durante l\'aggiornamento della voce di lavoro nel repository';
+  static repositoryUpdateErrorMessage(String message) =>
+      'Errore durante l\'aggiornamento della voce di lavoro nel repository: $message';
+  static const repositoryGetLastError =
+      'Errore durante il recupero dell\'ultima voce di lavoro nel repository';
+  static repositoryGetLastErrorMessage(String message) =>
+      'Errore durante il recupero dell\'ultima voce di lavoro nel repository: $message';
+  static const repositoryExportError =
+      'Errore durante l\'esportazione delle voci di lavoro in CSV';
+  static repositoryExportErrorMessage(String message) =>
+      'Errore durante l\'esportazione delle voci di lavoro in CSV: $message';
+  static const repositoryImportError =
+      'Errore durante l\'importazione delle voci di lavoro da CSV';
+  static repositoryImportErrorMessage(String message) =>
+      'Errore durante l\'importazione delle voci di lavoro da CSV: $message';
+  static const repositoryCalculateError =
+      'Errore durante il calcolo del tempo di lavoro';
+  static repositoryCalculateErrorMessage(String message) =>
+      'Errore durante il calcolo del tempo di lavoro: $message';
+}
+
+```
+
+./lib/config/database_constants.dart:
+```
+/// Classe che contiene le costanti utilizzate per il database.
+class DatabaseConstants {
+  static const String tableWorkEntries = 'work_entries';
+  static const String columnId = 'id';
+  static const String columnTimestamp = 'timestamp';
+  static const String columnIsEntry = 'isEntry';
+}
+
+```
+
+./lib/presentation/widgets/auto_size_text.dart:
+```
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/material.dart';
+
+/// Il widget `CustomAutoSizeText` è un wrapper per il widget `AutoSizeText` di Flutter.
+///
+/// Questo widget accetta i seguenti parametri:
+/// - `text`: il testo da visualizzare.
+/// - `style`: lo stile del testo.
+/// - `textAlign`: l'allineamento del testo.
+class CustomAutoSizeText extends StatelessWidget {
+  /// Il testo da visualizzare.
+  final String text;
+
+  /// Lo stile del testo.
+  final TextStyle style;
+
+  /// L'allineamento del testo.
+  final TextAlign textAlign;
+
+  /// Costruttore della classe `CustomAutoSizeText`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - `text`: il testo da visualizzare.
+  /// - `style`: lo stile del testo.
+  /// - `textAlign`: l'allineamento del testo.
+  const CustomAutoSizeText(this.text, this.style, this.textAlign, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AutoSizeText(
+      text,
+      textAlign: textAlign,
+      style: style,
+      minFontSize: 0,
+      maxLines: null,
+      overflow: TextOverflow.fade,
+    );
+  }
+}
+
+```
+
+./lib/presentation/widgets/app_bar.dart:
+```
+import 'package:flutter/material.dart';
+import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
+
+/// Il widget `CustomAppBar` è un wrapper per il widget `AppBar` di Flutter.
+///
+/// Questo widget accetta i seguenti parametri:
+/// - `title`: il titolo da visualizzare nella barra delle applicazioni.
+/// - `onBackPressed`: la funzione di callback da chiamare quando viene premuto il pulsante "Indietro".
+/// - `onAction`: una lista di widget da visualizzare come azioni nella barra delle applicazioni.
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  /// Il titolo da visualizzare nella barra delle applicazioni.
+  final String title;
+
+  /// La funzione di callback da chiamare quando viene premuto il pulsante "Indietro".
+  final VoidCallback? onBackPressed;
+
+  /// Una lista di widget da visualizzare come azioni nella barra delle applicazioni.
+  final List<Widget>? onAction;
+
+  /// Costruttore della classe `CustomAppBar`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - `title`: il titolo da visualizzare nella barra delle applicazioni.
+  /// - `onBackPressed`: la funzione di callback da chiamare quando viene premuto il pulsante "Indietro".
+  /// - `onAction`: una lista di widget da visualizzare come azioni nella barra delle applicazioni.
+  const CustomAppBar({
+    super.key,
+    this.onBackPressed,
+    this.onAction,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      automaticallyImplyLeading: true,
+      actions: onAction,
+      leading: IconButton(
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        icon: const Icon(Icons.arrow_back_ios_new),
+        onPressed: onBackPressed,
+      ),
+      title: CustomAutoSizeText(
+        title,
+        Theme.of(context).textTheme.titleSmall!,
+        TextAlign.center,
+      ),
+      titleSpacing: 0,
+      centerTitle: false,
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(32);
+}
+
+```
+
+./lib/presentation/widgets/work_button.dart:
+```
+import 'package:flutter/material.dart';
+
+/// Il widget `WorkButton` rappresenta un pulsante personalizzato per le azioni di entrata e uscita.
+class WorkButton extends StatelessWidget {
+  /// L'etichetta del pulsante.
+  final String label;
+
+  /// La funzione di callback da chiamare quando il pulsante viene premuto.
+  final VoidCallback? onPressed;
+
+  /// La larghezza del pulsante.
+  ///
+  /// Questo parametro opzionale consente di specificare una larghezza personalizzata per il pulsante.
+  /// Se non viene fornito, il pulsante si adatterà automaticamente alla larghezza del contenuto.
+  final double? width;
+
+  /// Costruttore della classe `WorkButton`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - `label`: l'etichetta del pulsante.
+  /// - `onPressed`: la funzione di callback da chiamare quando il pulsante viene premuto.
+  /// - `width`: la larghezza del pulsante.
+  const WorkButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        child: Text(
+          label,
+        ),
+      ),
+    );
+  }
+}
+
+```
+
+./lib/presentation/widgets/date_range_picker.dart:
+```
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+/// Il widget `DateRangePicker` consente all'utente di selezionare un intervallo di date.
+class DateRangePicker extends StatelessWidget {
+  /// La data di inizio dell'intervallo selezionato.
+  final DateTime startDate;
+
+  /// La data di fine dell'intervallo selezionato.
+  final DateTime endDate;
+
+  /// La funzione di callback da chiamare quando la data di inizio viene modificata.
+  final Function(DateTime) onStartDateChanged;
+
+  /// La funzione di callback da chiamare quando la data di fine viene modificata.
+  final Function(DateTime) onEndDateChanged;
+
+  /// La funzione di callback da chiamare quando viene premuto il pulsante "Mese corrente".
+  final VoidCallback? onCurrentMonthPressed;
+
+  /// Costruttore della classe `DateRangePicker`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - `startDate`: la data di inizio dell'intervallo selezionato.
+  /// - `endDate`: la data di fine dell'intervallo selezionato.
+  /// - `onStartDateChanged`: la funzione di callback da chiamare quando la data di inizio viene modificata.
+  /// - `onEndDateChanged`: la funzione di callback da chiamare quando la data di fine viene modificata.
+  /// - `onCurrentMonthPressed`: la funzione di callback da chiamare quando viene premuto il pulsante "Mese corrente".
+  const DateRangePicker({
+    super.key,
+    required this.startDate,
+    required this.endDate,
+    required this.onStartDateChanged,
+    required this.onEndDateChanged,
+    this.onCurrentMonthPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Flexible(
+          child: ElevatedButton(
+            onPressed: () => _selectDate(context, true),
+            child: Text('Dal: ${DateFormat('dd/MM/yyyy').format(startDate)}'),
+          ),
+        ),
+        Flexible(
+          child: ElevatedButton(
+            onPressed: () => _selectDate(context, false),
+            child: Text('Al: ${DateFormat('dd/MM/yyyy').format(endDate)}'),
+          ),
+        ),
+        Flexible(
+          child: ElevatedButton(
+            onPressed: onCurrentMonthPressed,
+            child: const Text('Mese corrente'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Mostra un selettore di data e chiama la funzione di callback appropriata quando una data viene selezionata.
+  ///
+  /// Parametri:
+  ///   - `context`: il contesto del widget.
+  ///   - `isStartDate`: un flag che indica se la data selezionata è la data di inizio o di fine.
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: isStartDate ? startDate : endDate,
+      firstDate: isStartDate ? DateTime(2000) : startDate,
+      lastDate: isStartDate ? endDate : DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      isStartDate
+          ? onStartDateChanged(pickedDate)
+          : onEndDateChanged(pickedDate);
+    }
+  }
+}
+
+```
+
+./lib/presentation/widgets/spacer.dart:
+```
+import 'package:flutter/material.dart';
+
+/// Il widget `CustomSpacer` è un wrapper per il widget `Spacer` di Flutter.
+///
+/// Questo widget accetta il seguente parametro:
+/// - `flex`: il fattore di flessibilità del widget.
+class CustomSpacer extends StatelessWidget {
+  /// Il fattore di flessibilità del widget.
+  final int flex;
+
+  /// Costruttore della classe `CustomSpacer`.
+  ///
+  /// Accetta il seguente parametro:
+  /// - `flex`: il fattore di flessibilità del widget. Il valore predefinito è 1.
+  const CustomSpacer({super.key, this.flex = 1});
+
+  @override
+  Widget build(BuildContext context) {
+    return Spacer(flex: flex);
+  }
+}
+
+```
+
+./lib/presentation/widgets/widgets_screens/day_range_calendar.dart:
+```
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:timetrailblazer/data/models/date_range_model.dart';
+import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
+import 'package:timetrailblazer/presentation/screens/edit_work_entry_screen.dart';
+import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
+import 'package:timetrailblazer/presentation/widgets/spacer.dart';
+
+/// Il widget `DayRangeCalendar` visualizza le voci di lavoro in un calendario variabile.
+///
+/// Questo widget accetta una lista di oggetti `DayWorkEntries` che rappresentano i giorni
+/// e le relative voci di lavoro. Ogni giorno viene visualizzato in una scheda (card)
+/// scorrevole, mostrando la data e le voci di lavoro corrispondenti.
+class DayRangeCalendar extends StatelessWidget {
+  /// La lista di oggetti `DayWorkEntries` che rappresentano i giorni e le voci di lavoro.
+  final List<DayWorkEntriesModel> dayWorkEntriesList;
+
+  /// Il controller di scorrimento per il calendario.
+  final ScrollController scrollController;
+
+  final DateTime startDate;
+  final DateTime endDate;
+
+  /// Costruisce un'istanza di `DayRangeCalendar`.
+  ///
+  /// Richiede la lista di oggetti `DayWorkEntries` [dayWorkEntriesList] e il controller
+  /// di scorrimento [scrollController].
+  const DayRangeCalendar({
+    super.key,
+    required this.dayWorkEntriesList,
+    required this.scrollController,
+    required this.startDate,
+    required this.endDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      controller: scrollController,
+      itemCount: dayWorkEntriesList.length,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
+        childAspectRatio: 1.5,
+        mainAxisSpacing: 10.0,
+        crossAxisSpacing: 10.0,
+      ),
+      itemBuilder: (context, index) {
+        final dayWorkEntries = dayWorkEntriesList[index];
+        final day = dayWorkEntries.day;
+        final workEntries = dayWorkEntries.workEntries;
+
+        return _buildDayCard(context, day, workEntries);
+      },
+    );
+  }
+
+  /// Costruisce una scheda (card) per un giorno specifico nel calendario.
+  ///
+  /// La scheda mostra la data formattata del giorno e un elenco delle voci di lavoro
+  /// corrispondenti a quel giorno. Ogni voce di lavoro è rappresentata da una riga
+  /// con l'orario di entrata/uscita e un indicatore colorato.
+  Widget _buildDayCard(
+      BuildContext context, DateTime day, List<WorkEntryModel>? workEntries) {
+    final formattedDate = DateFormat('EEE, dd MMM yyyy', 'it_IT').format(day);
+
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const CustomSpacer(
+              flex: 1,
+            ),
+            // Mostra la data formattata del giorno
+            Flexible(
+              flex: 10,
+              child: CustomAutoSizeText(
+                formattedDate,
+                Theme.of(context).textTheme.labelSmall!,
+                TextAlign.center,
+              ),
+            ),
+            const CustomSpacer(
+              flex: 2,
+            ), // Mostra le voci di lavoro per il giorno corrente, se presenti
+            if (workEntries != null)
+              Flexible(
+                flex: 10,
+                child: ListView.builder(
+                  itemCount: workEntries.length,
+                  itemBuilder: (context, index) {
+                    final entry = workEntries[index];
+                    final entryColor =
+                        entry.isEntry! ? Colors.greenAccent : Colors.redAccent;
+                    final entryText = entry.isEntry! ? 'Entrata' : 'Uscita';
+
+                    return Row(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          flex: 60,
+                          child: FittedBox(
+                            child: CustomAutoSizeText(
+                              '$entryText:',
+                              TextStyle(
+                                  color: entryColor,
+                                  fontWeight: FontWeight.w700),
+                              TextAlign.justify,
+                            ),
+                          ),
+                        ),
+                        const CustomSpacer(
+                          flex: 1,
+                        ),
+                        Flexible(
+                          flex: 25,
+                          child: FittedBox(
+                            child: CustomAutoSizeText(
+                              DateFormat('HH:mm').format(entry.timestamp),
+                              TextStyle(
+                                  color: entryColor,
+                                  fontWeight: FontWeight.w600),
+                              TextAlign.justify,
+                            ),
+                          ),
+                        ),
+                        const CustomSpacer(
+                          flex: 45,
+                        ),
+                        Flexible(
+                          flex: 18,
+                          child: FittedBox(
+                            child: IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditWorkEntryScreen(
+                                      entryId: entry.id!,
+                                      startDate: startDate,
+                                      endDate: endDate,
+                                    ),
+                                  ),
+                                );
+
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) =>
+                                //         EditWorkEntryScreen(workEntry: entry),
+                                //   ),
+                                // ).then((updatedEntry) {
+                                //   if (updatedEntry != null) {
+                                //     widget.onEntryModified(updatedEntry);
+                                //   }
+                                // });
+                              },
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          flex: 18,
+                          child: FittedBox(
+                            child: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                final dateRangeModel =
+                                    Provider.of<DateRangeModel>(context,
+                                        listen: false);
+                                context.read<WorkEntriesBloc>().add(
+                                      DeleteWorkEntry(
+                                        id: entry.id!,
+                                        startDate: dateRangeModel.startDate,
+                                        endDate: dateRangeModel.endDate, onErrorCallback: (_,__) {  },
+                                      ),
+                                    );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                    // Row(
+                    //   children: [
+                    //     Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         // Mostra l'orario di entrata/uscita
+                    //         CustomAutoSizeText(
+                    //           '$entryText: ${DateFormat('HH:mm').format(entry.timestamp)}',
+                    //           TextStyle(color: entryColor),
+                    //           TextAlign.start,
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ],
+                    // );
+                  },
+                ),
+              )
+            else
+              // Mostra un messaggio se non ci sono voci di lavoro per il giorno corrente
+              const Flexible(
+                flex: 2,
+                child: CustomAutoSizeText(
+                  'Nessuna registrazione',
+                  TextStyle(fontWeight: FontWeight.bold),
+                  TextAlign.center,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+```
+
+./lib/presentation/widgets/data_transfer_widget.dart:
+```
+import 'package:flutter/material.dart';
+import 'package:timetrailblazer/data/data_transfer/data_exporter.dart';
+import 'package:timetrailblazer/data/data_transfer/data_importer.dart';
+
+class DataTransferWidget extends StatelessWidget {
+  const DataTransferWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+          onPressed: () async {
+            final filePath = await DataExporter.exportToCsv();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Dati esportati in $filePath')),
+            );
+          },
+          child: const Text('Esporta CSV'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            await DataImporter.importFromCsv();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Dati importati con successo')),
+            );
+          },
+          child: const Text('Importa CSV'),
+        ),
+      ],
+    );
+  }
+}
+```
+
+./lib/presentation/widgets/common_body.dart:
+```
+import 'package:flutter/material.dart';
+
+/// Il widget `CommonBody` è un contenitore per il contenuto principale dell'applicazione.
+///
+/// Questo widget accetta il seguente parametro:
+/// - `child`: il widget figlio da visualizzare all'interno del contenitore.
+class CommonBody extends StatelessWidget {
+  /// Il widget figlio da visualizzare all'interno del contenitore.
+  final Widget child;
+
+  /// Costruttore della classe `CommonBody`.
+  ///
+  /// Accetta il seguente parametro:
+  /// - `child`: il widget figlio da visualizzare all'interno del contenitore.
+  const CommonBody({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 390, maxHeight: 844),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+```
+
+./lib/presentation/screens/home_page_screen.dart:
+```
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:timetrailblazer/config/constants_routes.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
+import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
+import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
+import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
+import 'package:timetrailblazer/presentation/widgets/spacer.dart';
+import 'package:timetrailblazer/presentation/widgets/work_button.dart';
+
+/// La schermata principale dell'applicazione.
+class HomePageScreen extends StatelessWidget {
+  /// Costruttore della classe `HomePageScreen`.
+  const HomePageScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const CustomAppBar(
+        title: AppStrings.homeTitle,
+      ),
+      body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+        // Determina se il pulsante di entrata e di uscita devono essere abilitati o meno
+        // in base allo stato corrente del BLoC
+
+        bool isEntryAllowed = true;
+        bool isExitAllowed = false;
+        BlocProvider.of<HomeBloc>(context).add(HomeStarted());
+
+        if (state is HomeEntryButtonEnabled) {
+          isEntryAllowed = true;
+          isExitAllowed = false;
+        } else if (state is HomeExitButtonEnabled) {
+          isExitAllowed = true;
+          isEntryAllowed = false;
+        }
+
+        // Restituisce il widget `HomeScreen` con i flag appropriati per abilitare/disabilitare
+        // i pulsanti di entrata e uscita
+        return HomeScreen(
+          isEntryAllowed: isEntryAllowed,
+          isExitAllowed: isExitAllowed,
+        );
+      }),
+    );
+  }
+}
+
+/// Il widget HomeScreen rappresenta il contenuto della schermata principale.
+///
+/// Questo widget visualizza il titolo dell'app, una breve descrizione, e i pulsanti
+/// per registrare un'entrata, un'uscita e visualizzare le voci di lavoro.
+class HomeScreen extends StatelessWidget {
+  /// Flag che indica se il pulsante di entrata è abilitato.
+  final bool isEntryAllowed;
+
+  /// Flag che indica se il pulsante di uscita è abilitato.
+  final bool isExitAllowed;
+
+  /// Costruttore della classe HomeScreen.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - isEntryAllowed: flag che indica se il pulsante di entrata è abilitato.
+  /// - isExitAllowed: flag che indica se il pulsante di uscita è abilitato.
+  const HomeScreen({
+    super.key,
+    required this.isEntryAllowed,
+    required this.isExitAllowed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Flexible(
+            flex: 1,
+            fit: FlexFit.tight,
+            child: Container(
+              color: Colors.transparent,
+            ),
+          ),
+          const CustomSpacer(flex: 1),
+          Flexible(
+            flex: 48,
+            child: CustomAutoSizeText(
+              AppStrings.appName,
+              Theme.of(context).textTheme.headlineLarge!,
+              TextAlign.center,
+            ),
+          ),
+          Flexible(
+            flex: 32,
+            child: CustomAutoSizeText(
+              AppStrings.appDescription,
+              Theme.of(context).textTheme.bodyMedium!,
+              TextAlign.center,
+            ),
+          ),
+          const CustomSpacer(flex: 2),
+          Flexible(
+            flex: 16,
+            child: WorkButton(
+              label: AppStrings.entryButtonLabel,
+              onPressed: isEntryAllowed
+                  ? () {
+                      context.read<HomeBloc>().add(EntryButtonPressed());
+                    }
+                  : null,
+            ),
+          ),
+          Flexible(
+            flex: 16,
+            child: WorkButton(
+              label: AppStrings.exitButtonLabel,
+              onPressed: isExitAllowed
+                  ? () {
+                      context.read<HomeBloc>().add(ExitButtonPressed());
+                    }
+                  : null,
+            ),
+          ),
+          Flexible(
+            flex: 16,
+            child: WorkButton(
+              label: AppStrings.viewEntriesButtonLabel,
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRoutes.workEntries),
+            ),
+          ),
+          const CustomSpacer(flex: 32),
+          Flexible(
+            flex: 8,
+            child: CustomAutoSizeText(
+              AppStrings.appFooter,
+              Theme.of(context).textTheme.bodySmall!,
+              TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+```
+
+./lib/presentation/screens/edit_work_entry_screen.dart:
+```
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+
+import 'package:timetrailblazer/config/constants_string.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/domain/blocs/edit_work_entry/edit_work_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
+import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
+import 'package:timetrailblazer/presentation/widgets/spacer.dart';
+import 'package:timetrailblazer/presentation/widgets/work_button.dart';
+import 'package:timetrailblazer/utils/error_handling.dart';
+
+/// Schermata per la modifica di una voce di lavoro.
+///
+/// Questa schermata consente all'utente di modificare i dettagli di una voce di lavoro esistente,
+/// come la data e l'ora. Le modifiche vengono salvate quando l'utente preme il pulsante "Salva".
+class EditWorkEntryScreen extends StatelessWidget {
+  /// L'ID della voce di lavoro da modificare.
+  final int entryId;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  /// Costruttore della schermata `EditWorkEntryScreen`.
+  ///
+  /// Accetta l'ID della voce di lavoro da modificare come parametro obbligatorio.
+  const EditWorkEntryScreen({
+    super.key,
+    required this.entryId,
+    required this.startDate,
+    required this.endDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    /// Restituisce un widget `BlocProvider` che fornisce il BLoC `EditWorkBloc` alla sottoalbero di widget.
+    ///
+    /// Il BLoC viene creato con lo stato iniziale `EditWorkInitial` e il repository delle voci di lavoro
+    /// ottenuto dal contesto tramite `context.read()`.
+    ///
+    /// Quando il BLoC viene creato, viene emesso l'evento `LoadWorkEntry` per caricare la voce di lavoro
+    /// corrispondente all'ID fornito.
+    ///
+    /// Il figlio del `BlocProvider` è la vista effettiva della schermata, rappresentata da `EditWorkEntryView`.
+    return BlocProvider(
+      create: (context) => EditWorkBloc(
+        EditWorkInitial(),
+        workEntryRepository: context.read(),
+      )..add(LoadWorkEntry(entryId: entryId)),
+      child: EditWorkEntryView(
+        entryId: entryId,
+        startDate: startDate,
+        endDate: endDate,
+      ),
+    );
+  }
+}
+
+/// Vista della schermata di modifica di una voce di lavoro.
+///
+/// Questa vista visualizza i widget per la modifica dei dettagli della voce di lavoro,
+/// come la data e l'ora, e il pulsante di salvataggio.
+///
+/// La vista reagisce agli stati emessi dal BLoC `EditWorkBloc` e aggiorna l'interfaccia utente
+/// di conseguenza.
+class EditWorkEntryView extends StatelessWidget {
+  final int entryId;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  /// Costruttore della vista `EditWorkEntryView`.
+  const EditWorkEntryView({
+    super.key,
+    required this.entryId,
+    required this.startDate,
+    required this.endDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    /// Restituisce un widget `Scaffold` che rappresenta la struttura di base della schermata.
+    ///
+    /// La barra delle applicazioni viene creata utilizzando il widget `CustomAppBar` e visualizza
+    /// il titolo della schermata e un pulsante per tornare indietro.
+    ///
+    /// Il corpo della schermata è un widget `BlocBuilder` che ricostruisce l'interfaccia utente
+    /// in base agli stati emessi dal BLoC `EditWorkBloc`.
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: AppStrings.editWorkEntryTitle,
+        onBackPressed: () => Navigator.pop(context),
+      ),
+      body: BlocBuilder<EditWorkBloc, EditWorkState>(
+        builder: (context, state) {
+          if (state is EditWorkLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is EditWorkDataChanged) {
+            final workEntry = state.workEntry;
+            return SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CustomSpacer(flex: 1),
+                  Flexible(
+                      flex: 2,
+                      child: _buildDateButton(context, workEntry.timestamp)),
+                  const CustomSpacer(flex: 1),
+                  Flexible(
+                      flex: 2,
+                      child: _buildTimeButton(context, workEntry.timestamp)),
+                  const CustomSpacer(flex: 10),
+                  Flexible(
+                      flex: 2,
+                      child: _buildSaveButton(
+                          context, state.isSaveEnabled, workEntry)),
+                  const CustomSpacer(flex: 1),
+                ],
+              ),
+            );
+          }
+
+          /// Se lo stato è `EditWorkError`, viene visualizzato un messaggio di errore.
+          else if (state is EditWorkError) {
+            ErrorHandling.showErrorDialog(
+              AppErrorMessages.errorOccurred,
+              state.message,
+              (title, message) => _showErrorDialog(context, title, message),
+            );
+            return Container();
+          } else {
+            return Container();
+          }
+        },
+      ),
+    );
+  }
+
+  /// Costruisce il pulsante per la selezione della data.
+  ///
+  /// Accetta il contesto e la data attualmente selezionata come parametri.
+  ///
+  /// Restituisce un widget WorkButton che visualizza la data attualmente selezionata
+  /// e permette all'utente di selezionare una nuova data quando viene premuto.
+  ///
+  /// Quando il pulsante viene premuto, viene mostrato un selettore di data (showDatePicker)
+  /// che consente all'utente di selezionare una nuova data.
+  ///
+  /// Se l'utente seleziona una nuova data, viene emesso l'evento DateChanged al BLoC EditWorkBloc
+  /// con la nuova data selezionata.
+  Widget _buildDateButton(BuildContext context, DateTime selectedDate) {
+    final editWorkBloc = context.read<EditWorkBloc>();
+    return WorkButton(
+      label: 'Data: ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
+      onPressed: () async {
+        final pickedDate = await showDatePicker(
+          context: context,
+          initialDate: selectedDate,
+          firstDate: DateTime(2000),
+          lastDate: DateTime.now(),
+        );
+
+        if (pickedDate != null) {
+          editWorkBloc.add(UpdateDate(newDate: pickedDate));
+        }
+      },
+    );
+  }
+
+  /// Costruisce il pulsante per la selezione dell'ora.
+  ///
+  /// Accetta il contesto e l'ora attualmente selezionata come parametri.
+  ///
+  /// Restituisce un widget WorkButton che visualizza l'ora attualmente selezionata
+  /// e permette all'utente di selezionare una nuova ora quando viene premuto.
+  ///
+  /// Quando il pulsante viene premuto, viene mostrato un selettore di ora (showTimePicker)
+  /// che consente all'utente di selezionare una nuova ora.
+  ///
+  /// Se l'utente seleziona una nuova ora, viene emesso l'evento TimeChanged al BLoC EditWorkBloc
+  /// con la nuova ora selezionata.
+  Widget _buildTimeButton(BuildContext context, DateTime selectedTime) {
+    final editWorkBloc = context.read<EditWorkBloc>();
+
+    return WorkButton(
+      label: 'Ora: ${DateFormat('HH:mm').format(selectedTime)}',
+      onPressed: () async {
+        final pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(selectedTime),
+        );
+
+        if (pickedTime != null) {
+          editWorkBloc.add(UpdateTime(newTime: pickedTime));
+        }
+      },
+    );
+  }
+
+  /// Costruisce il pulsante di salvataggio.
+  ///
+  /// Accetta il contesto, un flag che indica se il salvataggio è abilitato e la voce di lavoro
+  /// da salvare come parametri.
+  ///
+  /// Restituisce un widget WorkButton che visualizza l'etichetta "Salva" e permette all'utente
+  /// di salvare le modifiche alla voce di lavoro quando viene premuto.
+  ///
+  /// Il pulsante è abilitato solo se il flag isSaveEnabled è true.
+  ///
+  /// Quando il pulsante viene premuto, viene emesso l'evento SaveWorkEntry al BLoC EditWorkBloc
+  /// con la voce di lavoro da salvare e la schermata viene chiusa.
+  Widget _buildSaveButton(
+      BuildContext context, bool isSaveEnabled, WorkEntryModel workEntry) {
+    final editWorkBloc = context.read<EditWorkBloc>();
+    final workEntriesBloc = context.read<WorkEntriesBloc>();
+
+    return WorkButton(
+      label: AppStrings.save,
+      onPressed: isSaveEnabled
+          ? () {
+              editWorkBloc.add(SaveWorkEntry(workEntry: workEntry));
+
+              // Emetti l'evento FetchWorkEntries con le date di inizio e di fine passate
+              workEntriesBloc.add(FetchWorkEntries(
+                startDate,
+                endDate,
+              ));
+
+              Navigator.pop(context);
+            }
+          : null,
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+```
+
+./lib/presentation/screens/work_entries_screen.dart:
+```
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:timetrailblazer/config/constants_routes.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
+import 'package:timetrailblazer/data/models/date_range_model.dart';
+import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
+import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
+import 'package:timetrailblazer/presentation/widgets/data_transfer_widget.dart';
+import 'package:timetrailblazer/presentation/widgets/date_range_picker.dart';
+import 'package:timetrailblazer/presentation/widgets/spacer.dart';
+import 'package:timetrailblazer/presentation/widgets/widgets_screens/day_range_calendar.dart';
+import 'package:timetrailblazer/presentation/widgets/work_button.dart';
+import 'package:timetrailblazer/utils/error_handling.dart';
+
+/// La schermata che mostra le voci di lavoro registrate.
+class WorkEntriesScreen extends StatefulWidget {
+  /// Costruttore della classe `WorkEntriesScreen`.
+  const WorkEntriesScreen({super.key});
+
+  @override
+  WorkEntriesScreenState createState() => WorkEntriesScreenState();
+}
+
+/// Lo stato della schermata delle voci di lavoro.
+class WorkEntriesScreenState extends State<WorkEntriesScreen> {
+  /// Il controller di scorrimento per il calendario.
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    final dateRangeModel = Provider.of<DateRangeModel>(context, listen: false);
+    context.read<WorkEntriesBloc>().add(FetchWorkEntries(
+          dateRangeModel.startDate,
+          dateRangeModel.endDate,
+        ));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dateRangeModel = Provider.of<DateRangeModel>(context);
+
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: AppStrings.workEntriesTitle,
+        onBackPressed: () {
+          Navigator.pushNamed(context, AppRoutes.home);
+        },
+        onAction: [
+          const DataTransferWidget(),
+          IconButton(
+            icon: const Icon(Icons.delete_forever),
+            onPressed: () {
+              BlocProvider.of<WorkEntriesBloc>(context).add(
+                ResetDatabase(
+                  dateRangeModel.startDate,
+                  dateRangeModel.endDate,
+                  onErrorCallback: _showErrorDialog,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: BlocBuilder<WorkEntriesBloc, WorkEntriesState>(
+        builder: (context, state) {
+          if (state is WorkEntriesLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is WorkEntriesLoaded) {
+            final dayWorkEntriesList = state.entries;
+            return SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CustomSpacer(flex: 1),
+                  Flexible(
+                    flex: 3,
+                    child: Consumer<DateRangeModel>(
+                        builder: (context, model, child) {
+                      return DateRangePicker(
+                        startDate: dateRangeModel.startDate,
+                        endDate: dateRangeModel.endDate,
+                        onStartDateChanged: (date) {
+                          dateRangeModel.startDate = date;
+                          // Aggiorna le voci di lavoro quando la data di inizio viene modificata
+                          context.read<WorkEntriesBloc>().add(FetchWorkEntries(
+                                dateRangeModel.startDate,
+                                dateRangeModel.endDate,
+                              ));
+                        },
+                        onEndDateChanged: (date) {
+                          dateRangeModel.endDate = date;
+                          // Aggiorna le voci di lavoro quando la data di fine viene modificata
+                          context.read<WorkEntriesBloc>().add(FetchWorkEntries(
+                                dateRangeModel.startDate,
+                                dateRangeModel.endDate,
+                              ));
+                        },
+                        onCurrentMonthPressed: () {
+                          final now = DateTime.now();
+                          dateRangeModel.startDate =
+                              DateTime(now.year, now.month, 1);
+                          dateRangeModel.endDate =
+                              DateTime(now.year, now.month + 1, 0);
+                          // Aggiorna le voci di lavoro quando viene premuto il pulsante "Mese corrente"
+                          context.read<WorkEntriesBloc>().add(FetchWorkEntries(
+                                dateRangeModel.startDate,
+                                dateRangeModel.endDate,
+                              ));
+                        },
+                      );
+                    }),
+                  ),
+                  const CustomSpacer(flex: 1),
+                  Flexible(
+                    flex: 3,
+                    child: WorkButton(
+                      label: AppStrings.workStatsTitle,
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.workStats);
+                      },
+                    ),
+                  ),
+                  const CustomSpacer(flex: 2),
+                  Flexible(
+                    flex: 20,
+                    child: DayRangeCalendar(
+                      dayWorkEntriesList: dayWorkEntriesList,
+                      scrollController: _scrollController,
+                      startDate: dateRangeModel.startDate,
+                      endDate: dateRangeModel.endDate,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else if (state is WorkEntriesError) {
+            // Mostra un messaggio di errore in caso di errore durante il caricamento delle voci di lavoro
+            ErrorHandling.handleError(state.message, _showErrorSnackBar);
+            return Container();
+          } else {
+            return Container();
+          }
+        },
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+```
+
+./lib/presentation/screens/work_stats_screen.dart:
+```
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+import 'package:timetrailblazer/data/models/date_range_model.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
+import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
+import 'package:timetrailblazer/presentation/widgets/spacer.dart';
+import 'package:timetrailblazer/presentation/widgets/work_button.dart';
+
+class WorkStatsScreen extends StatelessWidget {
+  const WorkStatsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Ottiene il modello DateRangeModel utilizzando il Provider
+    final dateRangeModel = Provider.of<DateRangeModel>(context);
+
+    return BlocProvider(
+      create: (context) => WorkStatsBloc(
+        RepositoryProvider.of<WorkEntryRepository>(context),
+      )..add(ShowMonthlyStats()),
+      child: Scaffold(
+        appBar: CustomAppBar(
+          title: AppStrings.workStatsTitle,
+          onBackPressed: () => Navigator.pop(context),
+        ),
+        body: BlocBuilder<WorkStatsBloc, WorkStatsState>(
+          builder: (context, state) {
+            if (state is WorkStatsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is WorkStatsLoaded) {
+              final dailyStats = state.dailyStats;
+              final monthlyStats = state.monthlyStats;
+              final selectedRangeStats = state.selectedRangeStats;
+
+              return SafeArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      flex: 1,
+                      fit: FlexFit.tight,
+                      child: Container(
+                        color: Colors.transparent,
+                      ),
+                    ),
+                    const CustomSpacer(flex: 1),
+                    Flexible(
+                      flex: 5,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Flexible(
+                            flex: 2,
+                            child: WorkButton(
+                              label: 'Giornaliero',
+                              onPressed: () {
+                                context
+                                    .read<WorkStatsBloc>()
+                                    .add(ShowDailyStats());
+                              },
+                            ),
+                          ),
+                          Flexible(
+                            flex: 2,
+                            child: WorkButton(
+                              label: 'Mensile',
+                              onPressed: () {
+                                context
+                                    .read<WorkStatsBloc>()
+                                    .add(ShowMonthlyStats());
+                              },
+                            ),
+                          ),
+                          Flexible(
+                            flex: 2,
+                            child: WorkButton(
+                              label: 'Intervallo selezionato',
+                              onPressed: () {
+                                context
+                                    .read<WorkStatsBloc>()
+                                    .add(ShowSelectedRangeStats(
+                                      startDate: dateRangeModel.startDate,
+                                      endDate: dateRangeModel.endDate,
+                                    ));
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const CustomSpacer(flex: 2),
+                    // Mostra il titolo con le date di inizio e fine per l'intervallo selezionato
+                    if (state.selectedView == StatsView.selectedRange)
+                      Flexible(
+                        flex: 5,
+                        child: Text(
+                          'Dal ${DateFormat('dd/MM/yyyy').format(dateRangeModel.startDate)} al ${DateFormat('dd/MM/yyyy').format(dateRangeModel.endDate)}',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                    const CustomSpacer(flex: 1),
+                    Flexible(
+                      flex: 5,
+                      child: state.selectedView == StatsView.daily
+                          ? _buildDailyStatsList(dailyStats)
+                          : state.selectedView == StatsView.monthly
+                              ? _buildMonthlyStatsList(monthlyStats)
+                              : _buildSelectedRangeStatsList(
+                                  selectedRangeStats),
+                    ),
+                  ],
+                ),
+              );
+            } else if (state is WorkStatsError) {
+              return const Center(child: Text(AppErrorMessages.loadStatsError));
+            } else {
+              return Container();
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDailyStatsList(List<DailyWorkStats> dailyStats) {
+    if (dailyStats.isEmpty) {
+      return const Center(
+          child: Text('Nessun dato disponibile per il giorno selezionato.'));
+    }
+
+    return ListView.separated(
+      itemCount: dailyStats.length,
+      itemBuilder: (context, index) {
+        final dailyStat = dailyStats[index];
+        final formattedDate = DateFormat('dd/MM/yyyy').format(dailyStat.date);
+        final workedHours = dailyStat.workedHours.inHours;
+        final overtimeHours = dailyStat.overtimeHours.inHours;
+
+        return ListTile(
+          title: Text(formattedDate),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ore lavorate: $workedHours'),
+              Text('Ore di straordinario: $overtimeHours'),
+            ],
+          ),
+        );
+      },
+      separatorBuilder: (context, index) => const Divider(),
+    );
+  }
+
+  Widget _buildMonthlyStatsList(List<MonthlyWorkStats> monthlyStats) {
+    if (monthlyStats.isEmpty) {
+      return const Center(
+          child: Text('Nessun dato disponibile per il mese selezionato.'));
+    }
+
+    return ListView.separated(
+      itemCount: monthlyStats.length,
+      itemBuilder: (context, index) {
+        final monthlyStat = monthlyStats[index];
+        final formattedMonth =
+            DateFormat('MMMM yyyy', 'it_IT').format(monthlyStat.month);
+        final workedHours = monthlyStat.workedHours.inHours;
+        final overtimeHours = monthlyStat.overtimeHours.inHours;
+
+        return ListTile(
+          title: Text(formattedMonth),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ore lavorate: $workedHours'),
+              Text('Ore di straordinario: $overtimeHours'),
+            ],
+          ),
+        );
+      },
+      separatorBuilder: (context, index) => const Divider(),
+    );
+  }
+
+  Widget _buildSelectedRangeStatsList(List<DailyWorkStats> selectedRangeStats) {
+    if (selectedRangeStats.isEmpty) {
+      return const Center(
+          child:
+              Text('Nessun dato disponibile per l\'intervallo selezionato.'));
+    }
+
+    return ListView.separated(
+      itemCount: selectedRangeStats.length,
+      itemBuilder: (context, index) {
+        final dailyStat = selectedRangeStats[index];
+        final formattedDate = DateFormat('dd/MM/yyyy').format(dailyStat.date);
+        final workedHours = dailyStat.workedHours.inHours;
+        final overtimeHours = dailyStat.overtimeHours.inHours;
+
+        return ListTile(
+          title: Text(formattedDate),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ore lavorate: $workedHours'),
+              Text('Ore di straordinario: $overtimeHours'),
+            ],
+          ),
+        );
+      },
+      separatorBuilder: (context, index) => const Divider(),
+    );
+  }
+}
+
+```
+
+./lib/data/dtos/work_entry_dto.dart:
+```
+/// La classe `WorkEntryDTO` rappresenta l'oggetto di trasferimento dati (DTO) per una voce di lavoro.
+///
+/// Un DTO è un oggetto che contiene i dati nella forma richiesta per il trasferimento tra diversi strati dell'applicazione,
+/// come il database o le API esterne. La classe `WorkEntryDTO` definisce la struttura dei dati per una voce di lavoro
+/// e fornisce metodi per la conversione da e verso un formato di mappa chiave-valore.
+class WorkEntryDTO {
+  /// L'ID univoco della voce di lavoro (può essere null per le nuove voci).
+  final int? id;
+
+  /// Il timestamp della voce di lavoro in millisecondi.
+  final int timestamp;
+
+/// Un flag che indica se la voce è un'entrata (1) o un'uscita (0).
+  ///
+  /// - Il valore 1 rappresenta un'entrata, ovvero quando l'utente inizia un turno di lavoro.
+  /// - Il valore 0 rappresenta un'uscita, ovvero quando l'utente termina un turno di lavoro.
+  final int isEntry;
+
+  /// Costruttore della classe `WorkEntryDTO`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [id]: l'ID univoco della voce di lavoro (opzionale).
+  /// - [timestamp]: il timestamp della voce di lavoro in millisecondi.
+  /// - [isEntry]: un flag che indica se la voce è un'entrata (1) o un'uscita (0).
+  WorkEntryDTO({
+    this.id,
+    required this.timestamp,
+    required this.isEntry,
+  });
+
+  /// Converte l'oggetto `WorkEntryDTO` in una mappa chiave-valore.
+  ///
+  /// Restituisce una mappa con le seguenti chiavi:
+  /// - 'id': l'ID univoco della voce di lavoro.
+  /// - 'timestamp': il timestamp della voce di lavoro in millisecondi.
+  /// - 'isEntry': un flag che indica se la voce è un'entrata (1) o un'uscita (0).
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'timestamp': timestamp,
+      'isEntry': isEntry,
+    };
+  }
+
+  /// Crea un oggetto `WorkEntryDTO` a partire da una mappa chiave-valore.
+  ///
+  /// Accetta una mappa con le seguenti chiavi:
+  /// - 'id': l'ID univoco della voce di lavoro.
+  /// - 'timestamp': il timestamp della voce di lavoro in millisecondi.
+  /// - 'isEntry': un flag che indica se la voce è un'entrata (1) o un'uscita (0).
+  ///
+  /// Restituisce un nuovo oggetto `WorkEntryDTO` inizializzato con i valori della mappa.
+  factory WorkEntryDTO.fromMap(Map<String, dynamic> map) {
+    return WorkEntryDTO(
+      id: map['id'],
+      timestamp: map['timestamp'],
+      isEntry: map['isEntry'],
+    );
+  }
+}
+
+```
+
+./lib/data/dtos/work_stats_dto.dart:
+```
+/// La classe `WorkStatsDTO` rappresenta l'oggetto di trasferimento dati (DTO) per le statistiche di lavoro.
+///
+/// Un DTO è un oggetto che contiene i dati nella forma richiesta per il trasferimento tra diversi strati dell'applicazione,
+/// come il database o le API esterne. La classe `WorkStatsDTO` definisce la struttura dei dati per le statistiche di lavoro,
+/// includendo informazioni sulla data, l'anno, il mese e le ore lavorate e di straordinario.
+class WorkStatsDTO {
+  /// La data delle statistiche in millisecondi.
+  final int? date;
+
+  /// L'anno delle statistiche (utilizzato per le statistiche mensili).
+  ///
+  /// Questo parametro è opzionale e viene utilizzato solo per le statistiche mensili,
+  /// dove rappresenta l'anno a cui si riferiscono le statistiche.
+  final int? year;
+
+  /// Il mese delle statistiche (utilizzato per le statistiche mensili).
+  ///
+  /// Questo parametro è opzionale e viene utilizzato solo per le statistiche mensili,
+  /// dove rappresenta il mese (1-12) a cui si riferiscono le statistiche.
+  final int? month;
+
+  /// Il totale delle ore lavorate in millisecondi.
+  ///
+  /// Rappresenta la somma totale delle ore lavorate per il periodo di tempo specificato (giorno, mese o intervallo selezionato).
+  /// Il valore è espresso in millisecondi per consentire calcoli precisi e flessibili.
+  final int workedSeconds;
+
+  /// Il totale delle ore di straordinario in millisecondi.
+  ///
+  /// Rappresenta la somma totale delle ore di straordinario lavorate per il periodo di tempo specificato (giorno, mese o intervallo selezionato).
+  /// Il valore è espresso in millisecondi per consentire calcoli precisi e flessibili.
+  final int overtimeSeconds;
+
+  /// Costruttore della classe `WorkStatsDTO`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [date]: la data delle statistiche in millisecondi.
+  /// - [year]: l'anno delle statistiche (utilizzato per le statistiche mensili).
+  /// - [month]: il mese delle statistiche (utilizzato per le statistiche mensili).
+  /// - [workedMillis]: il totale delle ore lavorate in millisecondi.
+  /// - [overtimeMillis]: il totale delle ore di straordinario in millisecondi.
+  WorkStatsDTO({
+    this.date,
+    this.year,
+    this.month,
+    required this.workedSeconds,
+    required this.overtimeSeconds,
+  });
+
+  /// Crea un oggetto `WorkStatsDTO` a partire da una mappa chiave-valore.
+  ///
+  /// Accetta una mappa con le seguenti chiavi:
+  /// - 'date': la data delle statistiche in millisecondi.
+  /// - 'year': l'anno delle statistiche (utilizzato per le statistiche mensili).
+  /// - 'month': il mese delle statistiche (utilizzato per le statistiche mensili).
+  /// - 'workedMillis': il totale delle ore lavorate in millisecondi.
+  /// - 'overtimeMillis': il totale delle ore di straordinario in millisecondi.
+  ///
+  /// Restituisce un nuovo oggetto `WorkStatsDTO` inizializzato con i valori della mappa.
+  factory WorkStatsDTO.fromMap(Map<String, dynamic> map) {
+    return WorkStatsDTO(
+      date: map['date'] != null
+          ? DateTime.parse(map['date']).millisecondsSinceEpoch
+          : null,
+      year: map['year'],
+      month: map['month'],
+      workedSeconds: map['workedSeconds'] ?? 0,
+      overtimeSeconds: map['overtimeSeconds'] ?? 0,
+    );
+  }
+}
+
+```
+
+./lib/data/datasources/providers/work_entry_provider.dart:
+```
+import 'package:timetrailblazer/data/database_helper.dart';
+import 'package:timetrailblazer/data/dtos/work_entry_dto.dart';
+import 'package:timetrailblazer/data/dtos/work_stats_dto.dart';
+
+/// La classe `WorkEntryProvider` fornisce i metodi per interagire con il database
+/// attraverso l'utilizzo di `WorkEntryDTO`.
+class WorkEntryProvider {
+  /// L'istanza di `DatabaseHelper` utilizzata per l'accesso al database.
+  final DatabaseHelper _databaseHelper;
+
+  /// Costruttore della classe `WorkEntryProvider`.
+  ///
+  /// Accetta un parametro [_databaseHelper] di tipo `DatabaseHelper`.
+  WorkEntryProvider(this._databaseHelper);
+
+  /// Inserisce una nuova voce di lavoro nel database.
+  ///
+  /// Accetta un parametro [workEntryDTO] di tipo `WorkEntryDTO` che rappresenta la voce di lavoro da inserire.
+  ///
+  /// Restituisce un `Future` che si completa quando l'inserimento è terminato.
+  Future<void> insertWorkEntry(WorkEntryDTO workEntryDTO) async {
+    await _databaseHelper.insertWorkEntry(workEntryDTO);
+  }
+
+  /// Aggiorna una voce di lavoro esistente nel database.
+  ///
+  /// Accetta un parametro [workEntryDTO] di tipo `WorkEntryDTO` che rappresenta la voce di lavoro da aggiornare.
+  ///
+  /// Restituisce un `Future` che si completa quando l'aggiornamento è terminato.
+  Future<void> updateWorkEntry(WorkEntryDTO workEntryDTO) async {
+    await _databaseHelper.updateWorkEntry(workEntryDTO);
+  }
+
+  /// Recupera l'ultima voce di lavoro inserita nel database.
+  ///
+  /// Restituisce un `Future` che si completa con un oggetto `WorkEntryDTO` rappresentante l'ultima voce di lavoro,
+  /// oppure `null` se non ci sono voci di lavoro nel database.
+  Future<WorkEntryDTO?> getLastWorkEntry() async {
+    return await _databaseHelper.getLastWorkEntry();
+  }
+
+  /// Recupera le voci di lavoro nell'intervallo di date specificato.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [startTimestamp]: il timestamp di inizio dell'intervallo in millisecondi.
+  /// - [endTimestamp]: il timestamp di fine dell'intervallo in millisecondi.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkEntryDTO` rappresentanti le voci di lavoro nell'intervallo specificato.
+  Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(
+      int startTimestamp, int endTimestamp) async {
+    return await _databaseHelper.getWorkEntriesByDateRange(
+        startTimestamp, endTimestamp);
+  }
+
+  /// Resetta il database cancellando tutte le voci di lavoro.
+  ///
+  /// Restituisce un `Future` che si completa quando il reset è terminato.
+  Future<void> resetDatabase() async {
+    await _databaseHelper.resetDatabase();
+  }
+
+  /// Cancella una singola voce di lavoro dal database in base all'ID.
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da eliminare.
+  ///
+  /// Restituisce un `Future` che si completa quando la cancellazione è terminata.
+  Future<void> deleteWorkEntryById(int id) async {
+    await _databaseHelper.deleteWorkEntryById(id);
+  }
+
+  /// Recupera una voce di lavoro dal database in base all'ID.
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da recuperare.
+  ///
+  /// Restituisce un `Future` che si completa con un oggetto `WorkEntryDTO` rappresentante la voce di lavoro,
+  /// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
+  Future<WorkEntryDTO?> getWorkEntryById(int id) async {
+    return await _databaseHelper.getWorkEntryById(id);
+  }
+
+  /// Recupera le statistiche di lavoro giornaliere dal database.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro giornaliere.
+  Future<List<WorkStatsDTO>> getDailyWorkStats() async {
+    return await _databaseHelper.getDailyWorkStats();
+  }
+
+  /// Recupera le statistiche di lavoro mensili dal database.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro mensili.
+  Future<List<WorkStatsDTO>> getMonthlyWorkStats() async {
+    return await _databaseHelper.getMonthlyWorkStats();
+  }
+
+  /// Recupera le statistiche di lavoro per l'intervallo di date selezionato dal database.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [startDate]: la data di inizio dell'intervallo.
+  /// - [endDate]: la data di fine dell'intervallo.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro per l'intervallo di date selezionato.
+  Future<List<WorkStatsDTO>> getSelectedRangeWorkStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    return await _databaseHelper.getSelectedRangeWorkStats(
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+}
+
+```
+
+./lib/data/datasources/mappers/work_entry_mapper.dart:
+```
+import 'package:timetrailblazer/data/dtos/work_entry_dto.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+
+/// La classe `WorkEntryMapper` si occupa di mappare tra `WorkEntryDTO` e `WorkEntry`.
+class WorkEntryMapper {
+  /// Mappa un oggetto `WorkEntryDTO` in un oggetto `WorkEntry`.
+  ///
+  /// Accetta un parametro [dto] di tipo `WorkEntryDTO`.
+  ///
+  /// Restituisce un nuovo oggetto `WorkEntry` inizializzato con i valori del DTO.
+  WorkEntryModel fromDTO(WorkEntryDTO dto) {
+    return WorkEntryModel(
+      id: dto.id,
+      timestamp: DateTime.fromMillisecondsSinceEpoch(dto.timestamp),
+      isEntry: dto.isEntry == 1,
+    );
+  }
+
+  /// Mappa un oggetto `WorkEntry` in un oggetto `WorkEntryDTO`.
+  ///
+  /// Accetta un parametro [model] di tipo `WorkEntry`.
+  ///
+  /// Restituisce un nuovo oggetto `WorkEntryDTO` inizializzato con i valori del modello.
+  WorkEntryDTO toDTO(WorkEntryModel model) {
+    return WorkEntryDTO(
+      id: model.id,
+      timestamp: model.timestamp.millisecondsSinceEpoch,
+      isEntry: model.isEntry! ? 1 : 0,
+    );
+  }
+}
+
+```
+
+./lib/data/datasources/repositories/work_entry_repository.dart:
+```
+import 'dart:async';
+
+import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
+import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
+import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
+
+/// La classe `WorkEntryRepository` rappresenta il repository per la gestione delle voci di lavoro.
+class WorkEntryRepository {
+  /// L'istanza di `WorkEntryProvider` utilizzata per l'accesso ai dati.
+  final WorkEntryProvider _workEntryProvider;
+
+  /// L'istanza di `WorkEntryMapper` utilizzata per la mappatura tra `WorkEntryDTO` e `WorkEntry`.
+  final WorkEntryMapper _workEntryMapper;
+
+
+
+  /// Costruttore della classe `WorkEntryRepository`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [_workEntryProvider]: l'istanza di `WorkEntryProvider` per l'accesso ai dati.
+  /// - [_workEntryMapper]: l'istanza di `WorkEntryMapper` per la mappatura.
+  WorkEntryRepository(this._workEntryProvider, this._workEntryMapper);
+
+  /// Inserisce una nuova voce di lavoro.
+  ///
+  /// Accetta un parametro [workEntry] di tipo `WorkEntry` che rappresenta la voce di lavoro da inserire.
+  ///
+  /// Restituisce un `Future` che si completa quando l'inserimento è terminato.
+  Future<void> insertWorkEntry(WorkEntryModel workEntry) async {
+    final workEntryDTO = _workEntryMapper.toDTO(workEntry);
+    await _workEntryProvider.insertWorkEntry(workEntryDTO);
+  }
+
+  /// Aggiorna una voce di lavoro esistente.
+  ///
+  /// Accetta un parametro [workEntry] di tipo `WorkEntryModel` che rappresenta la voce di lavoro da aggiornare.
+  ///
+  /// Restituisce un `Future` che si completa quando l'aggiornamento è terminato.
+  Future<void> updateWorkEntry(WorkEntryModel workEntry) async {
+    final workEntryDTO = _workEntryMapper.toDTO(workEntry);
+    await _workEntryProvider.updateWorkEntry(workEntryDTO);
+  }
+
+  /// Recupera l'ultima voce di lavoro inserita.
+  ///
+  /// Restituisce un `Future` che si completa con un oggetto `WorkEntry` rappresentante l'ultima voce di lavoro,
+  /// oppure `null` se non ci sono voci di lavoro.
+  Future<WorkEntryModel?> getLastWorkEntry() async {
+    final workEntryDTO = await _workEntryProvider.getLastWorkEntry();
+
+    if (workEntryDTO != null) {
+      return _workEntryMapper.fromDTO(workEntryDTO);
+    }
+
+    return null;
+  }
+
+  /// Recupera le voci di lavoro per i giorni specificati.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [days]: la lista di oggetti `DateTime` rappresentanti i giorni per cui recuperare le voci di lavoro.
+  /// - [endDate]: la data di fine dell'intervallo di date.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `DayWorkEntriesModel` rappresentanti le voci di lavoro raggruppate per giorno.
+  Future<List<DayWorkEntriesModel>> getWorkEntriesByDays(
+      List<DateTime> days, DateTime endDate) async {
+    final List<DayWorkEntriesModel> dayWorkEntriesList = [];
+
+    for (final day in days) {
+      final startOfDay = DateTime(day.year, day.month, day.day);
+      final endOfDay = startOfDay
+          .add(const Duration(days: 1))
+          .subtract(const Duration(milliseconds: 1));
+
+      final workEntryDTOs = await _workEntryProvider.getWorkEntriesByDateRange(
+        startOfDay.millisecondsSinceEpoch,
+        endOfDay.millisecondsSinceEpoch,
+      );
+
+      final workEntries = workEntryDTOs.map(_workEntryMapper.fromDTO).toList();
+
+      dayWorkEntriesList.add(
+        DayWorkEntriesModel(
+          day: day,
+          workEntries: workEntries.isNotEmpty ? workEntries : null,
+        ),
+      );
+    }
+
+    return dayWorkEntriesList;
+  }
+
+  /// Resetta il database cancellando tutte le voci di lavoro.
+  ///
+  /// Restituisce un `Future` che si completa quando il reset è terminato.
+  Future<void> resetDatabase() async {
+    await _workEntryProvider.resetDatabase();
+  }
+
+  /// Cancella una singola voce di lavoro dal database in base all'ID.
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da eliminare.
+  ///
+  /// Restituisce un `Future` che si completa quando la cancellazione è terminata.
+  Future<void> deleteWorkEntryById(int id) async {
+    await _workEntryProvider.deleteWorkEntryById(id);
+  }
+
+  /// Recupera una voce di lavoro dal database in base all'ID.
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da recuperare.
+  ///
+  /// Restituisce un `Future` che si completa con un oggetto `WorkEntryModel` rappresentante la voce di lavoro,
+  /// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
+  Future<WorkEntryModel?> getWorkEntryById(int id) async {
+    final workEntryDTO = await _workEntryProvider.getWorkEntryById(id);
+    if (workEntryDTO != null) {
+      return _workEntryMapper.fromDTO(workEntryDTO);
+    }
+    return null;
+  }
+
+  /// Salva una voce di lavoro nel database.
+  ///
+  /// Accetta un parametro [workEntry] di tipo `WorkEntryModel` che rappresenta la voce di lavoro da salvare.
+  ///
+  /// Se la voce di lavoro ha un ID, viene considerata una voce esistente e viene aggiornata nel database.
+  /// Se la voce di lavoro non ha un ID, viene considerata una nuova voce e viene inserita nel database.
+  ///
+  /// Restituisce un `Future` che si completa quando il salvataggio è terminato.
+  Future<void> saveWorkEntry(WorkEntryModel workEntry) async {
+    if (workEntry.id != null) {
+      await updateWorkEntry(workEntry);
+    } else {
+      await insertWorkEntry(workEntry);
+    }
+  }
+
+  /// Recupera le statistiche di lavoro giornaliere.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `DailyWorkStats`
+  /// rappresentanti le statistiche di lavoro giornaliere.
+  Future<List<DailyWorkStats>> getDailyWorkStats() async {
+  final workStatsDTOs = await _workEntryProvider.getDailyWorkStats();
+  return workStatsDTOs.map((dto) => DailyWorkStats(
+    date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+    workedHours: Duration(seconds: dto.workedSeconds),
+    overtimeHours: Duration(seconds: dto.overtimeSeconds),
+  )).toList();
+}
+
+  /// Recupera le statistiche di lavoro mensili.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `MonthlyWorkStats`
+  /// rappresentanti le statistiche di lavoro mensili.
+  Future<List<MonthlyWorkStats>> getMonthlyWorkStats() async {
+  final workStatsDTOs = await _workEntryProvider.getMonthlyWorkStats();
+  return workStatsDTOs.map((dto) => MonthlyWorkStats(
+    month: DateTime(dto.year!, dto.month!),
+    workedHours: Duration(seconds: dto.workedSeconds),
+    overtimeHours: Duration(seconds: dto.overtimeSeconds),
+  )).toList();
+}
+
+/// Recupera le statistiche di lavoro per l'intervallo di date selezionato.
+///
+/// Accetta i seguenti parametri:
+/// - [startDate]: la data di inizio dell'intervallo.
+/// - [endDate]: la data di fine dell'intervallo.
+///
+/// Restituisce un `Future` che si completa con una lista di oggetti `DailyWorkStats`
+/// rappresentanti le statistiche di lavoro per l'intervallo di date selezionato.
+Future<List<DailyWorkStats>> getSelectedRangeWorkStats({
+  required DateTime startDate,
+  required DateTime endDate,
+}) async {
+  final workStatsDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
+    startDate: startDate,
+    endDate: endDate,
+  );
+  return workStatsDTOs.map((dto) => DailyWorkStats(
+    date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+    workedHours: Duration(seconds: dto.workedSeconds),
+    overtimeHours: Duration(seconds: dto.overtimeSeconds),
+  )).toList();
+}
+}
+
+```
+
+./lib/data/database_helper.dart:
+```
+import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:timetrailblazer/config/database_constants.dart';
+
+import 'package:timetrailblazer/data/dtos/work_entry_dto.dart';
+import 'package:timetrailblazer/data/dtos/work_stats_dto.dart';
+
+/// La classe `DatabaseHelper` fornisce i metodi per l'accesso al database SQLite.
+class DatabaseHelper {
+  /// Il nome del database.
+  static const String _databaseName = 'work_entries.db';
+
+  /// La versione del database.
+  static const int _databaseVersion = 1;
+
+  /// Il nome della tabella delle voci di lavoro.
+  // Utilizzo delle costanti per i nomi delle tabelle e delle colonne
+  static const String _tableWorkEntries = DatabaseConstants.tableWorkEntries;
+  static const String _columnId = DatabaseConstants.columnId;
+  static const String _columnTimestamp = DatabaseConstants.columnTimestamp;
+  static const String _columnIsEntry = DatabaseConstants.columnIsEntry;
+
+  /// L'istanza del database.
+  static Database? _database;
+
+  /// Restituisce l'istanza del database, creandola se non esiste.
+  ///
+  /// Questo metodo controlla se l'istanza del database è già stata creata.
+  /// Se l'istanza non esiste, viene chiamato il metodo `_initDatabase()` per inizializzare il database.
+  /// Infine, viene restituita l'istanza del database.
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
+  }
+
+  /// Inizializza il database.
+  ///
+  /// Questo metodo privato viene chiamato quando l'istanza del database non esiste ancora.
+  /// Recupera il percorso del database utilizzando `getDatabasesPath()` e costruisce il percorso completo.
+  /// Quindi, apre il database utilizzando `openDatabase()`, specificando il percorso, la versione e il metodo `onCreate`.
+  /// Il metodo `onCreate` viene chiamato quando il database viene creato per la prima volta.
+  Future<Database> _initDatabase() async {
+    final databasesPath = await getDatabasesPath();
+    final path = '$databasesPath/$_databaseName';
+    return await openDatabase(
+      path,
+      version: _databaseVersion,
+      onCreate: _createDatabase,
+    );
+  }
+
+  /// Crea le tabelle del database.
+  ///
+  /// Questo metodo privato viene chiamato quando il database viene creato per la prima volta.
+  /// Esegue una query SQL per creare la tabella `_tableWorkEntries` con i campi `id`, `timestamp` e `isEntry`.
+  /// Il campo `id` è la chiave primaria autoincrementale.
+  Future<void> _createDatabase(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE $_tableWorkEntries (
+        $_columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $_columnTimestamp INTEGER NOT NULL,
+        $_columnIsEntry INTEGER NOT NULL
+      )
+    ''');
+    // Crea un indice sulla colonna 'timestamp' per migliorare le prestazioni delle query
+    await db.execute('''
+      CREATE INDEX idx_timestamp ON $_tableWorkEntries ($_columnTimestamp)
+    ''');
+  }
+
+  /// Inserisce una nuova voce di lavoro nel database.
+  ///
+  /// Riceve come parametro la [workEntryDTO] di tipo [WorkEntryDTO] da inserire.
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue l'inserimento nella tabella `_tableWorkEntries` utilizzando il metodo `insert()` di SQLite.
+  /// Restituisce un [Future] che si completa quando l'inserimento è stato effettuato.
+  Future<void> insertWorkEntry(WorkEntryDTO workEntryDTO) async {
+    final db = await database;
+    await db.insert(
+      _tableWorkEntries,
+      {
+        _columnTimestamp: workEntryDTO.timestamp,
+        _columnIsEntry: workEntryDTO.isEntry,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// Aggiorna una voce di lavoro esistente nel database.
+  ///
+  /// Riceve come parametro la [workEntryDTO] di tipo [WorkEntryDTO] da aggiornare.
+  /// Utilizza l'ID della [workEntryDTO] per trovare la voce corrispondente e aggiornarla.
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue l'aggiornamento nella tabella `_tableWorkEntries` utilizzando il metodo `update()` di SQLite.
+  /// Restituisce un [Future] che si completa quando l'aggiornamento è stato effettuato.
+  Future<void> updateWorkEntry(WorkEntryDTO workEntryDTO) async {
+    final db = await database;
+    await db.update(
+      _tableWorkEntries,
+      {
+        _columnTimestamp: workEntryDTO.timestamp,
+        _columnIsEntry: workEntryDTO.isEntry,
+      },
+      where: '$_columnId = ?',
+      whereArgs: [workEntryDTO.id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// Recupera l'ultima voce di lavoro inserita nel database.
+  ///
+  /// Recupera l'istanza del database chiamando il getter database.
+  /// Esegue una query sulla tabella _tableWorkEntries utilizzando il metodo query() di SQLite.
+  /// Ordina i risultati in base al campo timestamp in ordine decrescente e limita il risultato a 1 riga.
+  /// Se ci sono risultati, converte la prima riga in un oggetto [WorkEntryDTO] utilizzando il metodo fromMap().
+  /// Restituisce un [Future] che si completa con l'ultima [WorkEntryDTO] inserita, o null se non ci sono voci di lavoro nel database.
+  Future<WorkEntryDTO?> getLastWorkEntry() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableWorkEntries,
+      orderBy: '$_columnTimestamp DESC',
+      limit: 1,
+    );
+    if (maps.isNotEmpty) {
+      return WorkEntryDTO.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  /// Recupera le voci di lavoro nell'intervallo di date specificato.
+  ///
+  /// Riceve come parametri il [startTimestamp] e l'[endTimestamp] che rappresentano l'intervallo di date.
+  /// Recupera l'istanza del database chiamando il getter database.
+  /// Esegue una query sulla tabella _tableWorkEntries utilizzando il metodo query() di SQLite.
+  /// Filtra i risultati in base all'intervallo di timestamp specificato utilizzando la clausola where.
+  /// Ordina i risultati in base al campo timestamp in ordine crescente.
+  /// Mappa i risultati della query in una lista di [WorkEntryDTO] utilizzando il metodo fromMap().
+  /// Restituisce un [Future] che si completa con la lista di [WorkEntryDTO] recuperate.
+  Future<List<WorkEntryDTO>> getWorkEntriesByDateRange(
+      int startTimestamp, int endTimestamp) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableWorkEntries,
+      where: 'timestamp >= ? AND timestamp <= ?',
+      whereArgs: [startTimestamp, endTimestamp],
+      orderBy: 'timestamp',
+    );
+    return maps.map((map) => WorkEntryDTO.fromMap(map)).toList();
+  }
+
+  /// Elimina tutte le voci di lavoro dal database.
+  ///
+  /// Recupera l'istanza del database chiamando il getter database.
+  /// Esegue una query SQL per eliminare tutte le righe dalla tabella _tableWorkEntries utilizzando il metodo delete() di SQLite.
+  /// Restituisce un [Future] che si completa quando l'eliminazione è stata effettuata.
+  Future<void> deleteAllWorkEntries() async {
+    final db = await database;
+    await db.delete(_tableWorkEntries);
+  }
+
+  /// Resetta il database eliminando tutte le tabelle e ricreandole.
+  ///
+  /// Recupera l'istanza del database chiamando il getter database.
+  /// Esegue una serie di query SQL per eliminare tutte le tabelle dal database utilizzando il metodo execute() di SQLite.
+  /// Chiama il metodo _createDatabase() per ricreare le tabelle del database.
+  /// Restituisce un [Future] che si completa quando il reset del database è stato effettuato.
+  Future<void> resetDatabase() async {
+    final db = await database;
+    await db.execute('DROP TABLE IF EXISTS $_tableWorkEntries');
+    await _createDatabase(db, _databaseVersion);
+  }
+
+  /// Elimina una singola voce di lavoro dal database in base all'ID.
+  ///
+  /// Riceve come parametro l'[id] della voce di lavoro da eliminare.
+  /// Recupera l'istanza del database chiamando il getter database.
+  /// Esegue una query SQL per eliminare la riga corrispondente all'ID specificato dalla tabella _tableWorkEntries utilizzando il metodo delete() di SQLite.
+  /// Restituisce un [Future] che si completa quando l'eliminazione è stata effettuata.
+  Future<void> deleteWorkEntryById(int id) async {
+    final db = await database;
+    await db.delete(
+      _tableWorkEntries,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Recupera una voce di lavoro dal database in base all'ID.
+  ///
+  /// Accetta un parametro [id] di tipo `int` che rappresenta l'ID della voce di lavoro da recuperare.
+  ///
+  /// Recupera l'istanza del database chiamando il getter `database`.
+  /// Esegue una query sulla tabella `_tableWorkEntries` utilizzando il metodo `query()` di SQLite.
+  /// Filtra i risultati in base all'ID specificato utilizzando la clausola `where`.
+  ///
+  /// Se vengono trovate voci di lavoro corrispondenti all'ID, converte la prima voce in un oggetto `WorkEntryDTO`
+  /// utilizzando il metodo `fromMap()` e la restituisce.
+  ///
+  /// Se non vengono trovate voci di lavoro corrispondenti all'ID, restituisce `null`.
+  ///
+  /// Restituisce un `Future` che si completa con un oggetto `WorkEntryDTO` rappresentante la voce di lavoro,
+  /// oppure `null` se non viene trovata alcuna voce di lavoro con l'ID specificato.
+  Future<WorkEntryDTO?> getWorkEntryById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableWorkEntries,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return WorkEntryDTO.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  /// Recupera tutte le voci di lavoro dal database.
+  ///
+  /// Esegue una query sulla tabella `_tableWorkEntries` per recuperare tutte le voci di lavoro.
+  /// Ordina le voci di lavoro in base al campo `_columnTimestamp` in ordine crescente.
+  /// Mappa i risultati della query in una lista di oggetti `WorkEntryDTO` utilizzando il metodo `fromMap`.
+  ///
+  /// Restituisce un `Future` che si completa con la lista di tutte le voci di lavoro presenti nel database.
+  Future<List<WorkEntryDTO>> getAllWorkEntries() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableWorkEntries,
+      orderBy: '$_columnTimestamp ASC',
+    );
+    return List.generate(maps.length, (i) {
+      return WorkEntryDTO.fromMap(maps[i]);
+    });
+  }
+
+  /// Recupera le statistiche di lavoro giornaliere dal database.
+  ///
+  /// Esegue una query SQL per aggregare le voci di lavoro raggruppate per giorno
+  /// e calcolare le ore lavorate e le ore di straordinario per ciascun giorno.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro giornaliere.
+  Future<List<WorkStatsDTO>> getDailyWorkStats() async {
+    final db = await database;
+    try {
+      final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        DATE(timestamp / 1000, 'unixepoch') AS date,
+        IFNULL(SUM(CASE WHEN isEntry = 1 THEN (
+          SELECT IFNULL((timestamp - w.timestamp) / 1000, 0)
+          FROM $_tableWorkEntries 
+          WHERE id > w.id AND isEntry = 0 AND DATE(timestamp / 1000, 'unixepoch') = DATE(w.timestamp / 1000, 'unixepoch')
+          ORDER BY timestamp 
+          LIMIT 1
+        ) ELSE 0 END), 0) AS workedSeconds,
+        0 AS overtimeSeconds
+      FROM $_tableWorkEntries w
+      WHERE isEntry = 1
+      GROUP BY DATE(timestamp / 1000, 'unixepoch')
+    ''');
+      final List<WorkStatsDTO> dtos = maps.map((map) {
+        return WorkStatsDTO.fromMap({
+          'date': map['date'],
+          'workedSeconds': map['workedSeconds'] ?? 0,
+          'overtimeSeconds': map['overtimeSeconds'] ?? 0,
+        });
+      }).toList();
+      return dtos;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Recupera le statistiche di lavoro mensili dal database.
+  ///
+  /// Esegue una query SQL per aggregare le voci di lavoro raggruppate per mese
+  /// e calcolare le ore lavorate e le ore di straordinario per ciascun mese.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro mensili.
+  Future<List<WorkStatsDTO>> getMonthlyWorkStats() async {
+    final db = await database;
+    try {
+      final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT
+        strftime('%Y', timestamp / 1000, 'unixepoch') AS year,
+        strftime('%m', timestamp / 1000, 'unixepoch') AS month,
+        IFNULL(SUM(CASE WHEN isEntry = 1 THEN (
+          SELECT IFNULL((timestamp - w.timestamp) / 1000, 0)
+          FROM $_tableWorkEntries
+          WHERE id > w.id AND isEntry = 0 AND DATE(timestamp / 1000, 'unixepoch') = DATE(w.timestamp / 1000, 'unixepoch')
+          ORDER BY timestamp
+          LIMIT 1
+        ) ELSE 0 END), 0) AS workedSeconds,
+        0 AS overtimeSeconds
+      FROM $_tableWorkEntries w
+      WHERE isEntry = 1
+      GROUP BY strftime('%Y', timestamp / 1000, 'unixepoch'), strftime('%m', timestamp / 1000, 'unixepoch')
+    ''');
+      final List<WorkStatsDTO> dtos = maps.map((map) {
+        return WorkStatsDTO.fromMap({
+          'year': int.tryParse(map['year'] ?? '') ?? 0,
+          'month': int.tryParse(map['month'] ?? '') ?? 0,
+          'workedSeconds': map['workedSeconds'] ?? 0,
+          'overtimeSeconds': map['overtimeSeconds'] ?? 0,
+        });
+      }).toList();
+      return dtos;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Recupera le statistiche di lavoro per l'intervallo di date selezionato dal database.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [startDate]: la data di inizio dell'intervallo.
+  /// - [endDate]: la data di fine dell'intervallo.
+  ///
+  /// Esegue una query SQL per aggregare le voci di lavoro nell'intervallo di date specificato
+  /// e calcolare le ore lavorate e le ore di straordinario per ciascun giorno.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `WorkStatsDTO`
+  /// rappresentanti le statistiche di lavoro per l'intervallo di date selezionato.
+  Future<List<WorkStatsDTO>> getSelectedRangeWorkStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await database;
+    try {
+      final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT
+        DATE(timestamp / 1000, 'unixepoch') AS date,
+        IFNULL(SUM(CASE WHEN isEntry = 1 THEN (
+          SELECT IFNULL((timestamp - w.timestamp) / 1000, 0)
+          FROM $_tableWorkEntries
+          WHERE id > w.id AND isEntry = 0 AND DATE(timestamp / 1000, 'unixepoch') = DATE(w.timestamp / 1000, 'unixepoch')
+          ORDER BY timestamp
+          LIMIT 1
+        ) ELSE 0 END), 0) AS workedSeconds,
+        0 AS overtimeSeconds
+      FROM $_tableWorkEntries w
+      WHERE isEntry = 1 AND DATE(timestamp / 1000, 'unixepoch') BETWEEN ? AND ?
+      GROUP BY DATE(timestamp / 1000, 'unixepoch')
+    ''', [
+        DateFormat('yyyy-MM-dd').format(startDate),
+        DateFormat('yyyy-MM-dd').format(endDate),
+      ]);
+      final List<WorkStatsDTO> dtos = maps.map((map) {
+        return WorkStatsDTO.fromMap({
+          'date': map['date'],
+          'workedSeconds': map['workedSeconds'] ?? 0,
+          'overtimeSeconds': map['overtimeSeconds'] ?? 0,
+        });
+      }).toList();
+      return dtos;
+    } catch (e) {
+      return [];
+    }
+  }
+}
+
+```
+
+./lib/data/models/day_work_entries_model.dart:
+```
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+
+/// Rappresenta un modello per le voci di lavoro di un singolo giorno.
+///
+/// La classe `DayWorkEntriesModel` contiene informazioni su un giorno specifico e le relative voci di lavoro.
+/// Viene utilizzata per organizzare e raggruppare le voci di lavoro in base alla data.
+class DayWorkEntriesModel {
+  /// Il giorno a cui si riferiscono le voci di lavoro.
+  final DateTime day;
+
+  /// La lista delle voci di lavoro per il giorno specificato.
+  ///
+  /// Questo parametro è opzionale e rappresenta le voci di lavoro registrate per il giorno specificato dalla proprietà `day`.
+  /// Se non ci sono voci di lavoro per il giorno, il valore sarà `null`.
+  final List<WorkEntryModel>? workEntries;
+
+  /// Costruttore della classe `DayWorkEntriesModel`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - `day`: il giorno a cui si riferiscono le voci di lavoro.
+  /// - `workEntries`: la lista delle voci di lavoro per il giorno specificato (opzionale).
+  DayWorkEntriesModel({required this.day, this.workEntries});
+}
+
+```
+
+./lib/data/models/date_range_model.dart:
+```
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:flutter/material.dart';
+
+class DateRangeModel extends ChangeNotifier {
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  // Costruttore che inizializza startDate e endDate al mese corrente se non vengono forniti
+  DateRangeModel(
+    this._startDate,
+    this._endDate,
+  ) {
+    DateTime now = DateTime.now();
+    _startDate = DateTime(now.year, now.month, 1);
+    _endDate = DateTime(now.year, now.month + 1, 0);
+  }
+
+  /// La data di inizio dell'intervallo di date.
+  ///
+  /// Rappresenta la data di inizio selezionata per l'intervallo di date di interesse.
+  /// Viene utilizzata per filtrare e recuperare le voci di lavoro e le statistiche all'interno dell'intervallo specificato.
+  DateTime get startDate => _startDate!;
+
+  /// La data di fine dell'intervallo di date.
+  ///
+  /// Rappresenta la data di fine selezionata per l'intervallo di date di interesse.
+  /// Viene utilizzata per filtrare e recuperare le voci di lavoro e le statistiche all'interno dell'intervallo specificato.
+  DateTime get endDate => _endDate!;
+
+  /// Imposta la data di inizio dell'intervallo di date.
+  ///
+  /// Se il valore fornito è `null`, viene impostata la data di inizio predefinita al primo giorno del mese corrente.
+  /// In caso contrario, la data di inizio viene impostata al valore fornito.
+  /// Dopo aver impostato la data di inizio, viene chiamato il metodo `notifyListeners()` per notificare i listener del cambiamento.
+  set startDate(DateTime? value) {
+    if (value == null) {
+      DateTime now = DateTime.now();
+      _startDate = DateTime(now.year, now.month, 1);
+    } else {
+      _startDate = value;
+    }
+    notifyListeners();
+  }
+
+  /// Imposta la data di fine dell'intervallo di date.
+  ///
+  /// Se il valore fornito è `null`, viene impostata la data di fine predefinita all'ultimo giorno del mese corrente.
+  /// In caso contrario, la data di fine viene impostata al valore fornito.
+  /// Dopo aver impostato la data di fine, viene chiamato il metodo `notifyListeners()` per notificare i listener del cambiamento.
+  set endDate(DateTime? value) {
+    if (value == null) {
+      DateTime now = DateTime.now();
+      _endDate = DateTime(now.year, now.month + 1, 0);
+    } else {
+      _endDate = value;
+    }
+    notifyListeners();
+  }
+
+  // Metodo per impostare startDate e endDate al mese corrente
+  void setCurrentMonth() {
+    DateTime now = DateTime.now();
+    _startDate = DateTime(now.year, now.month, 1);
+    _endDate = DateTime(now.year, now.month + 1, 0);
+    notifyListeners();
+  }
+}
+
+```
+
+./lib/data/models/work_entry_model.dart:
+```
+/// La classe `WorkEntry` rappresenta il modello di dominio per una voce di lavoro.
+class WorkEntryModel {
+  /// L'ID univoco della voce di lavoro (può essere null per le nuove voci).
+  final int? id;
+
+  /// Il timestamp della voce di lavoro.
+  final DateTime timestamp;
+
+  /// Un flag che indica se la voce è un'entrata o un'uscita.
+  final bool? isEntry;
+
+  /// La data della voce di lavoro (senza l'ora).
+  ///
+  /// Rappresenta la data in cui è stata registrata la voce di lavoro, senza includere l'informazione sull'ora specifica.
+  /// Viene calcolata automaticamente a partire dal parametro `timestamp` durante la creazione dell'istanza di `WorkEntryModel`.
+  final DateTime day;
+
+  /// Costruttore della classe `WorkEntry`.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [id]: l'ID univoco della voce di lavoro (opzionale).
+  /// - [timestamp]: il timestamp della voce di lavoro.
+  /// - [isEntry]: un flag che indica se la voce è un'entrata o un'uscita.
+  ///
+  /// Calcola automaticamente la proprietà [day] a partire dal [timestamp].
+  WorkEntryModel({
+    this.id,
+    required this.timestamp,
+    required this.isEntry,
+  }) : day = DateTime(timestamp.year, timestamp.month, timestamp.day);
+
+  /// Crea una copia di questa istanza di `WorkEntryModel` con le proprietà specificate modificate.
+  ///
+  /// Questo metodo consente di creare una nuova istanza di `WorkEntryModel` a partire da un'istanza esistente,
+  /// permettendo di modificare solo le proprietà specificate.
+  /// I parametri `id`, `timestamp` e `isEntry` sono opzionali. Se non vengono forniti, verranno utilizzati i valori dell'istanza originale.
+  ///
+  /// Restituisce una nuova istanza di `WorkEntryModel` con le proprietà aggiornate.
+  WorkEntryModel copyWith({
+    int? id,
+    DateTime? timestamp,
+    bool? isEntry,
+  }) {
+    return WorkEntryModel(
+      id: id ?? this.id,
+      timestamp: timestamp ?? this.timestamp,
+      isEntry: isEntry ?? this.isEntry,
+    );
+  }
+}
+
+```
+
+./lib/data/data_transfer/data_importer.dart:
+```
+import 'dart:io';
+import 'package:csv/csv.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:timetrailblazer/data/database_helper.dart';
+import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+
+class DataImporter {
+  /// Importa i dati delle voci di lavoro da un file CSV nel database.
+  ///
+  /// Questa funzione utilizza il pacchetto `file_picker` per consentire all'utente
+  /// di selezionare un file CSV dal dispositivo. Legge il contenuto del file CSV
+  /// utilizzando la libreria `csv` e converte i dati in una lista di oggetti
+  /// `WorkEntry`. Infine, inserisce le voci di lavoro nel database utilizzando
+  /// il metodo `insertWorkEntry` della classe `DatabaseHelper`.
+  static Future<void> importFromCsv() async {
+    final databaseHelper = DatabaseHelper();
+
+
+    // Seleziona il file CSV utilizzando il file picker
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
+
+    if (result != null) {
+      final file = File(result.files.single.path!);
+      final csvString = await file.readAsString();
+
+      // Converti il contenuto CSV in una lista di mappe
+      final csvList = const CsvToListConverter().convert(csvString);
+
+      // Converti la lista di mappe in una lista di oggetti WorkEntry
+      final workEntries = csvList.skip(1).map((row) {
+        return WorkEntryModel(
+          id: row[0],
+          timestamp: DateTime.fromMillisecondsSinceEpoch(row[1]),
+          isEntry: row[2] == 1,
+        );
+      }).toList();
+
+      // Inserisci le voci di lavoro nel database
+      for (final entry in workEntries) {
+        final entryDTO = WorkEntryMapper().toDTO(entry);
+        await databaseHelper.insertWorkEntry(entryDTO);
+      }
+    }
+  }
+}
+
+```
+
+./lib/data/data_transfer/data_exporter.dart:
+```
+import 'dart:io';
+import 'package:csv/csv.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:timetrailblazer/data/database_helper.dart';
+
+class DataExporter {
+  /// Esporta i dati delle voci di lavoro dal database in un file CSV.
+  ///
+  /// Questa funzione recupera tutte le voci di lavoro dal database utilizzando il
+  /// metodo `getAllWorkEntries` della classe `DatabaseHelper`. Converte le voci
+  /// in un formato CSV utilizzando la libreria `csv`. Infine, salva il file CSV
+  /// nella directory dei documenti dell'app utilizzando il pacchetto `path_provider`.
+  ///
+  /// Restituisce il percorso del file CSV esportato.
+  static Future<String> exportToCsv() async {
+    final databaseHelper = DatabaseHelper();
+    final workEntries = await databaseHelper.getAllWorkEntries();
+
+    // Converti le voci di lavoro in un formato CSV
+    final  csvData = workEntries
+        .map((entry) => [
+              entry.id,
+              entry.timestamp,
+              entry.isEntry,
+            ])
+        .toList ();
+
+    // // Aggiungi l'intestazione al file CSV
+    // csvData.insert(0, ['ID', 'Timestamp', 'IsEntry']);
+
+    // Crea il contenuto CSV
+    final csvString = const ListToCsvConverter().convert(csvData);
+
+    // Ottieni il percorso della directory dei documenti dell'app
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.absolute.path;
+
+    // Crea il file CSV nella directory dei documenti
+    final file =
+        File('$path/work_entries_${DateTime.now().toIso8601String()}.csv');
+    await file.writeAsString(csvString);
+
+    return file.path;
+  }
+}
+
+```
+
+./lib/di/mappers.dart:
+```
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
+import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
+
+/// Restituisce una lista di `SingleChildWidget` per l'iniezione dei mapper nell'albero dei widget.
+///
+/// Questa funzione configura i mapper necessari per l'applicazione, creandoli quando necessario.
+/// I mapper sono responsabili della mappatura tra le entità di dominio e gli oggetti di trasferimento dati (DTO).
+/// Utilizza l'approccio "lazy" per creare i mapper solo quando vengono effettivamente richiesti.
+///
+/// Returns:
+/// - Una lista di `SingleChildWidget` contenente i mapper configurati.
+List<SingleChildWidget> getMappers() {
+  return [
+    // Fornisce il `WorkEntryMapper` all'albero dei widget, creandolo quando necessario.
+    // Il `WorkEntryMapper` è responsabile della mappatura tra `WorkEntry` e `WorkEntryDTO`.
+    // Utilizza l'approccio "lazy" per creare il mapper solo quando viene effettivamente richiesto.
+    Provider<WorkEntryMapper>(
+      create: (_) => WorkEntryMapper(),
+      lazy: true,
+    ),
+  ];
+}
+
+```
+
+./lib/di/providers.dart:
+```
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
+import 'package:timetrailblazer/data/database_helper.dart';
+import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
+
+/// Restituisce una lista di `SingleChildWidget` per l'iniezione dei provider nell'albero dei widget.
+///
+/// Questa funzione configura i provider necessari per l'applicazione, creandoli con le loro dipendenze.
+/// I provider sono responsabili dell'accesso ai dati e della loro fornitura ai livelli superiori dell'applicazione.
+/// Utilizza l'approccio "lazy" per creare i provider solo quando vengono effettivamente richiesti.
+///
+/// Parameters:
+/// - `databaseHelper`: L'istanza di `DatabaseHelper` necessaria per creare i provider.
+///
+/// Returns:
+/// - Una lista di `SingleChildWidget` contenente i provider configurati.
+List<SingleChildWidget> getProviders(DatabaseHelper databaseHelper) {
+  return [
+    // Fornisce il `WorkEntriesProvider` all'albero dei widget, creandolo con il `DatabaseHelper`.
+    // Il `WorkEntriesProvider` è responsabile dell'accesso ai dati delle voci di lavoro tramite il database.
+    // Utilizza l'approccio "lazy" per creare il provider solo quando viene effettivamente richiesto.
+    Provider<WorkEntryProvider>(
+      create: (_) => WorkEntryProvider(databaseHelper),
+      lazy: true,
+    ),
+  ];
+}
+
+```
+
+./lib/di/repositories.dart:
+```
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
+import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+
+/// Restituisce una lista di `RepositoryProvider` per l'iniezione dei repository nell'albero dei widget.
+///
+/// Questa funzione configura i repository necessari per l'applicazione, creandoli con le loro dipendenze.
+/// I repository sono responsabili dell'accesso ai dati e della loro gestione, fungendo da intermediari tra i provider e i BLoC.
+/// Utilizza l'approccio "lazy" per creare i repository solo quando vengono effettivamente richiesti.
+///
+/// Returns:
+/// - Una lista di `RepositoryProvider` contenente i repository configurati.
+List<RepositoryProvider<dynamic>> getRepositories() {
+  return [
+    // Fornisce il `WorkEntriesRepository` all'albero dei widget, creandolo con il `WorkEntriesProvider` e il `WorkEntryMapper`.
+    // Il `WorkEntriesRepository` è responsabile dell'accesso ai dati delle voci di lavoro e della loro gestione.
+    // Utilizza l'approccio "lazy" per creare il repository solo quando viene effettivamente richiesto.
+    RepositoryProvider<WorkEntryRepository>(
+      create: (context) => WorkEntryRepository(
+        context.read<WorkEntryProvider>(),
+        context.read<WorkEntryMapper>(),
+      ),
+      lazy: true,
+    ),
+  ];
+}
+
+```
+
+./lib/di/bloc_providers.dart:
+```
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
+import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
+
+/// Restituisce una lista di `BlocProvider` per l'iniezione dei BLoC nell'albero dei widget.
+///
+/// Questa funzione configura i BLoC necessari per l'applicazione, creandoli con le loro dipendenze.
+/// I BLoC sono responsabili della gestione dello stato e della logica di business dell'applicazione.
+/// Utilizza l'approccio "lazy" per creare i BLoC solo quando vengono effettivamente richiesti.
+///
+/// Returns:
+/// - Una lista di `BlocProvider` contenente i BLoC configurati.
+List<BlocProvider<StateStreamableSource<Object?>>> getBlocProviders() {
+  return [
+    // Fornisce il `HomeBloc` all'albero dei widget, creandolo senza dipendenze esterne.
+    // Il `HomeBloc` è responsabile della gestione dello stato relativo alla schermata principale dell'applicazione.
+    // Utilizza l'approccio "lazy" per creare il BLoC solo quando viene effettivamente richiesto.
+    BlocProvider<HomeBloc>(
+      create: (context) => HomeBloc(
+        workEntryRepository: context.read<WorkEntryRepository>(),
+      ),
+      lazy: true,
+    ),
+
+    // Fornisce il `WorkEntriesBloc` all'albero dei widget, creandolo con il `WorkEntriesRepository`.
+    // Il `WorkEntriesBloc` è responsabile della gestione dello stato relativo alle voci di lavoro.
+    // Utilizza l'approccio "lazy" per creare il BLoC solo quando viene effettivamente richiesto.
+
+    BlocProvider<WorkEntriesBloc>(
+      create: (context) => WorkEntriesBloc(
+        workEntryRepository: context.read<WorkEntryRepository>(),
+      ),
+      lazy: true,
+    ),
+
+    BlocProvider<WorkStatsBloc>(
+      create: (context) => WorkStatsBloc(
+        context.read<WorkEntryRepository>(),
+      ),
+      lazy: true,
+    ),
+  ];
+}
+
+```
+
+./lib/app_initializer.dart:
+```
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:pine/pine.dart';
+import 'package:provider/provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:timetrailblazer/app.dart';
+import 'package:timetrailblazer/data/database_helper.dart';
+import 'package:timetrailblazer/data/models/date_range_model.dart';
+import 'package:timetrailblazer/di/bloc_providers.dart';
+import 'package:timetrailblazer/di/mappers.dart';
+import 'package:timetrailblazer/di/providers.dart';
+import 'package:timetrailblazer/di/repositories.dart';
+
+/// La classe `AppInitializer` contiene la logica di inizializzazione dell'app.
+///
+/// Questa classe si occupa di inizializzare il database, configurare le dipendenze
+/// e restituire il widget root dell'applicazione.
+class AppInitializer {
+  /// Inizializza l'applicazione.
+  ///
+  /// Questo metodo esegue le seguenti operazioni:
+  /// 1. Assicura che i binding di Flutter siano inizializzati.
+  /// 2. Inizializza la formattazione delle date per la lingua italiana.
+  /// 3. Verifica se l'app è in esecuzione su Windows o Linux e inizializza FFI se necessario.
+  /// 4. Crea un'istanza di `DatabaseHelper` per gestire il database dell'app.
+  /// 5. Utilizza un `FutureBuilder` per inizializzare il database e configurare le dipendenze.
+  /// 6. In caso di errore durante l'inizializzazione del database, mostra un messaggio di errore.
+  /// 7. Altrimenti, restituisce il widget root dell'app con le dipendenze configurate.
+  static Future<Widget> initialize() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('it_IT', null);
+    if (Platform.isWindows || Platform.isLinux) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
+    final databaseHelper = DatabaseHelper();
+
+    return FutureBuilder(
+      future: databaseHelper.database,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Text(
+                  'Errore durante l\'inizializzazione del database: ${snapshot.error}. Si prega di verificare che il dispositivo abbia spazio sufficiente e che l\'applicazione abbia i permessi necessari per creare il database. Se il problema persiste, contattare l\'assistenza.',
+                ),
+              ),
+            ),
+          );
+        } else {
+          return DependencyInjectorHelper(
+            mappers: getMappers(),
+            providers: getProviders(databaseHelper),
+            repositories: getRepositories(),
+            blocs: getBlocProviders(),
+            child: ChangeNotifierProvider(
+              create: (context) => DateRangeModel(null, null),
+              child: const App(),
+            ),
+          );
+        }
+      },
+    );
+  }
+}
+
+```
+
+./lib/utils/error_handling.dart:
+```
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:timetrailblazer/config/constants_string.dart';
+
+class ErrorHandling {
+  static void handleError(Object error, Function(String) showErrorCallback) {
+    if (error is TimeoutException) {
+      showErrorCallback('Timeout Error');
+    } else if (error is FormatException) {
+      showErrorCallback('Format Error');
+    } else {
+      showErrorCallback(AppErrorMessages.unexpectedErrorMessage(error.toString()));
+    }
+  }
+  
+  static void showErrorDialog(String title, String message, Function(String, String) showDialogCallback) {
+    showDialogCallback(title, message);
+  }
+
+
+  static void showErrorSnackBar(BuildContext context, String message) {
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+}
+```
+
