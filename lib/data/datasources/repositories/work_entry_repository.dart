@@ -1,4 +1,124 @@
-import 'dart:async';
+import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
+import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
+import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_state.dart';
+
+/// Classe che rappresenta il repository per la gestione delle voci di lavoro.
+class WorkEntryRepository {
+  /// Istanza del provider delle voci di lavoro.
+  final WorkEntryProvider _workEntryProvider;
+
+  /// Istanza del mapper delle voci di lavoro.
+  final WorkEntryMapper _workEntryMapper;
+
+  /// Costruttore della classe `WorkEntryRepository`.
+  ///
+  /// Accetta le istanze del provider e del mapper delle voci di lavoro come parametri.
+  WorkEntryRepository(this._workEntryProvider, this._workEntryMapper);
+
+  /// Metodo per l'inserimento di una nuova voce di lavoro.
+  Future<void> insertWorkEntry(WorkEntryModel workEntry) async {
+    final workEntryDTO = _workEntryMapper.toDTO(workEntry);
+    await _workEntryProvider.insertWorkEntry(workEntryDTO);
+  }
+
+  /// Metodo per l'aggiornamento di una voce di lavoro esistente.
+  Future<void> updateWorkEntry(WorkEntryModel workEntry) async {
+    final workEntryDTO = _workEntryMapper.toDTO(workEntry);
+    await _workEntryProvider.updateWorkEntry(workEntryDTO);
+  }
+
+  /// Metodo per il recupero dell'ultima voce di lavoro inserita.
+  Future<WorkEntryModel?> getLastWorkEntry() async {
+    final workEntryDTO = await _workEntryProvider.getLastWorkEntry();
+    return workEntryDTO != null ? _workEntryMapper.fromDTO(workEntryDTO) : null;
+  }
+
+  /// Metodo per il recupero delle voci di lavoro per i giorni specificati.
+  Future<List<DayWorkEntriesModel>> getWorkEntriesByDays(List<DateTime> days, DateTime endDate) async {
+    final dayWorkEntriesList = <DayWorkEntriesModel>[];
+
+    for (final day in days) {
+      final startOfDay = DateTime(day.year, day.month, day.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
+
+      final workEntryDTOs = await _workEntryProvider.getWorkEntriesByDateRange(startOfDay, endOfDay);
+      final workEntries = workEntryDTOs.map(_workEntryMapper.fromDTO).toList();
+
+      dayWorkEntriesList.add(
+        DayWorkEntriesModel(
+          day: day,
+          workEntries: workEntries.isNotEmpty ? workEntries : null,
+        ),
+      );
+    }
+
+    return dayWorkEntriesList;
+  }
+
+  /// Metodo per il reset del database cancellando tutte le voci di lavoro.
+  Future<void> resetDatabase() async {
+    await _workEntryProvider.resetDatabase();
+  }
+
+  /// Metodo per la cancellazione di una singola voce di lavoro dal database in base all'ID.
+  Future<void> deleteWorkEntryById(int id) async {
+    await _workEntryProvider.deleteWorkEntryById(id);
+  }
+
+  /// Metodo per il recupero di una voce di lavoro dal database in base all'ID.
+  Future<WorkEntryModel?> getWorkEntryById(int id) async {
+    final workEntryDTO = await _workEntryProvider.getWorkEntryById(id);
+    return workEntryDTO != null ? _workEntryMapper.fromDTO(workEntryDTO) : null;
+  }
+
+  /// Metodo per il salvataggio di una voce di lavoro nel database.
+  Future<void> saveWorkEntry(WorkEntryModel workEntry) async {
+    if (workEntry.id != null) {
+      await updateWorkEntry(workEntry);
+    } else {
+      await insertWorkEntry(workEntry);
+    }
+  }
+
+  /// Metodo per il recupero delle statistiche di lavoro giornaliere.
+  Future<List<DailyWorkStats>> getDailyWorkStats() async {
+    final workStatsDTOs = await _workEntryProvider.getDailyWorkStats();
+    return workStatsDTOs.map((dto) => DailyWorkStats(
+          date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+          workedHours: Duration(seconds: dto.workedSeconds),
+          overtimeHours: Duration(seconds: dto.overtimeSeconds),
+        )).toList();
+  }
+
+  /// Metodo per il recupero delle statistiche di lavoro mensili.
+  Future<List<MonthlyWorkStats>> getMonthlyWorkStats() async {
+    final workStatsDTOs = await _workEntryProvider.getMonthlyWorkStats();
+    return workStatsDTOs.map((dto) => MonthlyWorkStats(
+month: DateTime(dto.year!, dto.month!),
+workedHours: Duration(seconds: dto.workedSeconds),
+overtimeHours: Duration(seconds: dto.overtimeSeconds),
+)).toList();
+}
+/// Metodo per il recupero delle statistiche di lavoro per un intervallo di date selezionato.
+Future<List<DailyWorkStats>> getSelectedRangeWorkStats({
+required DateTime startDate,
+required DateTime endDate,
+}) async {
+final workStatsDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
+startDate: startDate,
+endDate: endDate,
+);
+return workStatsDTOs.map((dto) => DailyWorkStats(
+date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+workedHours: Duration(seconds: dto.workedSeconds),
+overtimeHours: Duration(seconds: dto.overtimeSeconds),
+)).toList();
+}
+}
+/**import 'dart:async';
 
 import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
 import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
@@ -193,3 +313,4 @@ class WorkEntryRepository {
         .toList();
   }
 }
+ */

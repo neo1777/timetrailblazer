@@ -5,8 +5,7 @@ import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:file_selector/file_selector.dart' as selector;
 
 import 'package:path_provider/path_provider.dart';
-import 'package:timetrailblazer/data/database_helper.dart';
-import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
+import 'package:timetrailblazer/data/database/database.dart';
 
 class DataExporter {
   /// Esporta i dati delle voci di lavoro dal database in un file CSV.
@@ -21,11 +20,10 @@ class DataExporter {
   ///
   /// Restituisce il percorso del file.
   static Future<String?> exportToCsv() async {
-    final databaseHelper = DatabaseHelper();
-    WorkEntryMapper workEntryMapper = WorkEntryMapper();
+    final databaseHelper = AppDatabase();
     final workEntriesDto = await databaseHelper.getAllWorkEntries();
     final workEntries = List.generate(workEntriesDto.length,
-        (index) => workEntryMapper.fromDTO(workEntriesDto[index]));
+        (index) => workEntriesDto[index]);
     // Converti le voci di lavoro in un formato CSV
     final csvData = workEntries
         .map((entry) => [

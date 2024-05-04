@@ -2,9 +2,8 @@ import 'dart:io';
 
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
-import 'package:timetrailblazer/data/database_helper.dart';
+import 'package:timetrailblazer/data/database/database.dart';
 import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
 
@@ -20,42 +19,31 @@ class DataImporter {
   /// e converte i dati in una lista di oggetti `WorkEntry`. Infine, inserisce le voci di lavoro nel
   /// database utilizzando il metodo `insertWorkEntry` della classe `DatabaseHelper`.
   static Future<void> importFromCsv() async {
-    final databaseHelper = DatabaseHelper();
+    final databaseHelper = AppDatabase();
 
     String? csvString;
 
-    if (kIsWeb) {
-      // Per il web, utilizza file_picker per selezionare il file CSV
+    if (Platform.isAndroid || Platform.isIOS) {
+      // Per Android e iOS, utilizza FlutterFileDialog per selezionare il file CSV
+      const params = OpenFileDialogParams(
+        dialogType: OpenFileDialogType.document,
+        sourceType: SourceType.photoLibrary,
+        fileExtensionsFilter: ['csv'],
+      );
+      final filePath = await FlutterFileDialog.pickFile(params: params);
+      if (filePath != null) {
+        final file = File(filePath);
+        csvString = await file.readAsString();
+      }
+    } else {
+      // Per Linux, macOS e Windows, utilizza file_picker per selezionare il file CSV
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
       );
       if (result != null) {
-        csvString = String.fromCharCodes(result.files.single.bytes!);
-      }
-    } else {
-      if (Platform.isAndroid || Platform.isIOS) {
-        // Per Android e iOS, utilizza FlutterFileDialog per selezionare il file CSV
-        const params = OpenFileDialogParams(
-          dialogType: OpenFileDialogType.document,
-          sourceType: SourceType.photoLibrary,
-          fileExtensionsFilter: ['csv'],
-        );
-        final filePath = await FlutterFileDialog.pickFile(params: params);
-        if (filePath != null) {
-          final file = File(filePath);
-          csvString = await file.readAsString();
-        }
-      } else {
-        // Per Linux, macOS e Windows, utilizza file_picker per selezionare il file CSV
-        final result = await FilePicker.platform.pickFiles(
-          type: FileType.custom,
-          allowedExtensions: ['csv'],
-        );
-        if (result != null) {
-          final file = File(result.files.single.path!);
-          csvString = await file.readAsString();
-        }
+        final file = File(result.files.single.path!);
+        csvString = await file.readAsString();
       }
     }
 
@@ -78,7 +66,7 @@ class DataImporter {
       // Inserisci le voci di lavoro nel database
       for (final entry in workEntries) {
         final entryDTO = WorkEntryMapper().toDTO(entry);
-        await databaseHelper.insertWorkEntry(entryDTO);
+        await databaseHelper.insertWorkEntry(entryDTO.toCompanion());
       }
     }
   }

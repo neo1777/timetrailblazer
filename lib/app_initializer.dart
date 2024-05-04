@@ -1,12 +1,11 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pine/pine.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:timetrailblazer/app.dart';
-import 'package:timetrailblazer/data/database_helper.dart';
+import 'package:timetrailblazer/data/database/database.dart';
 import 'package:timetrailblazer/data/models/date_range_model.dart';
 import 'package:timetrailblazer/di/bloc_providers.dart';
 import 'package:timetrailblazer/di/mappers.dart';
@@ -24,7 +23,7 @@ class AppInitializer {
   /// 1. Assicura che i binding di Flutter siano inizializzati.
   /// 2. Inizializza la formattazione delle date per la lingua italiana.
   /// 3. Verifica se l'app è in esecuzione su Windows o Linux e inizializza FFI se necessario.
-  /// 4. Crea un'istanza di `DatabaseHelper` per gestire il database dell'app.
+  /// 4. Crea un'istanza di `AppDatabase` per gestire il database dell'app.
   /// 5. Utilizza un `FutureBuilder` per inizializzare il database e configurare le dipendenze.
   /// 6. In caso di errore durante l'inizializzazione del database, mostra un messaggio di errore.
   /// 7. Altrimenti, restituisce il widget root dell'app con le dipendenze configurate.
@@ -36,10 +35,10 @@ class AppInitializer {
       databaseFactory = databaseFactoryFfi;
     }
 
-    final databaseHelper = DatabaseHelper();
+    final databaseHelper = AppDatabase();
 
     return FutureBuilder(
-      future: databaseHelper.database,
+      future: databaseHelper.getAllWorkEntries(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return MaterialApp(
