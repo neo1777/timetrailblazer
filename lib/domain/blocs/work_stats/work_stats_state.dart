@@ -1,16 +1,17 @@
-part of 'work_stats_bloc.dart';
+import 'package:equatable/equatable.dart';
 
+/// La classe base astratta per gli stati del BLoC `WorkStatsBloc`.
 abstract class WorkStatsState extends Equatable {
   const WorkStatsState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-/// Stato di caricamento delle statistiche di lavoro.
+/// Lo stato che indica che le statistiche di lavoro sono in caricamento.
 class WorkStatsLoading extends WorkStatsState {}
 
-/// Stato di caricamento completato delle statistiche di lavoro.
+/// Lo stato che indica che le statistiche di lavoro sono state caricate con successo.
 class WorkStatsLoaded extends WorkStatsState {
   /// Lista delle statistiche giornaliere.
   final List<DailyWorkStats> dailyStats;
@@ -24,7 +25,10 @@ class WorkStatsLoaded extends WorkStatsState {
   /// Visualizzazione delle statistiche selezionata.
   final StatsView selectedView;
 
+  /// Data di inizio dell'intervallo selezionato.
   final DateTime selectedStartDate;
+
+  /// Data di fine dell'intervallo selezionato.
   final DateTime selectedEndDate;
 
   const WorkStatsLoaded({
@@ -37,7 +41,7 @@ class WorkStatsLoaded extends WorkStatsState {
   });
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         dailyStats,
         monthlyStats,
         selectedRangeStats,
@@ -47,7 +51,7 @@ class WorkStatsLoaded extends WorkStatsState {
       ];
 }
 
-/// Stato di errore durante il caricamento delle statistiche di lavoro.
+/// Lo stato che indica un errore durante il caricamento delle statistiche di lavoro.
 class WorkStatsError extends WorkStatsState {
   /// Messaggio di errore.
   final String message;
@@ -55,7 +59,7 @@ class WorkStatsError extends WorkStatsState {
   const WorkStatsError(this.message);
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
 
 /// Enum per le possibili visualizzazioni delle statistiche.
@@ -76,11 +80,10 @@ class DailyWorkStats {
   /// Durata delle ore di straordinario.
   final Duration overtimeHours;
 
-  DailyWorkStats({
-    required this.date,
-    required this.workedHours,
-    required this.overtimeHours,
-  });
+  DailyWorkStats(
+      {required this.date,
+      required this.workedHours,
+      required this.overtimeHours});
 }
 
 /// Classe che rappresenta le statistiche di lavoro mensili.
@@ -94,9 +97,8 @@ class MonthlyWorkStats {
   /// Durata delle ore di straordinario.
   final Duration overtimeHours;
 
-  MonthlyWorkStats({
-    required this.month,
-    required this.workedHours,
-    required this.overtimeHours,
-  });
+  MonthlyWorkStats(
+      {required this.month,
+      required this.workedHours,
+      required this.overtimeHours});
 }

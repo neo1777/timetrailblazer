@@ -6,6 +6,8 @@ import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
 import 'package:timetrailblazer/data/models/date_range_model.dart';
 import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_event.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_state.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';

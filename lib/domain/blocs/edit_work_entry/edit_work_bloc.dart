@@ -1,20 +1,9 @@
-import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
-import 'package:timetrailblazer/data/models/work_entry_model.dart';
+import 'package:timetrailblazer/domain/blocs/edit_work_entry/edit_work_event.dart';
+import 'package:timetrailblazer/domain/blocs/edit_work_entry/edit_work_state.dart';
 
-part 'edit_work_event.dart';
-part 'edit_work_state.dart';
-
-/// La classe `EditWorkBloc` è un BLoC (Business Logic Component) che gestisce la logica di business
-/// per la modifica di una voce di lavoro.
-///
-/// Questo BLoC risponde agli eventi di modifica della voce di lavoro, come il caricamento dei dati iniziali,
-/// la modifica della data e dell'ora, e il salvataggio delle modifiche.
-///
-/// Gli stati emessi dal BLoC rappresentano lo stato corrente della modifica della voce di lavoro,
-/// come lo stato di caricamento, lo stato con i dati modificati e lo stato di salvataggio completato.
+/// La classe `EditWorkBloc` è un BLoC che gestisce la logica di business per la modifica di una voce di lavoro.
 class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
   /// Il repository delle voci di lavoro utilizzato per accedere ai dati.
   final WorkEntryRepository workEntryRepository;
@@ -22,7 +11,6 @@ class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
   /// Costruttore della classe `EditWorkBloc`.
   ///
   /// Accetta lo stato iniziale del BLoC e il repository delle voci di lavoro come parametri.
-  ///
   /// Registra i gestori degli eventi utilizzando il metodo `on` di `Bloc`.
   EditWorkBloc(super.initialState, {required this.workEntryRepository}) {
     on<LoadWorkEntry>(_onLoadWorkEntry);
@@ -42,24 +30,24 @@ class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
   /// Se la voce di lavoro non viene trovata, emette lo stato `EditWorkError` con un messaggio di errore.
   ///
   /// In caso di errore durante il caricamento, emette lo stato `EditWorkError` con il messaggio di errore.
-  void _onLoadWorkEntry(
+  Future<void> _onLoadWorkEntry(
       LoadWorkEntry event, Emitter<EditWorkState> emit) async {
     try {
       emit(EditWorkLoading());
-      var entry = await workEntryRepository.getWorkEntryById(event.entryId);
+      final entry = await workEntryRepository.getWorkEntryById(event.entryId);
       if (entry != null) {
         emit(EditWorkDataChanged(workEntry: entry, isSaveEnabled: false));
       } else {
-        emit(EditWorkError(message: 'Entry not found'));
+        emit(const EditWorkError(message: 'Entry not found'));
       }
     } catch (e) {
       emit(EditWorkError(message: e.toString()));
     }
   }
 
-  /// Gestore dell'evento `DateChanged`.
+  /// Gestore dell'evento `UpdateDate`.
   ///
-  /// Quando viene ricevuto l'evento `DateChanged`, questo metodo aggiorna la data della voce di lavoro
+  /// Quando viene ricevuto l'evento `UpdateDate`, questo metodo aggiorna la data della voce di lavoro
   /// nello stato corrente `EditWorkDataChanged`.
   ///
   /// Crea una copia della voce di lavoro corrente con la data aggiornata e emette un nuovo stato
@@ -80,9 +68,9 @@ class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
     }
   }
 
-  /// Gestore dell'evento `TimeChanged`.
+  /// Gestore dell'evento `UpdateTime`.
   ///
-  /// Quando viene ricevuto l'evento `TimeChanged`, questo metodo aggiorna l'ora della voce di lavoro
+  /// Quando viene ricevuto l'evento `UpdateTime`, questo metodo aggiorna l'ora della voce di lavoro
   /// nello stato corrente `EditWorkDataChanged`.
   ///
   /// Crea una copia della voce di lavoro corrente con l'ora aggiornata e emette un nuovo stato
@@ -113,7 +101,7 @@ class EditWorkBloc extends Bloc<EditWorkEvent, EditWorkState> {
   /// Se il salvataggio ha successo, emette lo stato `EditWorkSaved`.
   ///
   /// In caso di errore durante il salvataggio, emette lo stato `EditWorkError` con il messaggio di errore.
-  void _onSaveWorkEntry(
+  Future<void> _onSaveWorkEntry(
       SaveWorkEntry event, Emitter<EditWorkState> emit) async {
     try {
       emit(EditWorkLoading());

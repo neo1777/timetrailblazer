@@ -4,7 +4,7 @@ import 'package:timetrailblazer/data/datasources/mappers/work_entry_mapper.dart'
 import 'package:timetrailblazer/data/datasources/providers/work_entry_provider.dart';
 import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
 import 'package:timetrailblazer/data/models/work_entry_model.dart';
-import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/work_stats/work_stats_state.dart';
 
 /// La classe `WorkEntryRepository` rappresenta il repository per la gestione delle voci di lavoro.
 class WorkEntryRepository {
@@ -13,8 +13,6 @@ class WorkEntryRepository {
 
   /// L'istanza di `WorkEntryMapper` utilizzata per la mappatura tra `WorkEntryDTO` e `WorkEntry`.
   final WorkEntryMapper _workEntryMapper;
-
-
 
   /// Costruttore della classe `WorkEntryRepository`.
   ///
@@ -28,7 +26,9 @@ class WorkEntryRepository {
   /// Accetta un parametro [workEntry] di tipo `WorkEntry` che rappresenta la voce di lavoro da inserire.
   ///
   /// Restituisce un `Future` che si completa quando l'inserimento è terminato.
-  Future<void> insertWorkEntry(WorkEntryModel workEntry) async {
+  Future<void> insertWorkEntry(
+    WorkEntryModel workEntry,
+  ) async {
     final workEntryDTO = _workEntryMapper.toDTO(workEntry);
     await _workEntryProvider.insertWorkEntry(workEntryDTO);
   }
@@ -143,47 +143,53 @@ class WorkEntryRepository {
   /// Restituisce un `Future` che si completa con una lista di oggetti `DailyWorkStats`
   /// rappresentanti le statistiche di lavoro giornaliere.
   Future<List<DailyWorkStats>> getDailyWorkStats() async {
-  final workStatsDTOs = await _workEntryProvider.getDailyWorkStats();
-  return workStatsDTOs.map((dto) => DailyWorkStats(
-    date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
-    workedHours: Duration(seconds: dto.workedSeconds),
-    overtimeHours: Duration(seconds: dto.overtimeSeconds),
-  )).toList();
-}
+    final workStatsDTOs = await _workEntryProvider.getDailyWorkStats();
+    return workStatsDTOs
+        .map((dto) => DailyWorkStats(
+              date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+              workedHours: Duration(seconds: dto.workedSeconds),
+              overtimeHours: Duration(seconds: dto.overtimeSeconds),
+            ))
+        .toList();
+  }
 
   /// Recupera le statistiche di lavoro mensili.
   ///
   /// Restituisce un `Future` che si completa con una lista di oggetti `MonthlyWorkStats`
   /// rappresentanti le statistiche di lavoro mensili.
   Future<List<MonthlyWorkStats>> getMonthlyWorkStats() async {
-  final workStatsDTOs = await _workEntryProvider.getMonthlyWorkStats();
-  return workStatsDTOs.map((dto) => MonthlyWorkStats(
-    month: DateTime(dto.year!, dto.month!),
-    workedHours: Duration(seconds: dto.workedSeconds),
-    overtimeHours: Duration(seconds: dto.overtimeSeconds),
-  )).toList();
-}
+    final workStatsDTOs = await _workEntryProvider.getMonthlyWorkStats();
+    return workStatsDTOs
+        .map((dto) => MonthlyWorkStats(
+              month: DateTime(dto.year!, dto.month!),
+              workedHours: Duration(seconds: dto.workedSeconds),
+              overtimeHours: Duration(seconds: dto.overtimeSeconds),
+            ))
+        .toList();
+  }
 
-/// Recupera le statistiche di lavoro per l'intervallo di date selezionato.
-///
-/// Accetta i seguenti parametri:
-/// - [startDate]: la data di inizio dell'intervallo.
-/// - [endDate]: la data di fine dell'intervallo.
-///
-/// Restituisce un `Future` che si completa con una lista di oggetti `DailyWorkStats`
-/// rappresentanti le statistiche di lavoro per l'intervallo di date selezionato.
-Future<List<DailyWorkStats>> getSelectedRangeWorkStats({
-  required DateTime startDate,
-  required DateTime endDate,
-}) async {
-  final workStatsDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
-    startDate: startDate,
-    endDate: endDate,
-  );
-  return workStatsDTOs.map((dto) => DailyWorkStats(
-    date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
-    workedHours: Duration(seconds: dto.workedSeconds),
-    overtimeHours: Duration(seconds: dto.overtimeSeconds),
-  )).toList();
-}
+  /// Recupera le statistiche di lavoro per l'intervallo di date selezionato.
+  ///
+  /// Accetta i seguenti parametri:
+  /// - [startDate]: la data di inizio dell'intervallo.
+  /// - [endDate]: la data di fine dell'intervallo.
+  ///
+  /// Restituisce un `Future` che si completa con una lista di oggetti `DailyWorkStats`
+  /// rappresentanti le statistiche di lavoro per l'intervallo di date selezionato.
+  Future<List<DailyWorkStats>> getSelectedRangeWorkStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final workStatsDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
+      startDate: startDate,
+      endDate: endDate,
+    );
+    return workStatsDTOs
+        .map((dto) => DailyWorkStats(
+              date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+              workedHours: Duration(seconds: dto.workedSeconds),
+              overtimeHours: Duration(seconds: dto.overtimeSeconds),
+            ))
+        .toList();
+  }
 }

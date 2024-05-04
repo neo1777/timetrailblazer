@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
+import 'package:timetrailblazer/domain/blocs/home_page/home_event.dart';
+import 'package:timetrailblazer/domain/blocs/home_page/home_state.dart';
 import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';

@@ -1,31 +1,30 @@
-part of 'work_stats_bloc.dart';
+import 'package:equatable/equatable.dart';
 
+/// La classe base astratta per gli eventi del BLoC `WorkStatsBloc`.
 abstract class WorkStatsEvent extends Equatable {
   const WorkStatsEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-/// Evento per mostrare le statistiche giornaliere.
+/// L'evento che richiede di mostrare le statistiche giornaliere.
 class ShowDailyStats extends WorkStatsEvent {}
 
-/// Evento per mostrare le statistiche mensili.
+/// L'evento che richiede di mostrare le statistiche mensili.
 class ShowMonthlyStats extends WorkStatsEvent {}
 
-/// Evento per mostrare le statistiche per l'intervallo selezionato.
+/// L'evento che richiede di mostrare le statistiche per l'intervallo selezionato.
 class ShowSelectedRangeStats extends WorkStatsEvent {
+  /// La data di inizio dell'intervallo selezionato.
   final DateTime startDate;
+
+  /// La data di fine dell'intervallo selezionato.
   final DateTime endDate;
 
-  const ShowSelectedRangeStats({
-    required this.startDate,
-    required this.endDate,
-  });
+  const ShowSelectedRangeStats(
+      {required this.startDate, required this.endDate});
 
   @override
-  List<Object> get props => [startDate, endDate];
+  List<Object?> get props => [startDate, endDate];
 }
-
-
-

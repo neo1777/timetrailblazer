@@ -1,37 +1,21 @@
-part of 'edit_work_bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
 
 /// La classe base astratta per gli stati del BLoC `EditWorkBloc`.
-///
-/// Tutti gli stati del BLoC devono estendere questa classe.
-///
-/// Implementa `Equatable` per consentire il confronto tra gli stati.
 abstract class EditWorkState extends Equatable {
-  /// Restituisce una lista di oggetti che rappresentano le proprietà dell'oggetto stato.
-  ///
-  /// Questa lista viene utilizzata da `Equatable` per determinare l'uguaglianza tra gli stati.
-  ///
-  /// Per impostazione predefinita, restituisce una lista vuota.
+  const EditWorkState();
+
   @override
   List<Object?> get props => [];
 }
 
-/// Stato iniziale del BLoC `EditWorkBloc`.
-///
-/// Questo stato viene emesso quando il BLoC viene inizializzato.
+/// Lo stato iniziale del BLoC `EditWorkBloc`.
 class EditWorkInitial extends EditWorkState {}
 
-/// Stato che indica che è in corso il caricamento dei dati della voce di lavoro.
-///
-/// Questo stato viene emesso quando il BLoC sta caricando i dati della voce di lavoro dal repository.
+/// Lo stato che indica che è in corso il caricamento dei dati di una voce di lavoro.
 class EditWorkLoading extends EditWorkState {}
 
-/// Stato che rappresenta i dati modificati della voce di lavoro.
-///
-/// Questo stato viene emesso quando i dati della voce di lavoro sono stati modificati,
-/// ad esempio quando viene modificata la data o l'ora.
-///
-/// Contiene la voce di lavoro modificata e un flag `isSaveEnabled` che indica se il pulsante
-/// di salvataggio deve essere abilitato o meno.
+/// Lo stato che rappresenta i dati modificati di una voce di lavoro.
 class EditWorkDataChanged extends EditWorkState {
   /// La voce di lavoro modificata.
   final WorkEntryModel workEntry;
@@ -39,47 +23,23 @@ class EditWorkDataChanged extends EditWorkState {
   /// Flag che indica se il pulsante di salvataggio deve essere abilitato.
   final bool isSaveEnabled;
 
-  /// Costruttore della classe `EditWorkDataChanged`.
-  ///
-  /// Accetta la voce di lavoro modificata come parametro obbligatorio e un flag opzionale
-  /// `isSaveEnabled` che indica se il pulsante di salvataggio deve essere abilitato.
-  EditWorkDataChanged({required this.workEntry, this.isSaveEnabled = false});
+  const EditWorkDataChanged(
+      {required this.workEntry, this.isSaveEnabled = false});
 
-  /// Restituisce una lista di oggetti che rappresentano le proprietà dell'oggetto stato.
-  ///
-  /// Questa lista viene utilizzata da `Equatable` per determinare l'uguaglianza tra gli stati.
-  ///
-  /// Include la voce di lavoro modificata e il flag `isSaveEnabled`.
   @override
-  List<Object> get props => [workEntry, isSaveEnabled];
+  List<Object?> get props => [workEntry, isSaveEnabled];
 }
 
-/// Stato che indica che il salvataggio della voce di lavoro è stato completato con successo.
-///
-/// Questo stato viene emesso quando la voce di lavoro modificata è stata salvata correttamente
-/// nel repository.
+/// Lo stato che indica che il salvataggio di una voce di lavoro è stato completato con successo.
 class EditWorkSaved extends EditWorkState {}
 
-/// Stato che rappresenta un errore durante la modifica della voce di lavoro.
-///
-/// Questo stato viene emesso quando si verifica un errore durante il caricamento, la modifica
-/// o il salvataggio della voce di lavoro.
-///
-/// Contiene un messaggio di errore che descrive l'errore verificatosi.
+/// Lo stato che rappresenta un errore durante la modifica di una voce di lavoro.
 class EditWorkError extends EditWorkState {
   /// Il messaggio di errore.
   final String message;
 
-  /// Costruttore della classe `EditWorkError`.
-  ///
-  /// Accetta il messaggio di errore come parametro obbligatorio.
-  EditWorkError({required this.message});
+  const EditWorkError({required this.message});
 
-  /// Restituisce una lista di oggetti che rappresentano le proprietà dell'oggetto stato.
-  ///
-  /// Questa lista viene utilizzata da `Equatable` per determinare l'uguaglianza tra gli stati.
-  ///
-  /// Include il messaggio di errore.
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }

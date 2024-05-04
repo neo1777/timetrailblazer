@@ -1,17 +1,10 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/data/datasources/repositories/work_entry_repository.dart';
-import 'package:timetrailblazer/data/models/day_work_entries_model.dart';
-import 'package:timetrailblazer/data/models/work_entry_model.dart';
-
-part 'work_entries_event.dart';
-part 'work_entries_state.dart';
+import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_event.dart';
+import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_state.dart';
 
 /// La classe `WorkEntriesBloc` gestisce la logica di business e lo stato delle voci di lavoro.
-///
-/// Questo BLoC si occupa di caricare, aggiornare e resettare le voci di lavoro in base agli eventi ricevuti.
-/// Fornisce stati appropriati per rappresentare il caricamento, il successo o l'errore durante le operazioni sulle voci di lavoro.
 class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   /// Il repository delle voci di lavoro utilizzato per accedere ai dati.
   final WorkEntryRepository workEntryRepository;
@@ -22,25 +15,23 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
   /// Inizializza lo stato iniziale a [WorkEntriesInitial] e registra i gestori degli eventi utilizzando il metodo `on`.
   WorkEntriesBloc({required this.workEntryRepository})
       : super(WorkEntriesInitial()) {
-    on<FetchWorkEntries>(_fetchWorkEntries);
-    on<WorkEntriesUpdated>(_workEntriesUpdated);
-    on<ResetDatabase>(_resetDatabase);
-    on<DeleteWorkEntry>(_deleteWorkEntry);
+    on<FetchWorkEntries>(_onFetchWorkEntries);
+    on<WorkEntriesUpdated>(_onWorkEntriesUpdated);
+    on<ResetDatabase>(_onResetDatabase);
+    on<DeleteWorkEntry>(_onDeleteWorkEntry);
   }
 
   /// Gestore dell'evento [FetchWorkEntries].
   ///
-  /// Questo metodo viene chiamato quando viene ricevuto l'evento [FetchWorkEntries].
-  /// Imposta lo stato [WorkEntriesLoading] durante il caricamento delle voci di lavoro.
   /// Recupera le voci di lavoro dall'intervallo di date specificato utilizzando il repository.
   /// In caso di successo, imposta lo stato [WorkEntriesLoaded] con le voci di lavoro caricate.
   /// In caso di errore, imposta lo stato [WorkEntriesError] con un messaggio di errore appropriato.
-  _fetchWorkEntries(
+  Future<void> _onFetchWorkEntries(
       FetchWorkEntries event, Emitter<WorkEntriesState> emit) async {
     emit(WorkEntriesLoading());
     try {
-      List<DateTime> days = getDaysInRange(event.startDate, event.endDate);
-      var entries =
+      final days = getDaysInRange(event.startDate, event.endDate);
+      final entries =
           await workEntryRepository.getWorkEntriesByDays(days, event.endDate);
       emit(WorkEntriesLoaded(entries));
     } catch (e) {
@@ -49,8 +40,9 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
     }
   }
 
+  /// Restituisce una lista di date nell'intervallo specificato.
   List<DateTime> getDaysInRange(DateTime startDate, DateTime endDate) {
-    List<DateTime> days = [];
+    final days = <DateTime>[];
     for (int i = 0; i <= endDate.difference(startDate).inDays; i++) {
       days.add(startDate.add(Duration(days: i)));
     }
@@ -59,21 +51,19 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
 
   /// Gestore dell'evento [WorkEntriesUpdated].
   ///
-  /// Questo metodo viene chiamato quando viene ricevuto l'evento [WorkEntriesUpdated].
   /// Imposta lo stato [WorkEntriesLoaded] con le voci di lavoro aggiornate.
-  _workEntriesUpdated(
+  void _onWorkEntriesUpdated(
       WorkEntriesUpdated event, Emitter<WorkEntriesState> emit) {
-    emit(WorkEntriesLoaded(event.updatedEntries.cast<DayWorkEntriesModel>()));
+    emit(WorkEntriesLoaded(event.updatedEntries));
   }
 
   /// Gestore dell'evento [ResetDatabase].
   ///
-  /// Questo metodo viene chiamato quando viene ricevuto l'evento [ResetDatabase].
-  /// Imposta lo stato [WorkEntriesLoading] durante il reset del database.
   /// Resetta il database utilizzando il repository.
   /// In caso di successo, emette l'evento [FetchWorkEntries] per ricaricare le voci di lavoro e imposta lo stato [DatabaseResetSuccess].
   /// In caso di errore, imposta lo stato [WorkEntriesError] con un messaggio di errore appropriato.
-  _resetDatabase(ResetDatabase event, Emitter<WorkEntriesState> emit) async {
+  Future<void> _onResetDatabase(
+      ResetDatabase event, Emitter<WorkEntriesState> emit) async {
     emit(WorkEntriesLoading());
     try {
       await workEntryRepository.resetDatabase();
@@ -85,7 +75,12 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
     }
   }
 
-  _deleteWorkEntry(
+  /// Gestore dell'evento [DeleteWorkEntry].
+  ///
+  /// Elimina una voce di lavoro utilizzando il repository.
+  /// In caso di successo, emette l'evento [FetchWorkEntries] per ricaricare le voci di lavoro e imposta lo stato [WorkEntryDeleted].
+  /// In caso di errore, imposta lo stato [WorkEntriesError] con un messaggio di errore appropriato.
+  Future<void> _onDeleteWorkEntry(
       DeleteWorkEntry event, Emitter<WorkEntriesState> emit) async {
     emit(WorkEntriesLoading());
     try {
@@ -93,7 +88,8 @@ class WorkEntriesBloc extends Bloc<WorkEntriesEvent, WorkEntriesState> {
       add(FetchWorkEntries(event.startDate, event.endDate));
       emit(WorkEntryDeleted());
     } catch (e) {
-      emit(WorkEntriesError(AppErrorMessages.workEntriesOperationErrorMessage(e.toString())));
+      emit(WorkEntriesError(
+          AppErrorMessages.workEntriesOperationErrorMessage(e.toString())));
       event.onErrorCallback(AppErrorMessages.errorOccurred, e.toString());
     }
   }

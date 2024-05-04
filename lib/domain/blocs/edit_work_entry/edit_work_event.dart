@@ -1,45 +1,55 @@
-part of 'edit_work_bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+import 'package:timetrailblazer/data/models/work_entry_model.dart';
 
+/// La classe base astratta per gli eventi del BLoC `EditWorkBloc`.
 abstract class EditWorkEvent extends Equatable {
   const EditWorkEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
-// Evento per caricare i dati esistenti dell'entry
+
+/// L'evento che richiede il caricamento dei dati esistenti di una voce di lavoro.
 class LoadWorkEntry extends EditWorkEvent {
+  /// L'ID della voce di lavoro da caricare.
   final int entryId;
 
   const LoadWorkEntry({required this.entryId});
 
   @override
-  List<Object> get props => [entryId];
+  List<Object?> get props => [entryId];
 }
-// Evento per modificare la data dell'entry
+
+/// L'evento che indica la modifica della data di una voce di lavoro.
 class UpdateDate extends EditWorkEvent {
+  /// La nuova data selezionata.
   final DateTime newDate;
 
   const UpdateDate({required this.newDate});
 
   @override
-  List<Object> get props => [newDate];
+  List<Object?> get props => [newDate];
 }
 
-// Evento per modificare l'ora dell'entry
+/// L'evento che indica la modifica dell'ora di una voce di lavoro.
 class UpdateTime extends EditWorkEvent {
+  /// La nuova ora selezionata.
   final TimeOfDay newTime;
 
   const UpdateTime({required this.newTime});
 
   @override
-  List<Object> get props => [newTime];
+  List<Object?> get props => [newTime];
 }
-// Evento per salvare le modifiche
+
+/// L'evento che richiede il salvataggio delle modifiche a una voce di lavoro.
 class SaveWorkEntry extends EditWorkEvent {
+  /// La voce di lavoro modificata da salvare.
   final WorkEntryModel workEntry;
 
   const SaveWorkEntry({required this.workEntry});
 
   @override
-  List<Object> get props => [workEntry];
+  List<Object?> get props => [workEntry];
 }
