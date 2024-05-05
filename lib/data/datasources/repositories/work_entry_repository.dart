@@ -36,14 +36,18 @@ class WorkEntryRepository {
   }
 
   /// Metodo per il recupero delle voci di lavoro per i giorni specificati.
-  Future<List<DayWorkEntriesModel>> getWorkEntriesByDays(List<DateTime> days, DateTime endDate) async {
+  Future<List<DayWorkEntriesModel>> getWorkEntriesByDays(
+      List<DateTime> days, DateTime endDate) async {
     final dayWorkEntriesList = <DayWorkEntriesModel>[];
 
     for (final day in days) {
       final startOfDay = DateTime(day.year, day.month, day.day);
-      final endOfDay = startOfDay.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
+      final endOfDay = startOfDay
+          .add(const Duration(days: 1))
+          .subtract(const Duration(milliseconds: 1));
 
-      final workEntryDTOs = await _workEntryProvider.getWorkEntriesByDateRange(startOfDay, endOfDay);
+      final workEntryDTOs = await _workEntryProvider.getWorkEntriesByDateRange(
+          startOfDay, endOfDay);
       final workEntries = workEntryDTOs.map(_workEntryMapper.fromDTO).toList();
 
       dayWorkEntriesList.add(
@@ -82,40 +86,23 @@ class WorkEntryRepository {
     }
   }
 
-  /// Metodo per il recupero delle statistiche di lavoro giornaliere.
-  Future<List<DailyWorkStats>> getDailyWorkStats() async {
-    final workStatsDTOs = await _workEntryProvider.getDailyWorkStats();
-    return workStatsDTOs.map((dto) => DailyWorkStats(
-          date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
-          workedHours: Duration(seconds: dto.workedSeconds),
-          overtimeHours: Duration(seconds: dto.overtimeSeconds),
-        )).toList();
+  /// Metodo per il recupero delle statistiche di lavoro per un intervallo di date selezionato.
+  Future<List<DailyWorkStats>> getSelectedRangeWorkStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final workStatsDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
+      startDate: startDate,
+      endDate: endDate,
+    );
+    return workStatsDTOs
+        .map((dto) => DailyWorkStats(
+              date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
+              workedHours: Duration(seconds: dto.workedSeconds),
+              overtimeHours: Duration(seconds: dto.overtimeSeconds),
+            ))
+        .toList();
   }
-
-  /// Metodo per il recupero delle statistiche di lavoro mensili.
-  Future<List<MonthlyWorkStats>> getMonthlyWorkStats() async {
-    final workStatsDTOs = await _workEntryProvider.getMonthlyWorkStats();
-    return workStatsDTOs.map((dto) => MonthlyWorkStats(
-month: DateTime(dto.year!, dto.month!),
-workedHours: Duration(seconds: dto.workedSeconds),
-overtimeHours: Duration(seconds: dto.overtimeSeconds),
-)).toList();
-}
-/// Metodo per il recupero delle statistiche di lavoro per un intervallo di date selezionato.
-Future<List<DailyWorkStats>> getSelectedRangeWorkStats({
-required DateTime startDate,
-required DateTime endDate,
-}) async {
-final workStatsDTOs = await _workEntryProvider.getSelectedRangeWorkStats(
-startDate: startDate,
-endDate: endDate,
-);
-return workStatsDTOs.map((dto) => DailyWorkStats(
-date: DateTime.fromMillisecondsSinceEpoch(dto.date!),
-workedHours: Duration(seconds: dto.workedSeconds),
-overtimeHours: Duration(seconds: dto.overtimeSeconds),
-)).toList();
-}
 }
 /**import 'dart:async';
 

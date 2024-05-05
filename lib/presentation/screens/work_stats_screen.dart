@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +24,10 @@ class WorkStatsScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => WorkStatsBloc(
         RepositoryProvider.of<WorkEntryRepository>(context),
-      )..add(ShowMonthlyStats()),
+      )..add(ShowSelectedRangeStats(
+          startDate: dateRangeModel.startDate,
+          endDate: dateRangeModel.endDate,
+        )),
       child: Scaffold(
         appBar: CustomAppBar(
           title: AppStrings.workStatsTitle,
@@ -34,89 +38,79 @@ class WorkStatsScreen extends StatelessWidget {
             if (state is WorkStatsLoading) {
               return const Center(child: CircularProgressIndicator());
             } else if (state is WorkStatsLoaded) {
-              final dailyStats = state.dailyStats;
-              final monthlyStats = state.monthlyStats;
               final selectedRangeStats = state.selectedRangeStats;
 
-              return SafeArea(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      flex: 1,
-                      fit: FlexFit.tight,
-                      child: Container(
-                        color: Colors.transparent,
-                      ),
-                    ),
-                    const CustomSpacer(flex: 1),
-                    Flexible(
-                      flex: 5,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Flexible(
-                            flex: 2,
-                            child: WorkButton(
-                              label: 'Giornaliero',
-                              onPressed: () {
-                                context
-                                    .read<WorkStatsBloc>()
-                                    .add(ShowDailyStats());
-                              },
-                            ),
+              return Column(
+                mainAxisSize: MainAxisSize.max,
+                //mainAxisAlignment: MainAxisAlignment.start,
+                //crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CustomSpacer(flex: 5),
+                  Flexible(
+                    flex: 10,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Flexible(
+                          flex: 5,
+                          child: WorkButton(
+                            label: 'Giornaliero',
+                            onPressed: () {
+                              // context
+                              //     .read<WorkStatsBloc>()
+                              //     .add(ShowDailyStats());
+                            },
                           ),
-                          Flexible(
-                            flex: 2,
-                            child: WorkButton(
-                              label: 'Mensile',
-                              onPressed: () {
-                                context
-                                    .read<WorkStatsBloc>()
-                                    .add(ShowMonthlyStats());
-                              },
-                            ),
-                          ),
-                          Flexible(
-                            flex: 2,
-                            child: WorkButton(
-                              label: 'Intervallo selezionato',
-                              onPressed: () {
-                                context
-                                    .read<WorkStatsBloc>()
-                                    .add(ShowSelectedRangeStats(
-                                      startDate: dateRangeModel.startDate,
-                                      endDate: dateRangeModel.endDate,
-                                    ));
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const CustomSpacer(flex: 2),
-                    // Mostra il titolo con le date di inizio e fine per l'intervallo selezionato
-                    if (state.selectedView == StatsView.selectedRange)
-                      Flexible(
-                        flex: 5,
-                        child: Text(
-                          'Dal ${DateFormat('dd/MM/yyyy').format(dateRangeModel.startDate)} al ${DateFormat('dd/MM/yyyy').format(dateRangeModel.endDate)}',
-                          style: Theme.of(context).textTheme.titleLarge,
                         ),
-                      ),
-                    const CustomSpacer(flex: 1),
-                    Flexible(
-                      flex: 5,
-                      child: state.selectedView == StatsView.daily
-                          ? _buildDailyStatsList(dailyStats)
-                          : state.selectedView == StatsView.monthly
-                              ? _buildMonthlyStatsList(monthlyStats)
-                              : _buildSelectedRangeStatsList(
-                                  selectedRangeStats),
+                        Flexible(
+                          flex: 5,
+                          child: WorkButton(
+                            label: 'Mensile',
+                            onPressed: () {
+                              // context
+                              //     .read<WorkStatsBloc>()
+                              //     .add(ShowMonthlyStats());
+                            },
+                          ),
+                        ),
+                        Flexible(
+                          flex: 5,
+                          child: WorkButton(
+                            label: 'Intervallo selezionato',
+                            onPressed: () {
+                              context
+                                  .read<WorkStatsBloc>()
+                                  .add(ShowSelectedRangeStats(
+                                    startDate: dateRangeModel.startDate,
+                                    endDate: dateRangeModel.endDate,
+                                  ));
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const CustomSpacer(flex: 1),
+                  Flexible(
+                    flex: 1,
+                    fit: FlexFit.tight,
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
+                  ),
+                  const CustomSpacer(flex: 3),
+                  Flexible(
+                    flex: 5,
+                    child: Text(
+                      'Dal ${DateFormat('dd/MM/yyyy').format(dateRangeModel.startDate)} al ${DateFormat('dd/MM/yyyy').format(dateRangeModel.endDate)}',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  const CustomSpacer(flex: 5),
+                  Flexible(
+                      flex: 65,
+                      child: _buildSelectedRangeStatsList(selectedRangeStats))
+                ],
               );
             } else if (state is WorkStatsError) {
               return const Center(child: Text(AppErrorMessages.loadStatsError));
@@ -126,65 +120,6 @@ class WorkStatsScreen extends StatelessWidget {
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildDailyStatsList(List<DailyWorkStats> dailyStats) {
-    if (dailyStats.isEmpty) {
-      return const Center(
-          child: Text('Nessun dato disponibile per il giorno selezionato.'));
-    }
-
-    return ListView.separated(
-      itemCount: dailyStats.length,
-      itemBuilder: (context, index) {
-        final dailyStat = dailyStats[index];
-        final formattedDate = DateFormat('dd/MM/yyyy').format(dailyStat.date);
-        final workedHours = dailyStat.workedHours.inHours;
-        final overtimeHours = dailyStat.overtimeHours.inHours;
-
-        return ListTile(
-          title: Text(formattedDate),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Ore lavorate: $workedHours'),
-              Text('Ore di straordinario: $overtimeHours'),
-            ],
-          ),
-        );
-      },
-      separatorBuilder: (context, index) => const Divider(),
-    );
-  }
-
-  Widget _buildMonthlyStatsList(List<MonthlyWorkStats> monthlyStats) {
-    if (monthlyStats.isEmpty) {
-      return const Center(
-          child: Text('Nessun dato disponibile per il mese selezionato.'));
-    }
-
-    return ListView.separated(
-      itemCount: monthlyStats.length,
-      itemBuilder: (context, index) {
-        final monthlyStat = monthlyStats[index];
-        final formattedMonth =
-            DateFormat('MMMM yyyy', 'it_IT').format(monthlyStat.month);
-        final workedHours = monthlyStat.workedHours.inHours;
-        final overtimeHours = monthlyStat.overtimeHours.inHours;
-
-        return ListTile(
-          title: Text(formattedMonth),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Ore lavorate: $workedHours'),
-              Text('Ore di straordinario: $overtimeHours'),
-            ],
-          ),
-        );
-      },
-      separatorBuilder: (context, index) => const Divider(),
     );
   }
 
@@ -206,6 +141,7 @@ class WorkStatsScreen extends StatelessWidget {
         return ListTile(
           title: Text(formattedDate),
           subtitle: Column(
+            mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Ore lavorate: $workedHours'),

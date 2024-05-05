@@ -8,12 +8,6 @@ abstract class WorkStatsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// L'evento che richiede di mostrare le statistiche giornaliere.
-class ShowDailyStats extends WorkStatsEvent {}
-
-/// L'evento che richiede di mostrare le statistiche mensili.
-class ShowMonthlyStats extends WorkStatsEvent {}
-
 /// L'evento che richiede di mostrare le statistiche per l'intervallo selezionato.
 class ShowSelectedRangeStats extends WorkStatsEvent {
   /// La data di inizio dell'intervallo selezionato.

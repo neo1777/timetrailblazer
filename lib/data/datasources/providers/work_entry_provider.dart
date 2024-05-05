@@ -55,56 +55,6 @@ class WorkEntryProvider {
     return workEntry != null ? WorkEntryDTO.fromWorkEntry(workEntry) : null;
   }
 
-  /// Metodo per il recupero delle statistiche di lavoro giornaliere dal database.
-  Future<List<WorkStatsDTO>> getDailyWorkStats() async {
-    final workEntries = await _database.getAllWorkEntries();
-    final dailyStats = <WorkStatsDTO>[];
-
-    final groupedEntries = _groupEntriesByDate(workEntries);
-
-    for (final entry in groupedEntries.entries) {
-      final date = entry.key;
-      final entries = entry.value;
-
-      final workedSeconds = _calculateWorkedSeconds(entries);
-      final overtimeSeconds = _calculateOvertimeSeconds(entries);
-
-      dailyStats.add(WorkStatsDTO(
-        date: date.millisecondsSinceEpoch,
-        workedSeconds: workedSeconds,
-        overtimeSeconds: overtimeSeconds,
-      ));
-    }
-
-    return dailyStats;
-  }
-
-  /// Metodo per il recupero delle statistiche di lavoro mensili dal database.
-  Future<List<WorkStatsDTO>> getMonthlyWorkStats() async {
-    final workEntries = await _database.getAllWorkEntries();
-    final monthlyStats = <WorkStatsDTO>[];
-
-    final groupedEntries = _groupEntriesByMonth(workEntries);
-
-    for (final entry in groupedEntries.entries) {
-      final year = entry.key.year;
-      final month = entry.key.month;
-      final entries = entry.value;
-
-      final workedSeconds = _calculateWorkedSeconds(entries);
-      final overtimeSeconds = _calculateOvertimeSeconds(entries);
-
-      monthlyStats.add(WorkStatsDTO(
-        year: year,
-        month: month,
-        workedSeconds: workedSeconds,
-        overtimeSeconds: overtimeSeconds,
-      ));
-    }
-
-    return monthlyStats;
-  }
-
   /// Metodo per il recupero delle statistiche di lavoro per un intervallo di date selezionato dal database.
   Future<List<WorkStatsDTO>> getSelectedRangeWorkStats({
     required DateTime startDate,
