@@ -8,7 +8,6 @@ import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_bloc.dart
 import 'package:timetrailblazer/domain/blocs/work_entries/work_entries_event.dart';
 import 'package:timetrailblazer/presentation/screens/edit_work_entry_screen.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
-import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 
 /// Il widget `DayRangeCalendar` visualizza le voci di lavoro in un calendario variabile.
 ///
@@ -45,8 +44,8 @@ class DayRangeCalendar extends StatelessWidget {
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 300,
         childAspectRatio: 1.5,
-        mainAxisSpacing: 10.0,
-        crossAxisSpacing: 10.0,
+        mainAxisSpacing: 1.0,
+        crossAxisSpacing: 1.0,
       ),
       itemBuilder: (context, index) {
         final dayWorkEntries = dayWorkEntriesList[index];
@@ -68,159 +67,116 @@ class DayRangeCalendar extends StatelessWidget {
     final formattedDate = DateFormat('EEE, dd MMM yyyy', 'it_IT').format(day);
 
     return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CustomSpacer(
-              flex: 1,
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Mostra la data formattata del giorno
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: CustomAutoSizeText(
+              formattedDate,
+              Theme.of(context).textTheme.titleMedium!,
+              TextAlign.start,
             ),
-            // Mostra la data formattata del giorno
+          ),
+          // Mostra le voci di lavoro per il giorno corrente, se presenti
+          if (workEntries != null)
             Flexible(
-              flex: 10,
-              child: CustomAutoSizeText(
-                formattedDate,
-                Theme.of(context).textTheme.labelSmall!,
-                TextAlign.center,
-              ),
-            ),
-            const CustomSpacer(
-              flex: 2,
-            ), // Mostra le voci di lavoro per il giorno corrente, se presenti
-            if (workEntries != null)
-              Flexible(
-                flex: 10,
-                child: ListView.builder(
-                  itemCount: workEntries.length,
-                  itemBuilder: (context, index) {
-                    final entry = workEntries[index];
-                    final entryColor =
-                        entry.isEntry! ? Colors.greenAccent : Colors.redAccent;
-                    final entryText = entry.isEntry! ? 'Entrata' : 'Uscita';
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: workEntries.length,
+                itemBuilder: (context, index) {
+                  final entry = workEntries[index];
+                  final entryColor =
+                      entry.isEntry! ? Colors.indigo : Colors.deepPurple;
+                  final entryText = entry.isEntry! ? 'Entrata' : 'Uscita';
 
-                    return Row(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  return SizedBox(
+                    height: 25,
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
-                          flex: 60,
-                          child: FittedBox(
+                          flex: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8),
                             child: CustomAutoSizeText(
-                              '$entryText:',
+                              '$entryText: ${DateFormat('HH:mm').format(entry.timestamp)}',
                               TextStyle(
-                                  color: entryColor,
-                                  fontWeight: FontWeight.w700),
-                              TextAlign.justify,
-                            ),
-                          ),
-                        ),
-                        const CustomSpacer(
-                          flex: 1,
-                        ),
-                        Flexible(
-                          flex: 25,
-                          child: FittedBox(
-                            child: CustomAutoSizeText(
-                              DateFormat('HH:mm').format(entry.timestamp),
-                              TextStyle(
-                                  color: entryColor,
-                                  fontWeight: FontWeight.w600),
-                              TextAlign.justify,
-                            ),
-                          ),
-                        ),
-                        const CustomSpacer(
-                          flex: 45,
-                        ),
-                        Flexible(
-                          flex: 18,
-                          child: FittedBox(
-                            child: IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditWorkEntryScreen(
-                                      entryId: entry.id!,
-                                      startDate: startDate,
-                                      endDate: endDate,
-                                    ),
-                                  ),
-                                );
-
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) =>
-                                //         EditWorkEntryScreen(workEntry: entry),
-                                //   ),
-                                // ).then((updatedEntry) {
-                                //   if (updatedEntry != null) {
-                                //     widget.onEntryModified(updatedEntry);
-                                //   }
-                                // });
-                              },
+                                color: entryColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              TextAlign.start,
                             ),
                           ),
                         ),
                         Flexible(
-                          flex: 18,
+                          flex: 2,
                           child: FittedBox(
-                            child: IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                final dateRangeModel =
-                                    Provider.of<DateRangeModel>(context,
-                                        listen: false);
-                                context.read<WorkEntriesBloc>().add(
-                                      DeleteWorkEntry(
-                                        id: entry.id!,
-                                        startDate: dateRangeModel.startDate,
-                                        endDate: dateRangeModel.endDate, onErrorCallback: (_,__) {  },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditWorkEntryScreen(
+                                          entryId: entry.id!,
+                                          startDate: startDate,
+                                          endDate: endDate,
+                                        ),
                                       ),
                                     );
-                              },
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () {
+                                    final dateRangeModel =
+                                        Provider.of<DateRangeModel>(context,
+                                            listen: false);
+                                    context.read<WorkEntriesBloc>().add(
+                                          DeleteWorkEntry(
+                                            id: entry.id!,
+                                            startDate: dateRangeModel.startDate,
+                                            endDate: dateRangeModel.endDate,
+                                            onErrorCallback: (_, __) {},
+                                          ),
+                                        );
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ],
-                    );
-                    // Row(
-                    //   children: [
-                    //     Column(
-                    //       crossAxisAlignment: CrossAxisAlignment.start,
-                    //       children: [
-                    //         // Mostra l'orario di entrata/uscita
-                    //         CustomAutoSizeText(
-                    //           '$entryText: ${DateFormat('HH:mm').format(entry.timestamp)}',
-                    //           TextStyle(color: entryColor),
-                    //           TextAlign.start,
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ],
-                    // );
-                  },
-                ),
-              )
-            else
-              // Mostra un messaggio se non ci sono voci di lavoro per il giorno corrente
-              const Flexible(
-                flex: 2,
+                    ),
+                  );
+                },
+              ),
+            )
+          else
+            // Mostra un messaggio se non ci sono voci di lavoro per il giorno corrente
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: CustomAutoSizeText(
                   'Nessuna registrazione',
-                  TextStyle(fontWeight: FontWeight.bold),
+                  TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                   TextAlign.center,
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
