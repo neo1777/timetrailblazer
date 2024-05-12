@@ -163,9 +163,9 @@ class DayRangeCalendar extends StatelessWidget {
             )
           else
             // Mostra un messaggio se non ci sono voci di lavoro per il giorno corrente
-            Flexible(
+            const Flexible(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
                 child: CustomAutoSizeText(
                   'Nessuna registrazione',
                   TextStyle(

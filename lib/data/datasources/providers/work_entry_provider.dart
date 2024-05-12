@@ -94,16 +94,6 @@ class WorkEntryProvider {
     });
   }
 
-  /// Metodo privato per raggruppare le voci di lavoro per mese.
-  Map<DateTime, List<WorkEntry>> _groupEntriesByMonth(List<WorkEntry> entries) {
-    return entries.fold({}, (map, entry) {
-      final month = DateTime(entry.timestamp.year, entry.timestamp.month);
-      map[month] ??= [];
-      map[month]!.add(entry);
-      return map;
-    });
-  }
-
   /// Metodo privato per calcolare i secondi lavorati dato un elenco di voci di lavoro.
   int _calculateWorkedSeconds(List<WorkEntry> entries) {
     int workedSeconds = 0;
