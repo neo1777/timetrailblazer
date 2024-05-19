@@ -1,14 +1,10 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:timetrailblazer/config/constants_routes.dart';
 import 'package:timetrailblazer/config/constants_string.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_event.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_state.dart';
-import 'package:timetrailblazer/presentation/widgets/app_bar.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
@@ -21,9 +17,6 @@ class HomePageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: AppStrings.homeTitle,
-      ),
       body: BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
         // Determina se il pulsante di entrata e di uscita devono essere abilitati o meno
         // in base allo stato corrente del BLoC
@@ -87,14 +80,14 @@ class HomeScreen extends StatelessWidget {
               color: Colors.transparent,
             ),
           ),
-          const CustomSpacer(flex: 1),
+          const CustomSpacer(flex: 5),
           Flexible(
             flex: 48,
             child: CustomAutoSizeText(
-              AppStrings.appName,
-              Theme.of(context).textTheme.headlineLarge!,
-              TextAlign.center,
-            ),
+                AppStrings.appName,
+                Theme.of(context).textTheme.headlineLarge!,
+                TextAlign.center,
+                null),
           ),
           Flexible(
             flex: 32,
@@ -102,9 +95,10 @@ class HomeScreen extends StatelessWidget {
               AppStrings.appDescription,
               Theme.of(context).textTheme.bodyMedium!,
               TextAlign.center,
+              null,
             ),
           ),
-          const CustomSpacer(flex: 2),
+          const CustomSpacer(flex: 6),
           Flexible(
             flex: 16,
             child: WorkButton(
@@ -142,6 +136,7 @@ class HomeScreen extends StatelessWidget {
               AppStrings.appFooter,
               Theme.of(context).textTheme.bodySmall!,
               TextAlign.center,
+              null,
             ),
           ),
         ],

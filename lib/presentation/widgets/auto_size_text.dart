@@ -17,13 +17,16 @@ class CustomAutoSizeText extends StatelessWidget {
   /// L'allineamento del testo.
   final TextAlign textAlign;
 
+  final int? maxLines;
+
   /// Costruttore della classe `CustomAutoSizeText`.
   ///
   /// Accetta i seguenti parametri:
   /// - `text`: il testo da visualizzare.
   /// - `style`: lo stile del testo.
   /// - `textAlign`: l'allineamento del testo.
-  const CustomAutoSizeText(this.text, this.style, this.textAlign, {super.key});
+  const CustomAutoSizeText(this.text, this.style, this.textAlign, this.maxLines,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,7 @@ class CustomAutoSizeText extends StatelessWidget {
       textAlign: textAlign,
       style: style,
       minFontSize: 0,
-      maxLines: null,
+      maxLines: maxLines,
       overflow: TextOverflow.fade,
     );
   }

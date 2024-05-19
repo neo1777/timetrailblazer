@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
 
 /// Il widget `DateRangePicker` consente all'utente di selezionare un intervallo di date.
 class DateRangePicker extends StatelessWidget {
@@ -43,7 +44,12 @@ class DateRangePicker extends StatelessWidget {
         Flexible(
           child: ElevatedButton(
             onPressed: () => _selectDate(context, true),
-            child: Text('Dal: ${DateFormat('dd/MM/yyyy').format(startDate)}'),
+            child: CustomAutoSizeText(
+              'Dal: ${DateFormat('dd/MM/yyyy').format(startDate)}',
+              const TextStyle(),
+              TextAlign.justify,
+              1,
+            ),
           ),
         ),
         Flexible(

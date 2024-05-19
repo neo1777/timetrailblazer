@@ -44,6 +44,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         title,
         Theme.of(context).textTheme.titleSmall!,
         TextAlign.center,
+        null,
       ),
       titleSpacing: 0,
       centerTitle: false,

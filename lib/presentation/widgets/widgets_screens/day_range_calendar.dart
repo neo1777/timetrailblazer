@@ -79,6 +79,7 @@ class DayRangeCalendar extends StatelessWidget {
               formattedDate,
               Theme.of(context).textTheme.titleMedium!,
               TextAlign.start,
+              null,
             ),
           ),
           // Mostra le voci di lavoro per il giorno corrente, se presenti
@@ -110,6 +111,7 @@ class DayRangeCalendar extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                               TextAlign.start,
+                              null,
                             ),
                           ),
                         ),
@@ -173,6 +175,7 @@ class DayRangeCalendar extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                   TextAlign.center,
+                  null,
                 ),
               ),
             ),
