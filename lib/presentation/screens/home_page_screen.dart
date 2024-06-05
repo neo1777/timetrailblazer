@@ -6,6 +6,7 @@ import 'package:timetrailblazer/domain/blocs/home_page/home_bloc.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_event.dart';
 import 'package:timetrailblazer/domain/blocs/home_page/home_state.dart';
 import 'package:timetrailblazer/presentation/widgets/auto_size_text.dart';
+import 'package:timetrailblazer/presentation/widgets/common_body.dart';
 import 'package:timetrailblazer/presentation/widgets/spacer.dart';
 import 'package:timetrailblazer/presentation/widgets/work_button.dart';
 
@@ -68,18 +69,11 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return CommonBody(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Flexible(
-            flex: 1,
-            fit: FlexFit.tight,
-            child: Container(
-              color: Colors.transparent,
-            ),
-          ),
           const CustomSpacer(flex: 5),
           Flexible(
             flex: 48,
